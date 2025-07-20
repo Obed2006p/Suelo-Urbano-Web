@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LeafIcon } from './icons/Icons';
 
@@ -11,9 +10,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   
   const navLinks = [
     { id: 'beneficios', label: 'Beneficios' },
-    { id: 'ventajas', label: 'Utilidades' },
+    { id: 'ventajas', label: 'Ventajas' },
     { id: 'composicion', label: 'Composición' },
-    { id: 'modo-uso', label: 'Modo de Empleo' },
   ];
 
   return (

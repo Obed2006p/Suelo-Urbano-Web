@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { CheckCircleIcon } from './icons/Icons';
+import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 
 // Declara la variable global de emailjs para que TypeScript la reconozca.
 // El SDK se carga desde index.html
@@ -10,8 +11,14 @@ const OrderSection: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    size: 'Bolsa de 200 gramos (Ideal para empezar)',
+    size: 'Bolsa de 300gr',
     quantity: 1,
+    street: '',
+    extNumber: '',
+    intNumber: '',
+    neighborhood: '',
+    postalCode: '',
+    references: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +27,14 @@ const OrderSection: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleQuantityChange = (amount: number) => {
+    setFormData(prev => {
+        const currentQuantity = Number(prev.quantity) || 0;
+        const newQuantity = Math.max(1, currentQuantity + amount);
+        return { ...prev, quantity: newQuantity };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +52,13 @@ const OrderSection: React.FC = () => {
         email: formData.email,
         phone: formData.phone || 'No proporcionado',
         size: formData.size,
-        quantity: formData.quantity
+        quantity: Number(formData.quantity) || 1,
+        street: formData.street || 'No proporcionado',
+        extNumber: formData.extNumber || 'No proporcionado',
+        intNumber: formData.intNumber || 'N/A',
+        neighborhood: formData.neighborhood || 'No proporcionado',
+        postalCode: formData.postalCode || 'No proporcionado',
+        references: formData.references || 'No proporcionado'
     };
 
     emailjs.send(serviceID, templateID, templateParams, publicKey)
@@ -51,6 +72,24 @@ const OrderSection: React.FC = () => {
         setError('Hubo un error al enviar el pedido. Por favor, inténtalo de nuevo más tarde.');
       });
   };
+  
+  const resetForm = () => {
+    setIsSubmitted(false);
+    setError(null);
+    setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        size: 'Bolsa de 300gr',
+        quantity: 1,
+        street: '',
+        extNumber: '',
+        intNumber: '',
+        neighborhood: '',
+        postalCode: '',
+        references: '',
+    });
+  }
 
   if (isSubmitted) {
     return (
@@ -59,14 +98,10 @@ const OrderSection: React.FC = () => {
           <CheckCircleIcon className="h-24 w-24 text-green-500 mx-auto mb-6" />
           <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">¡Pedido Recibido!</h2>
           <p className="text-stone-600 text-lg mb-8">
-            Gracias por tu pedido, {formData.name}. Nos pondremos en contacto contigo muy pronto a través de tu correo {formData.email} para confirmar los detalles de la entrega.
+            Gracias por tu pedido, {formData.name}. Nos pondremos en contacto contigo muy pronto a través de tu correo {formData.email} para confirmar los detalles.
           </p>
           <button
-            onClick={() => {
-                setIsSubmitted(false);
-                setError(null);
-                setFormData({name: '', email: '', phone: '', size: 'Bolsa de 200 gramos (Ideal para empezar)', quantity: 1});
-            }}
+            onClick={resetForm}
             className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-colors duration-300"
           >
             Hacer Otro Pedido
@@ -93,6 +128,8 @@ const OrderSection: React.FC = () => {
                 <p>{error}</p>
               </div>
             )}
+            
+            <h3 className="text-lg font-semibold text-stone-800 pb-2 border-b border-stone-200">Datos de Contacto</h3>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">Nombre Completo</label>
               <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
@@ -105,21 +142,86 @@ const OrderSection: React.FC = () => {
               <label htmlFor="phone" className="block text-sm font-medium text-stone-700 mb-1">Teléfono (Opcional)</label>
               <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
             </div>
+
+            <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200">Detalles del Pedido</h3>
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-1">
                 <label htmlFor="size" className="block text-sm font-medium text-stone-700 mb-1">Presentación del Producto</label>
                 <select name="size" id="size" value={formData.size} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition text-stone-800">
-                  <option value="Bolsa de 200 gramos (Ideal para empezar)">Bolsa de 200g - Ideal para empezar</option>
-                  <option value="Bolsa de 500 gramos (La más popular)">Bolsa de 500g - La más popular</option>
-                  <option value="Bolsa de 1 kilogramo (Mejor valor)">Bolsa de 1kg - Mejor valor</option>
+                  <option value="Bolsa de 300gr">Bolsa de 300gr</option>
                 </select>
               </div>
               <div className="flex-1">
                 <label htmlFor="quantity" className="block text-sm font-medium text-stone-700 mb-1">Cantidad</label>
-                <input type="number" name="quantity" id="quantity" min="1" required value={formData.quantity} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                <div className="relative">
+                    <input 
+                        type="number" 
+                        name="quantity" 
+                        id="quantity" 
+                        min="1" 
+                        required 
+                        value={formData.quantity} 
+                        onChange={handleChange} 
+                        className="w-full pl-4 pr-10 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 text-center"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center p-1">
+                        <div className="flex flex-col h-full w-7 bg-green-200 rounded-md overflow-hidden shadow-sm">
+                            <button 
+                                type="button" 
+                                tabIndex={-1}
+                                onClick={() => handleQuantityChange(1)}
+                                className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none"
+                                aria-label="Aumentar cantidad"
+                            >
+                                <CaretUpIcon className="h-4 w-4" />
+                            </button>
+                            <div className="w-full h-px bg-green-400/50"></div>
+                            <button 
+                                type="button" 
+                                tabIndex={-1}
+                                onClick={() => handleQuantityChange(-1)}
+                                className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none"
+                                aria-label="Disminuir cantidad"
+                            >
+                                <CaretDownIcon className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
               </div>
             </div>
+
+            <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200">Dirección de Entrega</h3>
+            <p className="text-sm text-stone-500 -mt-4">Llena estos campos si deseas que te entreguemos el pedido a domicilio.</p>
+            
             <div>
+                <label htmlFor="street" className="block text-sm font-medium text-stone-700 mb-1">Calle</label>
+                <input type="text" name="street" id="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+            </div>
+             <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex-1">
+                    <label htmlFor="extNumber" className="block text-sm font-medium text-stone-700 mb-1">Número Exterior</label>
+                    <input type="text" name="extNumber" id="extNumber" value={formData.extNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                </div>
+                <div className="flex-1">
+                    <label htmlFor="intNumber" className="block text-sm font-medium text-stone-700 mb-1">Número Interior (Opcional)</label>
+                    <input type="text" name="intNumber" id="intNumber" value={formData.intNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                </div>
+            </div>
+             <div>
+                <label htmlFor="neighborhood" className="block text-sm font-medium text-stone-700 mb-1">Colonia / Delegación</label>
+                <input type="text" name="neighborhood" id="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+            </div>
+            <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-stone-700 mb-1">Código Postal</label>
+                <input type="text" name="postalCode" id="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+            </div>
+            <div>
+                <label htmlFor="references" className="block text-sm font-medium text-stone-700 mb-1">Referencias Adicionales</label>
+                <input type="text" name="references" id="references" value={formData.references} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+            </div>
+            
+            <div className="pt-4">
               <button type="submit" disabled={isLoading} className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {isLoading ? (
                   <>

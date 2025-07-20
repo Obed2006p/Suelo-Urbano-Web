@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Card from './Card';
-import { SproutIcon, PlantIcon, ShieldCheckIcon, TomatoIcon } from './icons/Icons';
+import { SproutIcon, TomatoIcon, ShieldCheckIcon, UserIcon } from './icons/Icons';
 
 const AdvantagesSection: React.FC = () => {
   const advantages = [
@@ -21,7 +21,7 @@ const AdvantagesSection: React.FC = () => {
       description: "Fortalece las plantas, haciéndolas más resistentes a plagas y enfermedades comunes de forma completamente orgánica."
     },
     {
-      icon: <PlantIcon className="h-10 w-10 text-emerald-600" />,
+      icon: <UserIcon className="h-10 w-10 text-emerald-600" />,
       title: "Sustituto de Fertilizantes",
       description: "Elimina la necesidad de usar fertilizantes químicos, ahorrándote dinero y protegiendo a tu familia y mascotas."
     }

@@ -14,7 +14,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     { id: 'ventajas', label: 'Utilidades' },
     { id: 'composicion', label: 'Composición' },
     { id: 'modo-uso', label: 'Modo de Empleo' },
-    { id: 'guia-riego', label: 'Guía de Riego' },
   ];
 
   return (

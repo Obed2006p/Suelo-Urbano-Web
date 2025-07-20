@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suelo Urbano - Emulsión de Alta Calidad</title>
-  <link rel="icon" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2322c55e'%3e%3cpath d='M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66C7.32 16.5 10 12 17 12V8z' /%3e%3cpath d='M17 8a5.22 5.22 0 00-4.63 2.5L11 12l.37-1.5A5.22 5.22 0 0017 8z' /%3e%3c/svg%3e">
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,10 +12,6 @@
   
   <!-- Custom Styles and Animations -->
   <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background-color: #f8fafc; /* A light gray background for the body */
-    }
     /* Keyframes for animations used in Hero.tsx */
     @keyframes fade-in-down {
       from { opacity: 0; transform: translateY(-20px); }
@@ -31,19 +23,21 @@
     }
     .animate-fade-in-down { animation: fade-in-down 0.8s ease-out both; }
     .animate-fade-in-up { animation: fade-in-up 0.8s ease-out 0.4s both; }
-    /* Hide number input arrows */
-    input[type='number'] {
-        -moz-appearance: textfield;
-    }
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
   </style>
   
   <!-- EmailJS SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^4.7.0",
+    "vite": "https://esm.sh/vite@^7.0.5"
+  }
+}
+</script>
 <link rel="stylesheet" href="/index.css">
 </head>
 <body>
@@ -51,22 +45,9 @@
   <!-- React root element -->
   <div id="root"></div>
   
-  <!-- Import Map for React -->
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react/": "https://esm.sh/react@18.2.0/",
-    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^4.7.0",
-    "vite": "https://esm.sh/vite@^7.0.5"
-  }
-}
-</script>
+  <!-- Main application script (Vite will handle this) -->
+  <script type="module" src="/src/index.tsx"></script>
   
-  <!-- Main application script -->
-  <script type="module" src="/index.tsx"></script>
-  
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

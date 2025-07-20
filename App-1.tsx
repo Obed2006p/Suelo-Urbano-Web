@@ -6,7 +6,6 @@ import BenefitsSection from './components/BenefitsSection';
 import AdvantagesSection from './components/AdvantagesSection';
 import ElementsSection from './components/ElementsSection';
 import UsageSection from './components/UsageSection';
-import WateringGuideSection from './components/WateringGuideSection';
 import OrderSection from './components/OrderSection';
 import Footer from './components/Footer';
 
@@ -37,9 +36,6 @@ const App: React.FC = () => {
         </div>
         <div id="modo-uso">
           <UsageSection />
-        </div>
-        <div id="guia-riego">
-          <WateringGuideSection />
         </div>
         <div id="pedidos">
           <OrderSection />
