@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { BootPlantIcon } from './icons/Icons';
+import { LeafIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate: (id: string) => void;
@@ -19,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <BootPlantIcon className="h-8 w-8 text-green-600" />
+          <LeafIcon className="h-8 w-8 text-green-600" />
           <span className="text-2xl font-bold text-green-800">Suelo Urbano</span>
         </div>
         

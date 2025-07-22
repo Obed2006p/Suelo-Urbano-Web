@@ -5,24 +5,6 @@ type IconProps = {
   className?: string;
 };
 
-export const BootPlantIcon: React.FC<IconProps> = ({ className }) => (
-  <svg
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 21H7c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2h1V9c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2h1c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z" />
-    <path d="M12 9V4" />
-    <path d="M14 6c-1.5 0-3 1-3 2.5" />
-    <path d="M10 6c1.5 0 3 1 3 2.5" />
-  </svg>
-);
-
 export const LeafIcon: React.FC<IconProps> = ({ className }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66C7.32 16.5 10 12 17 12V8z" />
@@ -139,6 +121,17 @@ export const CaretDownIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M7 10l5 5 5-5H7z" />
     </svg>
+);
+
+export const LiquidNutrientsIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+    {/* Beaker Outline */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5m-16.5 3.75h16.5M5.25 3.75h13.5a2.25 2.25 0 012.25 2.25v10.5a2.25 2.25 0 01-2.25 2.25H5.25a2.25 2.25 0 01-2.25-2.25V6a2.25 2.25 0 012.25-2.25z" />
+    
+    {/* Leaf inside, adapted and scaled */}
+    <path fill="currentColor" stroke="none" d="M15.5 11.5c-4.5 1-5.55 4.1-6.59 7.2l.94.33c.76-2.25 2.5-4.5 6.05-4.5v-2z" />
+    <path fill="currentColor" stroke="none" d="M15.5 11.5a2.61 2.61 0 00-2.31 1.25L12.5 13.5l.19-.75a2.61 2.61 0 002.81-1.25z" />
+  </svg>
 );
 
 export const VegetableIcon: React.FC<IconProps> = ({ className }) => (

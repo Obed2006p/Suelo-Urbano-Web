@@ -10,6 +10,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const navLinks = [
+    { id: 'que-es', label: 'Qué es' },
     { id: 'beneficios', label: 'Beneficios' },
     { id: 'ventajas', label: 'Utilidades' },
     { id: 'composicion', label: 'Composición' },

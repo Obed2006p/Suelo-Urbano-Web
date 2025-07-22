@@ -2,6 +2,7 @@
 import React from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
 import AdvantagesSection from './components/AdvantagesSection';
 import ElementsSection from './components/ElementsSection';
@@ -26,6 +27,9 @@ const App: React.FC = () => {
       <Header onNavigate={scrollTo} />
       <main className="flex-grow">
         <Hero onOrderClick={() => scrollTo('pedidos')} />
+        <div id="que-es">
+          <EmulsionExplainedSection />
+        </div>
         <div id="beneficios">
           <BenefitsSection />
         </div>

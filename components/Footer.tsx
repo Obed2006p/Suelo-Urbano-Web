@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { BootPlantIcon } from './icons/Icons';
+import { LeafIcon } from './icons/Icons';
 
 const Footer: React.FC = () => {
   return (
     <footer className="bg-green-900 text-green-100">
       <div className="container mx-auto px-6 py-6 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-            <BootPlantIcon className="h-6 w-6 text-green-400" />
+            <LeafIcon className="h-6 w-6" />
             <span className="text-xl font-bold">Suelo Urbano</span>
         </div>
         <p className="text-sm text-green-300">
