@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     { id: 'ventajas', label: 'Utilidades' },
     { id: 'composicion', label: 'Composición' },
     { id: 'modo-uso', label: 'Modo de Empleo' },
-    { id: 'guia-riego', label: 'Guía de Riego' },
+    { id: 'guias', label: 'Guía de Riego' },
   ];
 
   return (
@@ -26,7 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           <span className="text-2xl font-bold text-green-800">Suelo Urbano</span>
         </div>
         
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => (
             <button
               key={link.id}
@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           ))}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
             <button
                 onClick={() => onNavigate('pedidos')}
                 className="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md"
@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
             </button>
         </div>
 
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-stone-700 focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path></svg>
           </button>
@@ -56,8 +56,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
       
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white shadow-lg">
-          <nav className="flex flex-col items-center gap-4 py-4">
+        <div className="lg:hidden bg-white shadow-lg">
+          <nav className="flex flex-col items-center gap-4 py-4 px-6">
             {navLinks.map((link) => (
               <button
                 key={link.id}
@@ -65,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                   onNavigate(link.id);
                   setIsMenuOpen(false);
                 }}
-                className="text-stone-600 hover:text-green-700 transition-colors duration-300 font-medium text-lg"
+                className="text-stone-600 hover:text-green-700 transition-colors duration-300 font-medium text-lg w-full text-center py-2"
               >
                 {link.label}
               </button>
@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 onNavigate('pedidos');
                 setIsMenuOpen(false);
               }}
-              className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md w-full max-w-xs"
+              className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md w-full max-w-xs mt-2"
             >
               Hacer Pedido
             </button>

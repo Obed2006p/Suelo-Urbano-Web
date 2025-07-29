@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { VegetableIcon, FlowerIcon, MedicinalIcon, ShrubIcon, SaplingIcon, CactusIcon, RoseIcon, CaretDownIcon } from './icons/Icons';
 
@@ -76,16 +75,15 @@ const WateringGuideSection: React.FC = () => {
     };
 
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="container mx-auto px-6">
+    <div>
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Guía de Riego por Tipo de Planta</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Guía de Riego por Tipo</h2>
           <p className="max-w-3xl mx-auto text-stone-600">
             Cada planta es única. Usa esta guía como punto de partida y ajusta el riego según las necesidades específicas de tu jardín.
           </p>
         </div>
         
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="space-y-4 max-w-4xl mx-auto">
             {plantData.map((plant, index) => (
                 <div key={index} className="border border-stone-200 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
                     <button 
@@ -131,9 +129,7 @@ const WateringGuideSection: React.FC = () => {
                 </div>
             ))}
         </div>
-
-      </div>
-    </section>
+    </div>
   );
 };
 

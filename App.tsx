@@ -42,9 +42,13 @@ const App: React.FC = () => {
         <div id="modo-uso">
           <UsageSection />
         </div>
-        <div id="guia-riego">
-          <WateringGuideSection />
-        </div>
+        
+        <section id="guias" className="py-16 md:py-24 bg-white">
+          <div className="container mx-auto px-6">
+              <WateringGuideSection />
+          </div>
+        </section>
+
         <div id="pedidos">
           <OrderSection />
         </div>
