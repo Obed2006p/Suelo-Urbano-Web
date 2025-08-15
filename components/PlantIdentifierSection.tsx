@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { CameraIcon, SparklesIcon, LeafIcon } from './icons/Icons';
