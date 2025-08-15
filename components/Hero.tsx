@@ -16,7 +16,7 @@ const Hero: React.FC<HeroProps> = ({ onOrderClick }) => {
         <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 animate-fade-in-down">
           Nutre tu tierra, cultiva vida.
         </h1>
-        <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 animate-fade-in-up">
+        <p className="text-lg md:text-xl max-w-3xl mx-auto mb-12 animate-fade-in-up">
           Descubre el poder de la emulsión{' '}
           <span 
             className="font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500"
@@ -26,9 +26,11 @@ const Hero: React.FC<HeroProps> = ({ onOrderClick }) => {
           </span>
           . La mejor opción para un jardín sano, cosechas abundantes y un planeta más verde.
         </p>
+        
         <button
           onClick={onOrderClick}
           className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-lg text-lg animate-pulse"
+          style={{ animationDelay: '0.8s' }}
         >
           ¡Quiero mi emulsión!
         </button>

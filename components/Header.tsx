@@ -1,88 +1,143 @@
-
 import React, { useState } from 'react';
-import { LeafIcon } from './icons/Icons';
+import { LeafIcon, MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon } from './icons/Icons';
 
 interface HeaderProps {
-  onNavigate: (id: string) => void;
+  onNavigate?: (id: string) => void;
+  isHomePage?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  const navLinks = [
+
+  const inPageNavLinks = [
+    { id: 'inicio', label: 'Inicio' },
     { id: 'que-es', label: 'Qué es' },
     { id: 'beneficios', label: 'Beneficios' },
-    { id: 'ventajas', label: 'Utilidades' },
-    { id: 'composicion', label: 'Composición' },
-    { id: 'modo-uso', label: 'Modo de Empleo' },
-    { id: 'guias', label: 'Guía de Riego' },
+    { id: 'modo-uso', label: 'Modo de empleo' },
+  ];
+  
+  const pageNavLinks = [
+    { href: '#', label: 'Inicio', icon: <HomeIcon className="h-6 w-6 text-green-600" /> },
+    { href: '#/utilidades', label: 'Utilidades', icon: <SproutIcon className="h-6 w-6 text-green-600" /> },
+    { href: '#/composicion', label: 'Composición', icon: <AtomIcon className="h-6 w-6 text-green-600" /> },
+    { href: '#/guia-riego', label: 'Guía de Riego', icon: <WaterDropIcon className="h-6 w-6 text-green-600" /> },
+    { href: '#/doctor-plantas', label: 'Doctor de Plantas', icon: <HeartbeatIcon className="h-6 w-6 text-green-600" /> },
   ];
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    window.location.hash = href;
+    setIsMenuOpen(false);
+  };
+  
+  const handleInPageLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    if (onNavigate) {
+        onNavigate(id);
+    }
+    setIsMenuOpen(false);
+  }
+  
+  const navigateHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+    if (isHomePage && onNavigate) {
+        onNavigate('inicio');
+    } else {
+        window.location.hash = '#';
+    }
+  };
+
+
   return (
-    <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <LeafIcon className="h-8 w-8 text-green-600" />
-          <span className="text-2xl font-bold text-green-800">Suelo Urbano</span>
+    <>
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+            {/* Left Side */}
+            <div className="flex items-center gap-4">
+                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-stone-700 focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
+                    <MenuIcon className="w-7 h-7" />
+                 </button>
+                <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
+                    <LeafIcon className="h-8 w-8 text-green-600" />
+                    <span className="text-2xl font-bold text-green-800 hidden sm:inline">Suelo Urbano</span>
+                </a>
+            </div>
+
+            {/* Desktop Center Nav (Homepage only) */}
+            {isHomePage && onNavigate && (
+                 <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+                    {inPageNavLinks.map((link) => (
+                    <button
+                        key={link.id}
+                        onClick={() => onNavigate(link.id)}
+                        className="text-stone-600 hover:text-green-700 transition-colors duration-300 font-medium"
+                    >
+                        {link.label}
+                    </button>
+                    ))}
+                </nav>
+            )}
+
+             {/* Right Side CTA */}
+            <div className="hidden md:block">
+                <a
+                    href="#/pedido"
+                    onClick={(e) => { e.preventDefault(); window.location.hash = '#/pedido'; }}
+                    className="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md"
+                >
+                    ¡Quiero mi emulsión!
+                </a>
+            </div>
         </div>
+      </header>
+      
+      {/* Mobile Menu Panel */}
+      <div className={`fixed inset-0 z-[100] ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+        {/* Overlay: Placed first to be behind the menu panel */}
+        <div 
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => setIsMenuOpen(false)}
+            aria-hidden="true"
+        ></div>
         
-        <nav className="hidden lg:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => onNavigate(link.id)}
-              className="text-stone-600 hover:text-green-700 transition-colors duration-300 font-medium"
-            >
-              {link.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="hidden lg:block">
-            <button
-                onClick={() => onNavigate('pedidos')}
-                className="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md"
-            >
-                Hacer Pedido
-            </button>
-        </div>
-
-        <div className="lg:hidden">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-stone-700 focus:outline-none">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path></svg>
-          </button>
+        {/* Menu Panel Content */}
+        <div 
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menú principal"
+          className={`absolute left-0 top-0 h-full w-full max-w-xs bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          aria-hidden={!isMenuOpen}
+        >
+            <div className="flex justify-between items-center p-5 border-b border-stone-200">
+                <div className="flex items-center gap-2">
+                    <LeafIcon className="h-7 w-7 text-green-600" />
+                    <span className="text-xl font-bold text-green-800">Suelo Urbano</span>
+                </div>
+                <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 hover:text-green-700 p-2 rounded-full hover:bg-stone-100 transition-colors" aria-label="Cerrar menú">
+                    <XIcon className="w-7 h-7" />
+                </button>
+            </div>
+            <nav className="flex-1 flex flex-col gap-1 p-4">
+              {/* Removed in-page nav links to avoid duplication */}
+              {pageNavLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => handleLinkClick(e, link.href)}
+                  className="flex items-center gap-4 text-stone-700 hover:bg-green-50 hover:text-green-800 transition-all duration-200 font-semibold text-lg w-full text-left py-3 px-4 rounded-lg"
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </a>
+              ))}
+            </nav>
+            <div className="p-4 text-center text-stone-500 text-sm border-t border-stone-200">
+              <p>&copy; {new Date().getFullYear()} Suelo Urbano.</p>
+            </div>
         </div>
       </div>
-      
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden bg-white shadow-lg">
-          <nav className="flex flex-col items-center gap-4 py-4 px-6">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => {
-                  onNavigate(link.id);
-                  setIsMenuOpen(false);
-                }}
-                className="text-stone-600 hover:text-green-700 transition-colors duration-300 font-medium text-lg w-full text-center py-2"
-              >
-                {link.label}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                onNavigate('pedidos');
-                setIsMenuOpen(false);
-              }}
-              className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md w-full max-w-xs mt-2"
-            >
-              Hacer Pedido
-            </button>
-          </nav>
-        </div>
-      )}
-    </header>
+    </>
   );
 };
 

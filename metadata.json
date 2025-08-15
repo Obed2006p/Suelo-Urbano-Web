@@ -1,6 +1,8 @@
 {
   "name": "Pedidos de Emulsión",
   "description": "Una aplicación web para aprender sobre los beneficios de la emulsión y realizar pedidos simulados. Creada para demostrar la funcionalidad de una tienda en línea de productos orgánicos.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "prompt": ""
 }

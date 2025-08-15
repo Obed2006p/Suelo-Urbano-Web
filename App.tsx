@@ -1,61 +1,92 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
-import AdvantagesSection from './components/AdvantagesSection';
-import ElementsSection from './components/ElementsSection';
 import UsageSection from './components/UsageSection';
-import WateringGuideSection from './components/WateringGuideSection';
-import OrderSection from './components/OrderSection';
 import Footer from './components/Footer';
+import OrderPage from './components/OrderPage';
+import UtilitiesPage from './components/UtilitiesPage';
+import CompositionPage from './components/CompositionPage';
+import WateringGuidePage from './components/WateringGuidePage';
+import PlantDoctorPage from './components/PlantDoctorPage';
+import { PottedPlantIcon } from './components/icons/Icons';
+
+const HomePage: React.FC = () => {
+    const scrollTo = (id: string) => {
+        if (id === 'inicio') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col">
+            <Header onNavigate={scrollTo} isHomePage />
+            <main className="flex-grow">
+                <Hero onOrderClick={() => { window.location.hash = '#/pedido'; }} />
+                <div id="que-es">
+                    <EmulsionExplainedSection />
+                </div>
+                <div id="beneficios">
+                    <BenefitsSection />
+                </div>
+                <div id="modo-uso">
+                    <UsageSection />
+                </div>
+            </main>
+            <Footer />
+            {/* Floating Action Button */}
+            <button
+                onClick={() => { window.location.hash = '#/pedido'; }}
+                className="fixed z-40 bottom-6 right-6 bg-green-600 text-white font-bold rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-110 shadow-xl flex items-center gap-2 py-3 px-5"
+                aria-label="Haz aqui tu pedido"
+            >
+                <PottedPlantIcon className="h-7 w-7" />
+                <span className="hidden sm:inline">Haz aqui tu pedido</span>
+            </button>
+        </div>
+    );
+};
+
 
 const App: React.FC = () => {
-  const scrollTo = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  };
+  const [route, setRoute] = useState(window.location.hash);
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header onNavigate={scrollTo} />
-      <main className="flex-grow">
-        <Hero onOrderClick={() => scrollTo('pedidos')} />
-        <div id="que-es">
-          <EmulsionExplainedSection />
-        </div>
-        <div id="beneficios">
-          <BenefitsSection />
-        </div>
-        <div id="ventajas">
-          <AdvantagesSection />
-        </div>
-        <div id="composicion">
-          <ElementsSection />
-        </div>
-        <div id="modo-uso">
-          <UsageSection />
-        </div>
-        
-        <section id="guias" className="py-16 md:py-24 bg-white">
-          <div className="container mx-auto px-6">
-              <WateringGuideSection />
-          </div>
-        </section>
+  useEffect(() => {
+    const handleHashChange = () => {
+      setRoute(window.location.hash);
+      window.scrollTo(0, 0); 
+    };
 
-        <div id="pedidos">
-          <OrderSection />
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []); 
+
+  switch (route) {
+    case '#/pedido':
+      return <OrderPage />;
+    case '#/utilidades':
+      return <UtilitiesPage />;
+    case '#/composicion':
+      return <CompositionPage />;
+    case '#/guia-riego':
+      return <WateringGuidePage />;
+    case '#/doctor-plantas':
+      return <PlantDoctorPage />;
+    default:
+      return <HomePage />;
+  }
 };
 
 export default App;
