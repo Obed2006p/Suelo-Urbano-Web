@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { LeafIcon, MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -59,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                     <MenuIcon className="w-7 h-7" />
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
-                    <LeafIcon className="h-8 w-8 text-green-600" />
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-12" />
                     <span className="text-2xl font-bold text-green-800 hidden sm:inline">Suelo Urbano</span>
                 </a>
             </div>
@@ -111,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
         >
             <div className="flex justify-between items-center p-5 border-b border-stone-200">
                 <div className="flex items-center gap-2">
-                    <LeafIcon className="h-7 w-7 text-green-600" />
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-10" />
                     <span className="text-xl font-bold text-green-800">Suelo Urbano</span>
                 </div>
                 <button onClick={() => setIsMenuOpen(false)} className="text-stone-600 hover:text-green-700 p-2 rounded-full hover:bg-stone-100 transition-colors" aria-label="Cerrar menú">
