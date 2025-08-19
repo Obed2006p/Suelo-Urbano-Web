@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -22,6 +21,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     { href: '#/utilidades', label: 'Utilidades', icon: <SproutIcon className="h-6 w-6 text-green-600" /> },
     { href: '#/composicion', label: 'Composición', icon: <AtomIcon className="h-6 w-6 text-green-600" /> },
     { href: '#/guia-riego', label: 'Guía de Riego', icon: <WaterDropIcon className="h-6 w-6 text-green-600" /> },
+    { href: '#/guia-interactiva', label: 'Guía Interactiva', icon: <PlayCircleIcon className="h-6 w-6 text-green-600" /> },
     { href: '#/doctor-plantas', label: 'Doctor de Plantas', icon: <HeartbeatIcon className="h-6 w-6 text-green-600" /> },
   ];
 
@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
   return (
     <>
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
+        <div className="container mx-auto px-6 py-3 flex justify-between items-center relative">
             {/* Left Side */}
             <div className="flex items-center gap-4">
                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-stone-700 focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
@@ -67,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
 
             {/* Desktop Center Nav (Homepage only) */}
             {isHomePage && onNavigate && (
-                 <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+                 <nav className="hidden md:flex items-center gap-6 lg:gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     {inPageNavLinks.map((link) => (
                     <button
                         key={link.id}
@@ -80,16 +80,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                 </nav>
             )}
 
-             {/* Right Side CTA */}
-            <div className="hidden md:block">
-                <a
-                    href="#/pedido"
-                    onClick={(e) => { e.preventDefault(); window.location.hash = '#/pedido'; }}
-                    className="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-transform duration-300 ease-in-out transform hover:scale-105 shadow-md"
-                >
-                    ¡Quiero mi emulsión!
-                </a>
-            </div>
+             {/* Right Side CTA Removed */}
         </div>
       </header>
       

@@ -11,6 +11,7 @@ import UtilitiesPage from './components/UtilitiesPage';
 import CompositionPage from './components/CompositionPage';
 import WateringGuidePage from './components/WateringGuidePage';
 import PlantDoctorPage from './components/PlantDoctorPage';
+import HowToUsePage from './components/HowToUsePage';
 import { PottedPlantIcon } from './components/icons/Icons';
 
 const HomePage: React.FC = () => {
@@ -59,9 +60,20 @@ const HomePage: React.FC = () => {
 
 
 const App: React.FC = () => {
-  const [route, setRoute] = useState(window.location.hash);
+  // On initial load, always default to the home page route to prevent flicker.
+  // The useEffect will then sync the URL hash if it was different.
+  const [route, setRoute] = useState('#');
 
   useEffect(() => {
+    // This effect runs once on component mount.
+
+    // If the URL has a hash that isn't the homepage, reset it.
+    // This will trigger the hashchange listener to sync state,
+    // but the UI is already showing the homepage, so there's no flicker.
+    if (window.location.hash && window.location.hash !== '#') {
+      window.location.hash = '#';
+    }
+
     const handleHashChange = () => {
       setRoute(window.location.hash);
       window.scrollTo(0, 0); 
@@ -71,7 +83,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, []); 
+  }, []); // Empty dependency array ensures this runs only once.
 
   switch (route) {
     case '#/pedido':
@@ -84,6 +96,8 @@ const App: React.FC = () => {
       return <WateringGuidePage />;
     case '#/doctor-plantas':
       return <PlantDoctorPage />;
+    case '#/guia-interactiva':
+        return <HowToUsePage />;
     default:
       return <HomePage />;
   }
