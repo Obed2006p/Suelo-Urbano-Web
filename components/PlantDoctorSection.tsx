@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon } from './icons/Icons';
 
 interface PlantDoctorSectionProps {}
 
@@ -10,6 +10,7 @@ interface PlantDiagnosis {
     diagnosticoDetallado: string;
     recomendaciones: string[];
     recomendacionEmulsion: string;
+    phSueloIdeal: string;
 }
 
 const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
@@ -88,12 +89,13 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                         items: { type: Type.STRING },
                         description: "Una lista de 3 a 5 recomendaciones accionables para el cuidado y tratamiento de la planta."
                     },
-                    recomendacionEmulsion: { type: Type.STRING, description: "Una recomendación específica de cómo y por qué la emulsión 'Suelo Urbano' beneficiaría a esta planta en su estado actual." }
+                    recomendacionEmulsion: { type: Type.STRING, description: "Una recomendación específica de cómo y por qué la emulsión 'Suelo Urbano' beneficiaría a esta planta en su estado actual." },
+                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para el suelo de esta planta (ej. '6.0 - 7.0, ligeramente ácido a neutro')." }
                 },
-                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion"]
+                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion", "phSueloIdeal"]
             };
 
-            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema y da recomendaciones claras para solucionarlo. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición. Responde únicamente con el objeto JSON definido en el schema.";
+            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema, indica el rango de pH ideal para su suelo, y da recomendaciones claras para solucionarlo. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición. Responde únicamente con el objeto JSON definido en el schema.";
 
             const response: GenerateContentResponse = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -199,6 +201,11 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                                     <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2"><HeartbeatIcon className="h-6 w-6 text-red-500"/>Estado de Salud</h4>
                                     <p className="text-stone-700 font-medium">{diagnosis.salud}</p>
                                     <p className="text-stone-600 mt-1 text-sm">{diagnosis.diagnosticoDetallado}</p>
+                                </div>
+
+                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2"><PhIcon className="h-6 w-6 text-orange-600"/>pH Ideal del Suelo</h4>
+                                    <p className="text-stone-700 font-medium">{diagnosis.phSueloIdeal}</p>
                                 </div>
 
                                 <div className="bg-white/70 p-4 rounded-lg mb-6 border border-stone-200">

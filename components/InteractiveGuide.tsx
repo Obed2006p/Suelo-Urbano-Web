@@ -163,6 +163,10 @@ const InteractiveGuide: React.FC = () => {
 
     const isBagDraggable = step === 1 && !isAnimating;
     const isCanDraggable = step === 2 && !isAnimating;
+    
+    const bagPouringClasses = isBagPouring 
+        ? '-translate-y-40 -rotate-15 md:translate-y-0 md:-translate-x-48 md:-translate-y-20 md:-rotate-45' 
+        : '';
 
     return (
         <section className="py-16 md:py-24 bg-white">
@@ -216,10 +220,10 @@ const InteractiveGuide: React.FC = () => {
                 </div>
 
                 {/* Game Area */}
-                <div className="relative bg-lime-100 p-4 sm:p-8 rounded-2xl shadow-inner max-w-4xl mx-auto aspect-video flex flex-col justify-end overflow-hidden">
+                <div className="relative bg-lime-100 p-4 sm:p-8 rounded-2xl shadow-inner max-w-4xl mx-auto min-h-[70vh] md:aspect-video flex flex-col justify-end overflow-hidden">
                     {isWatering && <WateringStream />}
-                    <div className="flex-grow flex items-end justify-around gap-4 px-4">
-                       <div className="flex flex-col items-center" onDragOver={handleDragOver} onDrop={handlePlantDrop}>
+                    <div className="flex-grow flex flex-col md:flex-row items-center md:items-end justify-around gap-8 md:gap-4 px-4">
+                       <div className="flex flex-col items-center order-1" onDragOver={handleDragOver} onDrop={handlePlantDrop}>
                             <Plant happy={step >= 3} />
                         </div>
                         <div 
@@ -228,7 +232,7 @@ const InteractiveGuide: React.FC = () => {
                             onDragEnd={handleDragEnd}
                             onDragOver={handleDragOver} 
                             onDrop={handleCanDrop}
-                            className={`transition-transform duration-300 ${isCanDraggable ? 'cursor-grab active:cursor-grabbing hover:scale-105' : 'cursor-default'}`}
+                            className={`transition-transform duration-300 order-2 ${isCanDraggable ? 'cursor-grab active:cursor-grabbing hover:scale-105' : 'cursor-default'}`}
                             aria-label="Regadera"
                         >
                             <WateringCan stage={step >= 2 ? 'mixed' : 'water'} beingPoured={isWatering} />
@@ -238,7 +242,7 @@ const InteractiveGuide: React.FC = () => {
                             draggable={isBagDraggable}
                             onDragStart={(e) => handleDragStart(e, 'bag')}
                             onDragEnd={handleDragEnd}
-                            className={`relative transition-transform duration-500 ease-in-out ${step === 0 ? 'cursor-pointer hover:scale-105' : ''} ${isBagDraggable ? 'cursor-grab' : 'cursor-default'} ${isBagPouring ? '-translate-x-48 -translate-y-20 -rotate-45' : ''}`}
+                            className={`relative transition-transform duration-500 ease-in-out order-3 ${step === 0 ? 'cursor-pointer hover:scale-105' : ''} ${isBagDraggable ? 'cursor-grab' : 'cursor-default'} ${bagPouringClasses}`}
                             role={step === 0 ? 'button' : undefined}
                             tabIndex={step === 0 ? 0 : -1}
                             onKeyPress={(e) => e.key === 'Enter' && handleBagClick()}
@@ -249,7 +253,7 @@ const InteractiveGuide: React.FC = () => {
                         </div>
                     </div>
                      {/* Table Top */}
-                    <div className="h-4 bg-stone-700 w-full shadow-lg rounded-b-lg"></div>
+                    <div className="h-4 bg-stone-700 w-full shadow-lg rounded-b-lg mt-auto"></div>
                 </div>
 
             </div>
