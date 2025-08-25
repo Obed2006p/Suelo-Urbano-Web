@@ -77,50 +77,50 @@ const WateringGuideSection: React.FC = () => {
   return (
     <div>
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Guía de Riego por Tipo</h2>
-          <p className="max-w-3xl mx-auto text-stone-600">
+          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Guía de Riego por Tipo</h2>
+          <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
             Cada planta es única. Usa esta guía como punto de partida y ajusta el riego según las necesidades específicas de tu jardín.
           </p>
         </div>
         
         <div className="space-y-4 max-w-4xl mx-auto">
             {plantData.map((plant, index) => (
-                <div key={index} className="border border-stone-200 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+                <div key={index} className="border border-stone-200 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md dark:border-stone-700 dark:shadow-none">
                     <button 
                         onClick={() => handleToggle(index)}
-                        className="w-full flex items-center justify-between p-5 text-left bg-stone-50 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        className="w-full flex items-center justify-between p-5 text-left bg-stone-50 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-stone-800 dark:hover:bg-stone-700"
                         aria-expanded={openIndex === index}
                         aria-controls={`plant-details-${index}`}
                     >
                         <div className="flex items-center gap-4">
                             <div className="flex-shrink-0">{plant.icon}</div>
                             <div>
-                                <h3 className="text-lg font-semibold text-stone-800">{plant.type}</h3>
-                                <p className="text-sm text-stone-500">{plant.examples}</p>
+                                <h3 className="text-lg font-semibold text-stone-800 dark:text-stone-200">{plant.type}</h3>
+                                <p className="text-sm text-stone-500 dark:text-stone-400">{plant.examples}</p>
                             </div>
                         </div>
-                        <CaretDownIcon className={`h-6 w-6 text-stone-500 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
+                        <CaretDownIcon className={`h-6 w-6 text-stone-500 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''} dark:text-stone-400`} />
                     </button>
                     <div
                         id={`plant-details-${index}`}
                         className={`transition-all duration-500 ease-in-out overflow-hidden ${openIndex === index ? 'max-h-96' : 'max-h-0'}`}
                     >
-                        <div className="p-6 bg-white border-t border-stone-200">
-                            <ul className="space-y-3 text-stone-700">
+                        <div className="p-6 bg-white border-t border-stone-200 dark:bg-stone-800/50 dark:border-stone-700">
+                            <ul className="space-y-3 text-stone-700 dark:text-stone-300">
                                 <li className="flex justify-between items-center">
-                                    <span className="font-semibold">Ubicación:</span>
+                                    <span className="font-semibold dark:text-stone-200">Ubicación:</span>
                                     <span className="text-right">{plant.location}</span>
                                 </li>
                                 <li className="flex justify-between items-center">
-                                    <span className="font-semibold">Tamaño (ejemplo):</span>
+                                    <span className="font-semibold dark:text-stone-200">Tamaño (ejemplo):</span>
                                     <span className="text-right">{plant.size}</span>
                                 </li>
                                 <li className="flex justify-between items-center">
-                                    <span className="font-semibold">Cantidad de agua:</span>
+                                    <span className="font-semibold dark:text-stone-200">Cantidad de agua:</span>
                                     <span className="text-right">{plant.water}</span>
                                 </li>
                                 <li className="flex justify-between items-center">
-                                    <span className="font-semibold">Frecuencia:</span>
+                                    <span className="font-semibold dark:text-stone-200">Frecuencia:</span>
                                     <span className="text-right">{plant.frequency}</span>
                                 </li>
                             </ul>

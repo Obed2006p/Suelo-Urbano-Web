@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 import Footer from './Footer';
-import Header from './Header';
+import Header from '../Header';
 
 // Declara la variable global de emailjs para que TypeScript la reconozca.
 // El SDK se carga desde index.html
@@ -93,14 +94,14 @@ const OrderPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark:bg-stone-900">
       <Header />
-      <main className="flex-grow py-16 md:py-24 bg-white">
+      <main className="flex-grow py-16 md:py-24 bg-white dark:bg-stone-900">
         {isSubmitted ? (
           <div className="container mx-auto px-6 text-center max-w-2xl">
             <CheckCircleIcon className="h-24 w-24 text-green-500 mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">¡Pedido Recibido!</h2>
-            <p className="text-stone-600 text-lg mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">¡Pedido Recibido!</h2>
+            <p className="text-stone-600 text-lg mb-8 dark:text-stone-300">
               Gracias por tu pedido, {formData.name}. Nos pondremos en contacto contigo muy pronto a través de tu correo {formData.email} para confirmar los detalles.
             </p>
             <button
@@ -113,12 +114,12 @@ const OrderPage: React.FC = () => {
         ) : (
           <div className="container mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Realiza tu Pedido</h2>
-              <p className="max-w-2xl mx-auto text-stone-600">
+              <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Realiza tu Pedido</h2>
+              <p className="max-w-2xl mx-auto text-stone-600 dark:text-stone-300">
                 Es fácil y rápido. Llena el formulario y nos pondremos en contacto para coordinar la entrega.
               </p>
             </div>
-            <div className="max-w-2xl mx-auto bg-stone-50 p-8 rounded-2xl shadow-lg border border-stone-200">
+            <div className="max-w-2xl mx-auto bg-stone-50 p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
                   <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
@@ -127,30 +128,30 @@ const OrderPage: React.FC = () => {
                   </div>
                 )}
                 
-                <h3 className="text-lg font-semibold text-stone-800 pb-2 border-b border-stone-200">Datos de Contacto</h3>
+                <h3 className="text-lg font-semibold text-stone-800 pb-2 border-b border-stone-200 dark:text-stone-200 dark:border-stone-600">Datos de Contacto</h3>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">Nombre Completo</label>
-                  <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                  <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Nombre Completo</label>
+                  <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">Correo Electrónico</label>
-                  <input type="email" name="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                  <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Correo Electrónico</label>
+                  <input type="email" name="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-stone-700 mb-1">Teléfono (Opcional)</label>
-                  <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                  <label htmlFor="phone" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Teléfono (Opcional)</label>
+                  <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
                 </div>
 
-                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200">Detalles del Pedido</h3>
+                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200 dark:text-stone-200 dark:border-stone-600">Detalles del Pedido</h3>
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="flex-1">
-                    <label htmlFor="size" className="block text-sm font-medium text-stone-700 mb-1">Presentación del Producto</label>
-                    <select name="size" id="size" value={formData.size} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition text-stone-800">
+                    <label htmlFor="size" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Presentación del Producto</label>
+                    <select name="size" id="size" value={formData.size} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:text-white">
                       <option value="Bolsa de 300gr">Bolsa de 300gr</option>
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="quantity" className="block text-sm font-medium text-stone-700 mb-1">Cantidad</label>
+                    <label htmlFor="quantity" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Cantidad</label>
                     <div className="relative">
                         <input 
                             type="number" 
@@ -160,25 +161,25 @@ const OrderPage: React.FC = () => {
                             required 
                             value={formData.quantity} 
                             onChange={handleChange} 
-                            className="w-full pl-4 pr-10 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 text-center"
+                            className="w-full pl-4 pr-10 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 text-center dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center p-1">
-                            <div className="flex flex-col h-full w-7 bg-green-200 rounded-md overflow-hidden shadow-sm">
+                            <div className="flex flex-col h-full w-7 bg-green-200 rounded-md overflow-hidden shadow-sm dark:bg-stone-600">
                                 <button 
                                     type="button" 
                                     tabIndex={-1}
                                     onClick={() => handleQuantityChange(1)}
-                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none"
+                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-stone-500"
                                     aria-label="Aumentar cantidad"
                                 >
                                     <CaretUpIcon className="h-4 w-4" />
                                 </button>
-                                <div className="w-full h-px bg-green-400/50"></div>
+                                <div className="w-full h-px bg-green-400/50 dark:bg-stone-500"></div>
                                 <button 
                                     type="button" 
                                     tabIndex={-1}
                                     onClick={() => handleQuantityChange(-1)}
-                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none"
+                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-stone-500"
                                     aria-label="Disminuir cantidad"
                                 >
                                     <CaretDownIcon className="h-4 w-4" />
@@ -189,34 +190,34 @@ const OrderPage: React.FC = () => {
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200">Dirección de Entrega</h3>
-                <p className="text-sm text-stone-500 -mt-4">Llena estos campos si deseas que te entreguemos el pedido a domicilio.</p>
+                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200 dark:text-stone-200 dark:border-stone-600">Dirección de Entrega</h3>
+                <p className="text-sm text-stone-500 -mt-4 dark:text-stone-400">Llena estos campos si deseas que te entreguemos el pedido a domicilio.</p>
                 
                 <div>
-                    <label htmlFor="street" className="block text-sm font-medium text-stone-700 mb-1">Calle</label>
-                    <input type="text" name="street" id="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                    <label htmlFor="street" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Calle</label>
+                    <input type="text" name="street" id="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                 </div>
                  <div className="flex flex-col sm:flex-row gap-6">
                     <div className="flex-1">
-                        <label htmlFor="extNumber" className="block text-sm font-medium text-stone-700 mb-1">Número Exterior</label>
-                        <input type="text" name="extNumber" id="extNumber" value={formData.extNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                        <label htmlFor="extNumber" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Número Exterior</label>
+                        <input type="text" name="extNumber" id="extNumber" value={formData.extNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                     </div>
                     <div className="flex-1">
-                        <label htmlFor="intNumber" className="block text-sm font-medium text-stone-700 mb-1">Número Interior (Opcional)</label>
-                        <input type="text" name="intNumber" id="intNumber" value={formData.intNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                        <label htmlFor="intNumber" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Número Interior (Opcional)</label>
+                        <input type="text" name="intNumber" id="intNumber" value={formData.intNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                     </div>
                 </div>
                  <div>
-                    <label htmlFor="neighborhood" className="block text-sm font-medium text-stone-700 mb-1">Colonia / Delegación</label>
-                    <input type="text" name="neighborhood" id="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                    <label htmlFor="neighborhood" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Colonia / Delegación</label>
+                    <input type="text" name="neighborhood" id="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                 </div>
                 <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-stone-700 mb-1">Código Postal</label>
-                    <input type="text" name="postalCode" id="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                    <label htmlFor="postalCode" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Código Postal</label>
+                    <input type="text" name="postalCode" id="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                 </div>
                 <div>
-                    <label htmlFor="references" className="block text-sm font-medium text-stone-700 mb-1">Referencias Adicionales</label>
-                    <input type="text" name="references" id="references" value={formData.references} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800" />
+                    <label htmlFor="references" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Referencias Adicionales</label>
+                    <input type="text" name="references" id="references" value={formData.references} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
                 </div>
                 
                 <div className="pt-4">

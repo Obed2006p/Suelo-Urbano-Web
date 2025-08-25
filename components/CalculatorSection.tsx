@@ -48,56 +48,56 @@ const CalculatorSection: React.FC<CalculatorSectionProps> = ({ onNavigate }) => 
 
     const renderPotCalculator = () => (
         <div className="space-y-4 animate-fade-in-up">
-            <p className="text-stone-600">Indica cuántas macetas de cada tamaño tienes.</p>
+            <p className="text-stone-600 dark:text-stone-300">Indica cuántas macetas de cada tamaño tienes.</p>
             <div>
-                <label htmlFor="smallPots" className="block text-sm font-medium text-stone-700 mb-1">Macetas Chicas (hasta 20cm)</label>
-                <input type="number" name="smallPots" id="smallPots" value={inputs.smallPots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                <label htmlFor="smallPots" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Macetas Chicas (hasta 20cm)</label>
+                <input type="number" name="smallPots" id="smallPots" value={inputs.smallPots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
             </div>
             <div>
-                <label htmlFor="mediumPots" className="block text-sm font-medium text-stone-700 mb-1">Macetas Medianas (20-40cm)</label>
-                <input type="number" name="mediumPots" id="mediumPots" value={inputs.mediumPots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                <label htmlFor="mediumPots" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Macetas Medianas (20-40cm)</label>
+                <input type="number" name="mediumPots" id="mediumPots" value={inputs.mediumPots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
             </div>
             <div>
-                <label htmlFor="largePots" className="block text-sm font-medium text-stone-700 mb-1">Macetas Grandes (+40cm)</label>
-                <input type="number" name="largePots" id="largePots" value={inputs.largePots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                <label htmlFor="largePots" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Macetas Grandes (+40cm)</label>
+                <input type="number" name="largePots" id="largePots" value={inputs.largePots || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
             </div>
         </div>
     );
     
     const renderAreaCalculator = () => (
         <div className="space-y-4 animate-fade-in-up">
-            <p className="text-stone-600">Ingresa el área total de tu jardín o huerto.</p>
+            <p className="text-stone-600 dark:text-stone-300">Ingresa el área total de tu jardín o huerto.</p>
             <div>
-                <label htmlFor="area" className="block text-sm font-medium text-stone-700 mb-1">Área en metros cuadrados (m²)</label>
-                <input type="number" name="area" id="area" value={inputs.area || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800"/>
+                <label htmlFor="area" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Área en metros cuadrados (m²)</label>
+                <input type="number" name="area" id="area" value={inputs.area || ''} onChange={handleInputChange} min="0" className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
             </div>
         </div>
     );
 
 
     return (
-        <section className="py-16 md:py-24 bg-stone-50">
+        <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-900">
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Calculadora de Dosis</h2>
-                    <p className="max-w-3xl mx-auto text-stone-600">
+                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Calculadora de Dosis</h2>
+                    <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
                         ¿No sabes cuánta emulsión necesitas? Usa nuestra calculadora para obtener una estimación precisa.
                     </p>
                 </div>
                 
                 <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     {/* Calculator Inputs */}
-                    <div className="bg-white p-8 rounded-2xl shadow-lg border border-stone-200">
-                        <div className="flex border-b border-stone-200 mb-6">
+                    <div className="bg-white p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
+                        <div className="flex border-b border-stone-200 mb-6 dark:border-stone-600">
                             <button
                                 onClick={() => setMode('pots')}
-                                className={`flex-1 py-2 text-center font-semibold transition-colors duration-300 ${mode === 'pots' ? 'text-green-700 border-b-2 border-green-700' : 'text-stone-500 hover:text-green-600'}`}
+                                className={`flex-1 py-2 text-center font-semibold transition-colors duration-300 ${mode === 'pots' ? 'text-green-700 border-b-2 border-green-700 dark:text-green-400 dark:border-green-400' : 'text-stone-500 hover:text-green-600 dark:text-stone-400 dark:hover:text-green-400'}`}
                             >
                                 Por Macetas
                             </button>
                             <button
                                 onClick={() => setMode('area')}
-                                className={`flex-1 py-2 text-center font-semibold transition-colors duration-300 ${mode === 'area' ? 'text-green-700 border-b-2 border-green-700' : 'text-stone-500 hover:text-green-600'}`}
+                                className={`flex-1 py-2 text-center font-semibold transition-colors duration-300 ${mode === 'area' ? 'text-green-700 border-b-2 border-green-700 dark:text-green-400 dark:border-green-400' : 'text-stone-500 hover:text-green-600 dark:text-stone-400 dark:hover:text-green-400'}`}
                             >
                                 Por Área de Jardín
                             </button>
@@ -114,7 +114,7 @@ const CalculatorSection: React.FC<CalculatorSectionProps> = ({ onNavigate }) => 
                             </button>
                              <button
                                 onClick={handleReset}
-                                className="w-auto bg-stone-200 text-stone-700 font-bold py-3 px-6 rounded-lg hover:bg-stone-300 transition-colors"
+                                className="w-auto bg-stone-200 text-stone-700 font-bold py-3 px-6 rounded-lg hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500"
                                 aria-label="Reiniciar calculadora"
                             >
                                 Limpiar
@@ -123,13 +123,13 @@ const CalculatorSection: React.FC<CalculatorSectionProps> = ({ onNavigate }) => 
                     </div>
 
                     {/* Calculator Results */}
-                    <div className="bg-green-50 border-2 border-dashed border-green-300 p-8 rounded-2xl h-full flex flex-col items-center justify-center text-center">
+                    <div className="bg-green-50 border-2 border-dashed border-green-300 p-8 rounded-2xl h-full flex flex-col items-center justify-center text-center dark:bg-green-900/20 dark:border-green-700">
                         {result ? (
                              <div className="animate-fade-in-up w-full">
-                                <h3 className="text-xl font-bold text-green-800 mb-2">Resultado Estimado</h3>
-                                <p className="text-stone-700 mb-4">Para una aplicación, necesitas aproximadamente:</p>
-                                <p className="text-4xl font-extrabold text-green-700 mb-2">{result.grams.toLocaleString()} gramos</p>
-                                <div className="bg-green-200 text-green-900 font-bold py-2 px-4 rounded-full inline-block mb-6">
+                                <h3 className="text-xl font-bold text-green-800 mb-2 dark:text-green-300">Resultado Estimado</h3>
+                                <p className="text-stone-700 mb-4 dark:text-stone-300">Para una aplicación, necesitas aproximadamente:</p>
+                                <p className="text-4xl font-extrabold text-green-700 mb-2 dark:text-green-400">{result.grams.toLocaleString()} gramos</p>
+                                <div className="bg-green-200 text-green-900 font-bold py-2 px-4 rounded-full inline-block mb-6 dark:bg-green-400/20 dark:text-green-200">
                                     Recomendamos {result.bags} bolsa{result.bags > 1 ? 's' : ''} de 300gr
                                 </div>
                                 <button
@@ -140,7 +140,7 @@ const CalculatorSection: React.FC<CalculatorSectionProps> = ({ onNavigate }) => 
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-stone-500">
+                            <div className="text-stone-500 dark:text-stone-400">
                                 <CalculatorIcon className="h-16 w-16 mx-auto mb-4 text-stone-400"/>
                                 <h3 className="text-lg font-semibold">Tu resultado aparecerá aquí</h3>
                                 <p className="text-sm">Completa los datos y haz clic en "Calcular".</p>

@@ -129,33 +129,33 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
     }
     
     return (
-        <section className="py-16 md:py-24 bg-stone-50">
+        <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-900">
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Identificador de Plantas con IA</h2>
-                    <p className="max-w-3xl mx-auto text-stone-600">
+                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Identificador de Plantas con IA</h2>
+                    <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
                         ¿No sabes qué planta tienes o cómo cuidarla? Sube una foto y deja que nuestra IA te ayude.
                     </p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                     {/* Left Column: Uploader */}
-                    <div className="bg-white p-8 rounded-2xl shadow-lg border border-stone-200">
+                    <div className="bg-white p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
                         {!imagePreview ? (
                             <div 
                                 onDragEnter={handleDragEnter}
                                 onDragOver={handleDragEvents}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50' : 'border-stone-300'}`}
+                                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-stone-300 dark:border-stone-600'}`}
                             >
                                 <CameraIcon className="h-16 w-16 mx-auto text-stone-400 mb-4" />
-                                <p className="text-stone-600 font-semibold mb-2">Arrastra y suelta una imagen aquí</p>
-                                <p className="text-stone-500 mb-4">o</p>
+                                <p className="text-stone-600 font-semibold mb-2 dark:text-stone-300">Arrastra y suelta una imagen aquí</p>
+                                <p className="text-stone-500 mb-4 dark:text-stone-400">o</p>
                                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                    <button onClick={() => fileInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors">
+                                    <button onClick={() => fileInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors dark:bg-stone-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-stone-600">
                                         Elegir Archivo
                                     </button>
-                                    <button onClick={() => cameraInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors">
+                                    <button onClick={() => cameraInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors dark:bg-stone-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-stone-600">
                                         Usar Cámara
                                     </button>
                                 </div>
@@ -169,7 +169,7 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                                     <button onClick={identifyPlant} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                         {isLoading ? 'Analizando...' : 'Identificar Planta'}
                                     </button>
-                                    <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors">
+                                    <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500">
                                         Cambiar Imagen
                                     </button>
                                 </div>
@@ -178,9 +178,9 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                     </div>
                     
                     {/* Right Column: Results */}
-                    <div className="bg-green-50/50 p-8 rounded-2xl h-full flex flex-col justify-center items-center text-center min-h-[400px]">
+                    <div className="bg-green-50/50 p-8 rounded-2xl h-full flex flex-col justify-center items-center text-center min-h-[400px] dark:bg-green-900/20">
                         {isLoading && (
-                             <div className="animate-pulse flex flex-col items-center text-green-700">
+                             <div className="animate-pulse flex flex-col items-center text-green-700 dark:text-green-300">
                                 <SparklesIcon className="h-16 w-16 mb-4" />
                                 <p className="font-semibold text-lg">Nuestra IA está analizando tu planta...</p>
                                 <p>Esto puede tardar unos segundos.</p>
@@ -193,7 +193,7 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                             </div>
                         )}
                         {!isLoading && !error && !result && (
-                            <div className="text-stone-500">
+                            <div className="text-stone-500 dark:text-stone-400">
                                 <LeafIcon className="h-16 w-16 mx-auto mb-4 text-stone-400"/>
                                 <h3 className="text-lg font-semibold">Los resultados aparecerán aquí</h3>
                                 <p className="text-sm">Sube una foto para empezar.</p>
@@ -201,19 +201,19 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                         )}
                         {result && (
                             <div className="animate-fade-in-up w-full text-left">
-                                <h3 className="text-2xl font-bold text-green-800 mb-1">{result.nombreComun}</h3>
-                                <p className="text-stone-500 italic mb-4">{result.nombreCientifico}</p>
+                                <h3 className="text-2xl font-bold text-green-800 mb-1 dark:text-green-300">{result.nombreComun}</h3>
+                                <p className="text-stone-500 italic mb-4 dark:text-stone-400">{result.nombreCientifico}</p>
                                 
                                 <div className="space-y-3 mb-6">
-                                    <h4 className="font-semibold text-stone-800 border-b pb-1">Guía de Cuidados:</h4>
-                                    <p className="text-stone-800"><strong className="font-medium">Luz:</strong> {result.cuidados.luz}</p>
-                                    <p className="text-stone-800"><strong className="font-medium">Agua:</strong> {result.cuidados.agua}</p>
-                                    <p className="text-stone-800"><strong className="font-medium">Temperatura:</strong> {result.cuidados.temperatura}</p>
+                                    <h4 className="font-semibold text-stone-800 border-b pb-1 dark:text-stone-200 dark:border-stone-600">Guía de Cuidados:</h4>
+                                    <p className="text-stone-800 dark:text-stone-300"><strong className="font-medium">Luz:</strong> {result.cuidados.luz}</p>
+                                    <p className="text-stone-800 dark:text-stone-300"><strong className="font-medium">Agua:</strong> {result.cuidados.agua}</p>
+                                    <p className="text-stone-800 dark:text-stone-300"><strong className="font-medium">Temperatura:</strong> {result.cuidados.temperatura}</p>
                                 </div>
                                 
-                                <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2"><LeafIcon className="h-5 w-5"/>Recomendación Suelo Urbano:</h4>
-                                    <p className="text-green-800">{result.recomendacionEmulsion}</p>
+                                <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
+                                    <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Recomendación Suelo Urbano:</h4>
+                                    <p className="text-green-800 dark:text-green-300">{result.recomendacionEmulsion}</p>
                                 </div>
                             </div>
                         )}

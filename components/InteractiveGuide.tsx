@@ -24,11 +24,11 @@ const WateringCan = ({ stage, beingPoured }: { stage: 'water' | 'mixed'; beingPo
     return (
         <div className={`relative w-48 h-32 transition-transform duration-500 ${beingPoured ? '-rotate-[30deg]' : ''}`} style={{ transformOrigin: 'bottom center' }}>
             {/* Spout */}
-            <div className="absolute -left-12 top-0 w-20 h-5 bg-stone-400 rounded-full transform -rotate-30"></div>
+            <div className="absolute -left-12 top-0 w-20 h-5 bg-stone-400 dark:bg-stone-600 rounded-full transform -rotate-30"></div>
             {/* Handle */}
-            <div className="absolute -right-6 top-0 w-8 h-24 border-4 border-stone-400 rounded-full"></div>
+            <div className="absolute -right-6 top-0 w-8 h-24 border-4 border-stone-400 dark:border-stone-600 rounded-full"></div>
             {/* Body */}
-            <div className="absolute bottom-0 left-0 w-full h-28 bg-stone-300 rounded-t-lg shadow-inner overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-full h-28 bg-stone-300 dark:bg-stone-500 rounded-t-lg shadow-inner overflow-hidden">
                 {/* Liquid */}
                 <div className={`absolute bottom-0 left-0 w-full h-1/2 ${liquidColor} transition-colors duration-1000`}></div>
             </div>
@@ -41,7 +41,7 @@ const Plant = ({ happy }: { happy: boolean }) => (
     {/* Pot */}
     <div className="absolute bottom-0 left-0 w-full h-24 bg-orange-900" style={{ clipPath: 'polygon(0 100%, 100% 100%, 85% 0, 15% 0)' }}></div>
      {/* Soil */}
-    <div className="absolute bottom-24 left-[15%] w-[70%] h-4 bg-amber-900 rounded-t-full"></div>
+    <div className="absolute bottom-24 left-[15%] w-[70%] h-4 bg-amber-900"></div>
     {/* Stem */}
     <div className="absolute bottom-24 left-1/2 -ml-1 w-2 h-16 bg-green-700 rounded-t-full"></div>
     {/* Leaves */}
@@ -169,7 +169,7 @@ const InteractiveGuide: React.FC = () => {
         : '';
 
     return (
-        <section className="py-16 md:py-24 bg-white">
+        <section className="py-16 md:py-24 bg-white dark:bg-stone-800">
             <style>{`
                 @keyframes pour-dots {
                   from { transform: translateY(0px); opacity: 1; }
@@ -186,8 +186,8 @@ const InteractiveGuide: React.FC = () => {
                 .animate-pour-stream { animation: pour-stream 1.2s ease-out forwards; }
             `}</style>
             <div className="container mx-auto px-6 text-center">
-                <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Guía Interactiva de Uso</h2>
-                <p className="max-w-3xl mx-auto text-stone-600 mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Guía Interactiva de Uso</h2>
+                <p className="max-w-3xl mx-auto text-stone-600 mb-8 dark:text-stone-300">
                     Aprende a usar nuestra emulsión de forma divertida. ¡Sigue las instrucciones en pantalla!
                 </p>
 
@@ -195,7 +195,7 @@ const InteractiveGuide: React.FC = () => {
                 <div className="mb-8 min-h-[100px] flex flex-col justify-center items-center">
                     <div className="relative h-16 w-full max-w-2xl flex items-center justify-center">
                         {instructions.map((text, index) => (
-                             <p key={index} className={`absolute inset-0 text-xl font-semibold text-green-800 transition-opacity duration-500 flex items-center justify-center ${step === index ? 'opacity-100' : 'opacity-0'}`} aria-live="polite" aria-hidden={step !== index}>
+                             <p key={index} className={`absolute inset-0 text-xl font-semibold text-green-800 dark:text-green-300 transition-opacity duration-500 flex items-center justify-center ${step === index ? 'opacity-100' : 'opacity-0'}`} aria-live="polite" aria-hidden={step !== index}>
                                 {text}
                             </p>
                         ))}
@@ -204,7 +204,7 @@ const InteractiveGuide: React.FC = () => {
                         <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center animate-fade-in-up">
                              <button 
                                 onClick={handleReset} 
-                                className="bg-stone-200 text-stone-700 font-bold py-2 px-6 rounded-full hover:bg-stone-300 transition-colors"
+                                className="bg-stone-200 text-stone-700 font-bold py-2 px-6 rounded-full hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500"
                             >
                                 Repetir Guía
                             </button>
@@ -220,7 +220,7 @@ const InteractiveGuide: React.FC = () => {
                 </div>
 
                 {/* Game Area */}
-                <div className="relative bg-lime-100 p-4 sm:p-8 rounded-2xl shadow-inner max-w-4xl mx-auto min-h-[70vh] md:aspect-video flex flex-col justify-end overflow-hidden">
+                <div className="relative bg-lime-100 p-4 sm:p-8 rounded-2xl shadow-inner max-w-4xl mx-auto min-h-[70vh] md:aspect-video flex flex-col justify-end overflow-hidden dark:bg-gray-800">
                     {isWatering && <WateringStream />}
                     <div className="flex-grow flex flex-col md:flex-row items-center md:items-end justify-around gap-8 md:gap-4 px-4">
                        <div className="flex flex-col items-center order-1" onDragOver={handleDragOver} onDrop={handlePlantDrop}>
@@ -253,7 +253,7 @@ const InteractiveGuide: React.FC = () => {
                         </div>
                     </div>
                      {/* Table Top */}
-                    <div className="h-4 bg-stone-700 w-full shadow-lg rounded-b-lg mt-auto"></div>
+                    <div className="h-4 bg-stone-700 w-full shadow-lg rounded-b-lg mt-auto dark:bg-stone-900"></div>
                 </div>
 
             </div>

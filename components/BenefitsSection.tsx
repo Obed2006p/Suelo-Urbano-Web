@@ -28,10 +28,10 @@ const BenefitsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-white dark:bg-stone-800">
       <div className="container mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Beneficios para el Planeta</h2>
-        <p className="max-w-2xl mx-auto text-stone-600 mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Beneficios para el Planeta</h2>
+        <p className="max-w-2xl mx-auto text-stone-600 mb-12 dark:text-stone-300">
           Usar emulsión no solo transforma tu jardín, sino que también es un paso poderoso hacia un futuro más sostenible.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

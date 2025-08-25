@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon } from './icons/Icons';
 
 interface PlantDoctorSectionProps {}
 
@@ -11,6 +11,7 @@ interface PlantDiagnosis {
     recomendaciones: string[];
     recomendacionEmulsion: string;
     phSueloIdeal: string;
+    dosisEmulsionRecomendada: string;
 }
 
 const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
@@ -90,12 +91,13 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                         description: "Una lista de 3 a 5 recomendaciones accionables para el cuidado y tratamiento de la planta."
                     },
                     recomendacionEmulsion: { type: Type.STRING, description: "Una recomendación específica de cómo y por qué la emulsión 'Suelo Urbano' beneficiaría a esta planta en su estado actual." },
-                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para el suelo de esta planta (ej. '6.0 - 7.0, ligeramente ácido a neutro')." }
+                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para el suelo de esta planta (ej. '6.0 - 7.0, ligeramente ácido a neutro')." },
+                    dosisEmulsionRecomendada: { type: Type.STRING, description: "Una dosis específica y frecuencia de aplicación de la emulsión 'Suelo Urbano' para tratar el problema actual. Por ejemplo: 'Aplica 15 gramos (una cucharada) diluidos en 1 litro de agua cada 15 días.'" }
                 },
-                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion", "phSueloIdeal"]
+                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion", "phSueloIdeal", "dosisEmulsionRecomendada"]
             };
 
-            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema, indica el rango de pH ideal para su suelo, y da recomendaciones claras para solucionarlo. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición. Responde únicamente con el objeto JSON definido en el schema.";
+            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema, indica el rango de pH ideal para su suelo, y da recomendaciones claras para solucionarlo. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición y, crucialmente, especifica la **dosis recomendada de emulsión y la frecuencia de aplicación** para tratar su condición actual. Responde únicamente con el objeto JSON definido en el schema.";
 
             const response: GenerateContentResponse = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -126,30 +128,30 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
     }
     
     return (
-        <section className="py-16 md:py-24 bg-stone-50">
+        <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-900">
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Doctor de Plantas con IA</h2>
-                    <p className="max-w-3xl mx-auto text-stone-600">
+                    <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Doctor de Plantas con IA</h2>
+                    <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
                         ¿Tu planta no se ve bien? Sube una foto y nuestra IA te dará un diagnóstico y recomendaciones de cuidado.
                     </p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                     {/* Left Column: Uploader */}
-                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200">
+                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
                         {!imagePreview ? (
                             <div 
                                 onDragEnter={handleDragEnter} onDragOver={handleDragEvents} onDragLeave={handleDragLeave} onDrop={handleDrop}
-                                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50' : 'border-stone-300'}`}
+                                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-stone-300 dark:border-stone-600'}`}
                             >
                                 <CameraIcon className="h-16 w-16 mx-auto text-stone-400 mb-4" />
-                                <p className="text-stone-600 font-semibold mb-2">Arrastra y suelta la foto de tu planta</p>
-                                <p className="text-stone-500 mb-4">o</p>
+                                <p className="text-stone-600 font-semibold mb-2 dark:text-stone-300">Arrastra y suelta la foto de tu planta</p>
+                                <p className="text-stone-500 mb-4 dark:text-stone-400">o</p>
                                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                                     <button onClick={() => fileInputRef.current?.click()} className="bg-green-600 text-white font-bold py-2 px-6 rounded-full hover:bg-green-700 transition-colors">
                                         Elegir Archivo
                                     </button>
-                                    <button onClick={() => cameraInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors">
+                                    <button onClick={() => cameraInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors dark:bg-stone-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-stone-600">
                                         Usar Cámara
                                     </button>
                                 </div>
@@ -163,7 +165,7 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                                     <button onClick={getDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                         {isLoading ? 'Analizando...' : 'Diagnosticar Planta'}
                                     </button>
-                                    <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors">
+                                    <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500">
                                         Cambiar Foto
                                     </button>
                                 </div>
@@ -172,9 +174,9 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                     </div>
                     
                     {/* Right Column: Results */}
-                    <div className="bg-green-50/50 p-6 sm:p-8 rounded-2xl h-full flex flex-col justify-center items-center text-center min-h-[400px]">
+                    <div className="bg-green-50/50 p-6 sm:p-8 rounded-2xl h-full flex flex-col justify-center items-center text-center min-h-[400px] dark:bg-green-900/20">
                         {isLoading && (
-                             <div role="status" className="animate-pulse flex flex-col items-center text-green-700">
+                             <div role="status" className="animate-pulse flex flex-col items-center text-green-700 dark:text-green-300">
                                 <SparklesIcon className="h-16 w-16 mb-4" />
                                 <p className="font-semibold text-lg">Nuestra IA está examinando tu planta...</p>
                                 <p>Un momento, por favor.</p>
@@ -187,7 +189,7 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                             </div>
                         )}
                         {!isLoading && !error && !diagnosis && (
-                            <div className="text-stone-500">
+                            <div className="text-stone-500 dark:text-stone-400">
                                 <LeafIcon className="h-16 w-16 mx-auto mb-4 text-stone-400"/>
                                 <h3 className="text-lg font-semibold">El diagnóstico aparecerá aquí</h3>
                                 <p className="text-sm">Sube una foto para empezar.</p>
@@ -195,29 +197,34 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                         )}
                         {diagnosis && (
                             <div className="animate-fade-in-up w-full text-left">
-                                <h3 className="text-2xl font-bold text-green-800 mb-2">{diagnosis.nombrePlanta}</h3>
+                                <h3 className="text-2xl font-bold text-green-800 mb-2 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
                                 
-                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200">
-                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2"><HeartbeatIcon className="h-6 w-6 text-red-500"/>Estado de Salud</h4>
-                                    <p className="text-stone-700 font-medium">{diagnosis.salud}</p>
-                                    <p className="text-stone-600 mt-1 text-sm">{diagnosis.diagnosticoDetallado}</p>
+                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><HeartbeatIcon className="h-6 w-6 text-red-500"/>Estado de Salud</h4>
+                                    <p className="text-stone-700 font-medium dark:text-stone-200">{diagnosis.salud}</p>
+                                    <p className="text-stone-600 mt-1 text-sm dark:text-stone-300">{diagnosis.diagnosticoDetallado}</p>
                                 </div>
 
-                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200">
-                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2"><PhIcon className="h-6 w-6 text-orange-600"/>pH Ideal del Suelo</h4>
-                                    <p className="text-stone-700 font-medium">{diagnosis.phSueloIdeal}</p>
+                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><PhIcon className="h-6 w-6 text-orange-600"/>pH Ideal del Suelo</h4>
+                                    <p className="text-stone-700 font-medium dark:text-stone-200">{diagnosis.phSueloIdeal}</p>
                                 </div>
 
-                                <div className="bg-white/70 p-4 rounded-lg mb-6 border border-stone-200">
-                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2"><ClipboardListIcon className="h-6 w-6 text-blue-500"/>Recomendaciones</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-stone-700">
+                                 <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><MixIcon className="h-6 w-6 text-indigo-500"/>Dosis Recomendada</h4>
+                                    <p className="text-stone-700 font-medium dark:text-stone-200">{diagnosis.dosisEmulsionRecomendada}</p>
+                                 </div>
+
+                                <div className="bg-white/70 p-4 rounded-lg mb-6 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><ClipboardListIcon className="h-6 w-6 text-blue-500"/>Recomendaciones</h4>
+                                    <ul className="list-disc list-inside space-y-1 text-stone-700 dark:text-stone-300">
                                         {diagnosis.recomendaciones.map((rec, i) => <li key={i}>{rec}</li>)}
                                     </ul>
                                 </div>
                                 
-                                <div className="bg-green-200/60 border border-green-300 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2"><LeafIcon className="h-5 w-5"/>Tip de Suelo Urbano:</h4>
-                                    <p className="text-green-800">{diagnosis.recomendacionEmulsion}</p>
+                                <div className="bg-green-200/60 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
+                                    <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Tip de Suelo Urbano:</h4>
+                                    <p className="text-green-800 dark:text-green-300">{diagnosis.recomendacionEmulsion}</p>
                                 </div>
                             </div>
                         )}
