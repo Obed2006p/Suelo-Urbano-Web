@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon } from './icons/Icons';
 
 interface PlantDoctorSectionProps {}
 
@@ -12,7 +12,32 @@ interface PlantDiagnosis {
     recomendacionEmulsion: string;
     phSueloIdeal: string;
     dosisEmulsionRecomendada: string;
+    humedad: 'Baja' | 'Media' | 'Alta' | string;
+    humedadDescripcion: string;
 }
+
+const HumidityScale = ({ level }: { level: PlantDiagnosis['humedad'] }) => {
+    const levelMap: { [key: string]: { width: string; color: string; label: string } } = {
+        'Baja': { width: '33.33%', color: 'bg-yellow-400', label: 'Baja' },
+        'Media': { width: '66.66%', color: 'bg-green-400', label: 'Media' },
+        'Alta': { width: '100%', color: 'bg-blue-400', label: 'Alta' },
+    };
+    const currentLevel = levelMap[level] || { width: '66.66%', color: 'bg-stone-400', label: level };
+
+    return (
+        <div className="mt-2">
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-stone-700 font-medium dark:text-stone-200">{currentLevel.label}</span>
+            </div>
+            <div className="w-full bg-stone-200 rounded-full h-2.5 dark:bg-stone-600">
+                <div 
+                    className={`${currentLevel.color} h-2.5 rounded-full transition-all duration-500`} 
+                    style={{ width: currentLevel.width }}
+                ></div>
+            </div>
+        </div>
+    );
+};
 
 const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -92,12 +117,14 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                     },
                     recomendacionEmulsion: { type: Type.STRING, description: "Una recomendación específica de cómo y por qué la emulsión 'Suelo Urbano' beneficiaría a esta planta en su estado actual." },
                     phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para el suelo de esta planta (ej. '6.0 - 7.0, ligeramente ácido a neutro')." },
-                    dosisEmulsionRecomendada: { type: Type.STRING, description: "Una dosis específica y frecuencia de aplicación de la emulsión 'Suelo Urbano' para tratar el problema actual. Por ejemplo: 'Aplica 15 gramos (una cucharada) diluidos en 1 litro de agua cada 15 días.'" }
+                    dosisEmulsionRecomendada: { type: Type.STRING, description: "Una dosis específica y frecuencia de aplicación de la emulsión 'Suelo Urbano' para tratar el problema actual. Por ejemplo: 'Aplica 15 gramos (una cucharada) diluidos en 1 litro de agua cada 15 días.'" },
+                    humedad: { type: Type.STRING, description: "El nivel de humedad ambiental ideal para la planta en una escala. Debe ser uno de los siguientes valores: 'Baja', 'Media', 'Alta'." },
+                    humedadDescripcion: { type: Type.STRING, description: "Una breve descripción de lo que significa el nivel de humedad para la planta (ej: 'Prefiere ambientes secos, evitar rociar las hojas')." }
                 },
-                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion", "phSueloIdeal", "dosisEmulsionRecomendada"]
+                required: ["nombrePlanta", "salud", "diagnosticoDetallado", "recomendaciones", "recomendacionEmulsion", "phSueloIdeal", "dosisEmulsionRecomendada", "humedad", "humedadDescripcion"]
             };
 
-            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema, indica el rango de pH ideal para su suelo, y da recomendaciones claras para solucionarlo. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición y, crucialmente, especifica la **dosis recomendada de emulsión y la frecuencia de aplicación** para tratar su condición actual. Responde únicamente con el objeto JSON definido en el schema.";
+            const prompt = "Eres un botánico experto y doctor de plantas. Analiza la imagen de esta planta y proporciona un diagnóstico de salud. Identifica la planta, evalúa su salud (por ejemplo, si tiene hojas amarillas, manchas, plagas, etc.), explica el posible problema, indica el rango de pH ideal para su suelo, y da recomendaciones claras para solucionarlo. Además, determina el nivel de humedad ambiental que necesita la planta usando una escala ('Baja', 'Media', 'Alta') y proporciona una breve descripción. Incluye una recomendación específica sobre cómo la emulsión 'Suelo Urbano' podría ayudar a mejorar su condición y, crucialmente, especifica la **dosis recomendada de emulsión y la frecuencia de aplicación** para tratar su condición actual. Responde únicamente con el objeto JSON definido en el schema.";
 
             const response: GenerateContentResponse = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -203,6 +230,12 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
                                     <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><HeartbeatIcon className="h-6 w-6 text-red-500"/>Estado de Salud</h4>
                                     <p className="text-stone-700 font-medium dark:text-stone-200">{diagnosis.salud}</p>
                                     <p className="text-stone-600 mt-1 text-sm dark:text-stone-300">{diagnosis.diagnosticoDetallado}</p>
+                                </div>
+
+                                <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
+                                    <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-1 dark:text-stone-200"><HumidityIcon className="h-6 w-6 text-cyan-500"/>Humedad Ambiental</h4>
+                                    <HumidityScale level={diagnosis.humedad} />
+                                    <p className="text-stone-600 mt-2 text-sm dark:text-stone-300">{diagnosis.humedadDescripcion}</p>
                                 </div>
 
                                 <div className="bg-white/70 p-4 rounded-lg mb-4 border border-stone-200 dark:bg-stone-700/50 dark:border-stone-600">
