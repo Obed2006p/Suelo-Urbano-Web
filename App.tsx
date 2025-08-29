@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
@@ -13,6 +14,7 @@ import PlantDoctorPage from './components/PlantDoctorPage';
 import HowToUsePage from './components/HowToUsePage';
 import LocationsPage from './components/LocationsPage';
 import FallingLeaves from './components/FallingLeaves';
+import WelcomeSplash from './components/WelcomeSplash';
 
 const HomePage: React.FC = () => {
     const scrollTo = (id: string) => {
@@ -34,14 +36,21 @@ const HomePage: React.FC = () => {
             <Header onNavigate={scrollTo} isHomePage />
             <main className="flex-grow">
                 <Hero onOrderClick={() => { window.location.hash = '#/pedido'; }} />
-                <div id="que-es">
-                    <EmulsionExplainedSection />
-                </div>
-                <div id="beneficios">
-                    <BenefitsSection />
-                </div>
-                <div id="modo-uso">
-                    <UsageSection />
+                {/* This relative container will contain the leaves for the homepage */}
+                <div className="relative">
+                    {/* The leaves start here, behind the content */}
+                    <FallingLeaves position="absolute" />
+                    
+                    {/* The rest of the page content sits on top */}
+                    <div id="que-es">
+                        <EmulsionExplainedSection />
+                    </div>
+                    <div id="beneficios">
+                        <BenefitsSection />
+                    </div>
+                    <div id="modo-uso">
+                        <UsageSection />
+                    </div>
                 </div>
             </main>
             <Footer />
@@ -53,6 +62,7 @@ const getCurrentHash = () => window.location.hash || '#';
 
 const App: React.FC = () => {
   const [route, setRoute] = useState(getCurrentHash());
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -65,8 +75,13 @@ const App: React.FC = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+
+  const handleEnter = () => {
+    setShowSplash(false);
+  };
   
   let pageContent;
+  let isHomePage = false;
   switch (route) {
     case '#/pedido':
       pageContent = <OrderPage />;
@@ -91,13 +106,25 @@ const App: React.FC = () => {
         break;
     default:
       pageContent = <HomePage />;
+      isHomePage = true;
       break;
   }
   
   return (
-      <div className="relative bg-stone-50 dark:bg-stone-900">
-        <FallingLeaves />
-        {pageContent}
+      <div className="relative">
+        {/* Background Color Layer */}
+        <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
+
+        {/* Falling Leaves Layer (visible when splash is gone AND not on homepage) */}
+        {!showSplash && !isHomePage && <FallingLeaves position="fixed" />}
+
+        {/* Splash Screen on top */}
+        {showSplash && <WelcomeSplash onEnter={handleEnter} />}
+
+        {/* Main Content Layer */}
+        <div className={!showSplash ? 'animate-fade-in-main' : 'opacity-0'}>
+          {pageContent}
+        </div>
       </div>
   );
 };
