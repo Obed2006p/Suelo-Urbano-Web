@@ -2,6 +2,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
@@ -75,28 +76,25 @@ const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const reportPageView = (path: string) => {
-      if (typeof window.gtag === 'function') {
-        window.gtag('config', 'G-625QSL577W', {
-          page_path: path,
-        });
-      }
-    };
-
+    // The initial pageview is sent by the gtag.js script in index.html.
+    // This effect only needs to handle subsequent SPA navigation.
     const handleHashChange = () => {
       const newRoute = getCurrentHash();
       setRoute(newRoute);
       window.scrollTo(0, 0);
-      reportPageView(newRoute);
+
+      // Send a `page_view` event to Google Analytics for SPA navigation.
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'page_view', {
+          page_path: newRoute,
+          page_location: window.location.href,
+        });
+      }
     };
 
-    // Report the initial page view with the correct hash
-    reportPageView(getCurrentHash());
-
-    // Set up the listener for subsequent page changes
     window.addEventListener('hashchange', handleHashChange);
 
-    // Clean up the listener when the component unmounts
+    // Clean up the listener when the component unmounts.
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
