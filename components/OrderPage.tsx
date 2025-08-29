@@ -94,9 +94,9 @@ const OrderPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col dark:bg-stone-900">
+    <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       <Header />
-      <main className="flex-grow py-16 md:py-24 bg-white dark:bg-stone-900">
+      <main className="flex-grow py-16 md:py-24">
         {isSubmitted ? (
           <div className="container mx-auto px-6 text-center max-w-2xl">
             <CheckCircleIcon className="h-24 w-24 text-green-500 mx-auto mb-6" />

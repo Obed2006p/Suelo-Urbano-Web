@@ -7,7 +7,7 @@ import InteractiveGuide from './InteractiveGuide';
 
 const HowToUsePage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50 dark:bg-stone-900">
+    <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       <Header />
       <main className="flex-grow">
         <InteractiveGuide />

@@ -6,7 +6,7 @@ import Footer from './Footer';
 
 const PlantDoctorPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col dark:bg-stone-900">
+    <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       <Header />
       <main className="flex-grow">
         <PlantDoctorSection /> 

@@ -1,19 +1,18 @@
-
 import React from 'react';
 import Header from '../Header';
-import ElementsSection from './ElementsSection';
 import Footer from './Footer';
+import LocationsMap from './LocationsMap';
 
-const CompositionPage: React.FC = () => {
+const LocationsPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       <Header />
       <main className="flex-grow">
-        <ElementsSection />
+        <LocationsMap />
       </main>
       <Footer />
     </div>
   );
 };
 
-export default CompositionPage;
+export default LocationsPage;

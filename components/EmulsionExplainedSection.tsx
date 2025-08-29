@@ -10,7 +10,7 @@ const EmulsionExplainedSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-900">
+    <section className="py-16 md:py-24">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, SunIcon, MoonIcon } from './components/icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './components/icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -9,30 +9,32 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme) {
-      return storedTheme === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+    // We want to rely on the system preference, so remove any stored theme.
+    localStorage.removeItem('theme');
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
-  };
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const applyTheme = (isDark: boolean) => {
+      document.documentElement.classList.toggle('dark', isDark);
+    };
+
+    // Apply theme on initial load
+    applyTheme(mediaQuery.matches);
+
+    // Listen for changes
+    const handleChange = (e: MediaQueryListEvent) => {
+      applyTheme(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    // Cleanup listener on component unmount
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []); // Run only once on mount
 
   const inPageNavLinks = [
     { id: 'inicio', label: 'Inicio' },
@@ -48,6 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     { href: '#/guia-riego', label: 'Guía de Riego', icon: <WaterDropIcon className="h-6 w-6 text-white" /> },
     { href: '#/guia-interactiva', label: 'Guía Interactiva', icon: <PlayCircleIcon className="h-6 w-6 text-white" /> },
     { href: '#/doctor-plantas', label: 'Doctor de Plantas', icon: <HeartbeatIcon className="h-6 w-6 text-white" /> },
+    { href: '#/puntos-de-venta', label: 'Puntos de Venta', icon: <MapPinIcon className="h-6 w-6 text-white" /> },
   ];
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -148,18 +151,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                 </a>
               ))}
             </nav>
-            <div className="p-2 border-t border-green-600">
-              <button 
-                onClick={toggleDarkMode}
-                className="w-full flex items-center gap-4 text-green-100 hover:bg-green-600 hover:text-white transition-all duration-200 font-semibold text-lg py-3 px-4 rounded-lg"
-                aria-label={isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
-              >
-                {isDarkMode ? <SunIcon className="h-6 w-6 text-yellow-300" /> : <MoonIcon className="h-6 w-6 text-blue-300" />}
-                <span>Modo {isDarkMode ? 'Claro' : 'Oscuro'}</span>
-              </button>
-            </div>
-            <div className="p-4 text-center text-green-300 text-sm border-t border-green-600">
-              <p>&copy; 2025 Suelo Urbano.</p>
+            <div className="p-4 text-center text-green-300 text-sm border-t border-green-600 mt-auto">
+              <p>&copy; {new Date().getFullYear()} Suelo Urbano.</p>
             </div>
         </div>
       </div>

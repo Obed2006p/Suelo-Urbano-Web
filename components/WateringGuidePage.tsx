@@ -6,10 +6,10 @@ import Footer from './Footer';
 
 const WateringGuidePage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col dark:bg-stone-900">
+    <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       <Header />
       <main className="flex-grow">
-         <section className="py-16 md:py-24 bg-white dark:bg-stone-900">
+         <section className="py-16 md:py-24">
           <div className="container mx-auto px-6">
               <WateringGuideSection />
           </div>

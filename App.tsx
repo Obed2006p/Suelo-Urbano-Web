@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
@@ -12,7 +11,8 @@ import CompositionPage from './components/CompositionPage';
 import WateringGuidePage from './components/WateringGuidePage';
 import PlantDoctorPage from './components/PlantDoctorPage';
 import HowToUsePage from './components/HowToUsePage';
-import { PottedPlantIcon } from './components/icons/Icons';
+import LocationsPage from './components/LocationsPage';
+import FallingLeaves from './components/FallingLeaves';
 
 const HomePage: React.FC = () => {
     const scrollTo = (id: string) => {
@@ -30,7 +30,7 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col dark:bg-stone-900">
+        <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
             <Header onNavigate={scrollTo} isHomePage />
             <main className="flex-grow">
                 <Hero onOrderClick={() => { window.location.hash = '#/pedido'; }} />
@@ -45,15 +45,6 @@ const HomePage: React.FC = () => {
                 </div>
             </main>
             <Footer />
-            {/* Floating Action Button */}
-            <button
-                onClick={() => { window.location.hash = '#/pedido'; }}
-                className="fixed z-40 bottom-6 right-6 bg-green-600 text-white font-bold rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-110 shadow-xl flex items-center gap-2 py-3 px-5 dark:bg-green-500 dark:hover:bg-green-600"
-                aria-label="Haz aqui tu pedido"
-            >
-                <PottedPlantIcon className="h-7 w-7" />
-                <span className="hidden sm:inline">Haz aqui tu pedido</span>
-            </button>
         </div>
     );
 };
@@ -74,23 +65,41 @@ const App: React.FC = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
-
+  
+  let pageContent;
   switch (route) {
     case '#/pedido':
-      return <OrderPage />;
+      pageContent = <OrderPage />;
+      break;
     case '#/utilidades':
-      return <UtilitiesPage />;
+      pageContent = <UtilitiesPage />;
+      break;
     case '#/composicion':
-      return <CompositionPage />;
+      pageContent = <CompositionPage />;
+      break;
     case '#/guia-riego':
-      return <WateringGuidePage />;
+      pageContent = <WateringGuidePage />;
+      break;
     case '#/doctor-plantas':
-      return <PlantDoctorPage />;
+      pageContent = <PlantDoctorPage />;
+      break;
     case '#/guia-interactiva':
-        return <HowToUsePage />;
+        pageContent = <HowToUsePage />;
+        break;
+    case '#/puntos-de-venta':
+        pageContent = <LocationsPage />;
+        break;
     default:
-      return <HomePage />;
+      pageContent = <HomePage />;
+      break;
   }
+  
+  return (
+      <div className="relative bg-stone-50 dark:bg-stone-900">
+        <FallingLeaves />
+        {pageContent}
+      </div>
+  );
 };
 
 export default App;

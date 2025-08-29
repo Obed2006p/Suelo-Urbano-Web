@@ -28,7 +28,7 @@ const BenefitsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white dark:bg-stone-800">
+    <section className="py-16 md:py-24">
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Beneficios para el Planeta</h2>
         <p className="max-w-2xl mx-auto text-stone-600 mb-12 dark:text-stone-300">
