@@ -10,7 +10,7 @@ interface Location {
 
 const locations: Location[] = [
     { 
-        name: "Suelo Urbano - Matriz", 
+        name: "Suelo Urbano", 
         address: "Av. San Bernabé 295, Independencia Batan Nte, La Magdalena Contreras, 10200 Ciudad de México, CDMX", 
         lat: 19.3344129, 
         lng: -99.2169784 
@@ -20,6 +20,12 @@ const locations: Location[] = [
         address: "Múzquiz, San Ángel, Álvaro Obregón, 01000 Ciudad de México, CDMX",
         lat: 19.3427195,
         lng: -99.1908684
+    },
+    {
+        name: "Floreria Casa Blanca",
+        address: "Mercado Tizapan, C. Frontera 2, Tizapán, San Ángel, 01090 Ciudad de México, CDMX",
+        lat: 19.3361,
+        lng: -99.1956
     }
 ];
 
@@ -69,7 +75,7 @@ const LocationsMap: React.FC = () => {
                         Encuentra nuestras tiendas para adquirir la emulsión Suelo Urbano.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {locations.map((loc, index) => (
                         <LocationCard key={index} location={loc} />
                     ))}
