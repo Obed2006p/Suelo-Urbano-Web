@@ -40,7 +40,6 @@ const HumidityScale = ({ level }: { level: PlantDiagnosis['humedad'] }) => {
     );
 };
 
-// FIX: Correctly defined the functional component to return JSX, resolving the type error.
 const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -56,7 +55,6 @@ const PlantDoctorSection: React.FC<PlantDoctorSectionProps> = () => {
         const base64EncodedDataPromise = new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-            // FIX: Corrected the FileReader method from 'read' to 'readAsDataURL'.
             reader.readAsDataURL(file);
         });
         return {

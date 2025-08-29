@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { LeafIcon } from './icons/Icons';
 
@@ -62,9 +63,10 @@ const Plant = ({ happy }: { happy: boolean }) => (
 
 // --- Animation Components ---
 const PouringProductStream = () => (
-    // This container is positioned at the bag's opening. It is rotated with the bag.
-    // The inner animation container is counter-rotated so the particles fall straight down.
-    <div className="absolute -bottom-4 -right-4 w-1 h-24 pointer-events-none transform rotate-45">
+    // This container is positioned at the bag's top-left corner.
+    // The `rotate-45` counter-rotates the bag's `-rotate-45` to make the stream vertical.
+    // The z-index ensures it's on top of the bag.
+    <div className="absolute top-0 left-0 w-1 h-24 pointer-events-none transform rotate-45 z-30">
         <div className="animate-pour-dots w-1 h-1 bg-amber-900 rounded-full absolute" style={{animationDelay: '0s'}}></div>
         <div className="animate-pour-dots w-1.5 h-1.5 bg-stone-600 rounded-full absolute" style={{animationDelay: '0.1s', left: '2px'}}></div>
         <div className="animate-pour-dots w-1 h-1 bg-amber-900 rounded-full absolute" style={{animationDelay: '0.2s', left: '-1px'}}></div>
@@ -164,8 +166,10 @@ const InteractiveGuide: React.FC = () => {
     const isBagDraggable = step === 1 && !isAnimating;
     const isCanDraggable = step === 2 && !isAnimating;
     
+    // z-20 brings the bag on top of other elements during animation.
+    // transform values are adjusted for a more natural movement.
     const bagPouringClasses = isBagPouring 
-        ? '-translate-y-40 -rotate-15 md:translate-y-0 md:-translate-x-48 md:-translate-y-20 md:-rotate-45' 
+        ? '-translate-y-36 -rotate-45 z-20 md:translate-y-0 md:-translate-x-48 md:-translate-y-20 md:-rotate-45' 
         : '';
 
     return (
@@ -242,14 +246,16 @@ const InteractiveGuide: React.FC = () => {
                             draggable={isBagDraggable}
                             onDragStart={(e) => handleDragStart(e, 'bag')}
                             onDragEnd={handleDragEnd}
-                            className={`relative transition-transform duration-500 ease-in-out order-3 ${step === 0 ? 'cursor-pointer hover:scale-105' : ''} ${isBagDraggable ? 'cursor-grab' : 'cursor-default'} ${bagPouringClasses}`}
+                            className={`transition-transform duration-500 ease-in-out order-3 ${step === 0 ? 'cursor-pointer hover:scale-105' : ''} ${isBagDraggable ? 'cursor-grab' : 'cursor-default'} ${bagPouringClasses}`}
                             role={step === 0 ? 'button' : undefined}
                             tabIndex={step === 0 ? 0 : -1}
                             onKeyPress={(e) => e.key === 'Enter' && handleBagClick()}
                             aria-label="Bolsa de emulsión"
                         >
-                            <ProductBag open={step >= 1} />
-                            {isPouringProduct && <PouringProductStream />}
+                            <div className="relative">
+                                <ProductBag open={step >= 1} />
+                                {isPouringProduct && <PouringProductStream />}
+                            </div>
                         </div>
                     </div>
                      {/* Table Top */}
