@@ -1,13 +1,16 @@
 
 import React from 'react';
-import Header from '../Header';
 import WateringGuideSection from './WateringGuideSection';
 import Footer from './Footer';
 
-const WateringGuidePage: React.FC = () => {
+interface WateringGuidePageProps {
+  header: React.ReactNode;
+}
+
+const WateringGuidePage: React.FC<WateringGuidePageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow">
          <section className="py-16 md:py-24">
           <div className="container mx-auto px-6">

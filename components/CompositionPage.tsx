@@ -1,13 +1,16 @@
 
 import React from 'react';
-import Header from '../Header';
 import ElementsSection from './ElementsSection';
 import Footer from './Footer';
 
-const CompositionPage: React.FC = () => {
+interface CompositionPageProps {
+  header: React.ReactNode;
+}
+
+const CompositionPage: React.FC<CompositionPageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow">
         <ElementsSection />
       </main>

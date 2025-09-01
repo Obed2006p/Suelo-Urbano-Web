@@ -1,12 +1,16 @@
+
 import React from 'react';
-import Header from '../Header';
 import Footer from './Footer';
 import LocationsMap from './LocationsMap';
 
-const LocationsPage: React.FC = () => {
+interface LocationsPageProps {
+  header: React.ReactNode;
+}
+
+const LocationsPage: React.FC<LocationsPageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow">
         <LocationsMap />
       </main>

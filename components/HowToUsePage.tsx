@@ -1,14 +1,16 @@
 
-
 import React from 'react';
-import Header from '../Header';
 import Footer from './Footer';
 import InteractiveGuide from './InteractiveGuide';
 
-const HowToUsePage: React.FC = () => {
+interface HowToUsePageProps {
+  header: React.ReactNode;
+}
+
+const HowToUsePage: React.FC<HowToUsePageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow">
         <InteractiveGuide />
       </main>

@@ -2,13 +2,16 @@
 import React, { useState } from 'react';
 import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 import Footer from './Footer';
-import Header from '../Header';
+
+// El Header ahora se pasa como prop para que App.tsx pueda controlarlo
+interface OrderPageProps {
+  header: React.ReactNode;
+}
 
 // Declara la variable global de emailjs para que TypeScript la reconozca.
-// El SDK se carga desde index.html
 declare const emailjs: any;
 
-const OrderPage: React.FC = () => {
+const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -44,7 +47,6 @@ const OrderPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    // Credenciales de EmailJS del usuario
     const serviceID = 'service_metl5hg';
     const templateID = 'template_dcsxv2c';
     const publicKey = 'mvC0PNypKE5HwcSc-';
@@ -95,7 +97,7 @@ const OrderPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow py-16 md:py-24">
         {isSubmitted ? (
           <div className="container mx-auto px-6 text-center max-w-2xl">
@@ -119,7 +121,7 @@ const OrderPage: React.FC = () => {
                 Es fácil y rápido. Llena el formulario y nos pondremos en contacto para coordinar la entrega.
               </p>
             </div>
-            <div className="max-w-2xl mx-auto bg-stone-50 p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
+            <div id="order-form-container" className="max-w-2xl mx-auto bg-stone-50 p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
                   <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">

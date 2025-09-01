@@ -1,13 +1,16 @@
 
 import React from 'react';
-import Header from '../Header';
 import AdvantagesSection from './AdvantagesSection';
 import Footer from './Footer';
 
-const UtilitiesPage: React.FC = () => {
+interface UtilitiesPageProps {
+  header: React.ReactNode;
+}
+
+const UtilitiesPage: React.FC<UtilitiesPageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-      <Header />
+      {header}
       <main className="flex-grow">
         <AdvantagesSection />
       </main>

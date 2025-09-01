@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import * as React from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
@@ -20,6 +15,8 @@ import HowToUsePage from './components/HowToUsePage';
 import LocationsPage from './components/LocationsPage';
 import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
+import TourGuide from './components/TourGuide';
+import WelcomeTourModal from './components/WelcomeTourModal';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -28,32 +25,24 @@ declare global {
   }
 }
 
-const HomePage: React.FC = () => {
-    const scrollTo = (id: string) => {
-        if (id === 'inicio') {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-            });
-        }
-    };
+const tourSteps = [
+    { selector: '#que-es', title: '¿Qué es Suelo Urbano?', content: 'Descubre qué es nuestra emulsión y su magia para convertir residuos en vida para tus plantas.', route: '#' },
+    { selector: '#beneficios', title: 'Beneficios Clave', content: 'Conoce los increíbles beneficios de usar nuestra emulsión para tu jardín y para el planeta.', route: '#' },
+    { selector: '#modo-uso', title: 'Modo de Empleo', content: 'Aprende en 3 sencillos pasos cómo aplicar la emulsión para obtener los mejores resultados.', route: '#' },
+    { selector: '#main-menu-toggle', title: 'Menú Principal', content: 'Explora todas las herramientas y secciones de nuestro sitio desde aquí.', route: '#' },
+    { selector: '#nav-link-utilidades', title: 'Sección de Utilidades', content: 'Aquí encontrarás herramientas interactivas como la guía de riego y el doctor de plantas.', route: '#', openMenu: true },
+    { selector: '#nav-link-doctor-plantas', title: 'Doctor de Plantas con IA', content: 'Sube una foto de tu planta y obtén un diagnóstico y plan de acción al instante.', route: '#', openMenu: true },
+    { selector: '#order-form-container', title: 'Realiza tu Pedido', content: '¿Listo para transformar tu jardín? Solicita tu emulsión desde esta página.', route: '#/pedido' },
+    { selector: '#nav-link-puntos-de-venta', title: 'Puntos de Venta', content: 'Encuentra la tienda más cercana para adquirir nuestros productos fácilmente.', route: '#/puntos-de-venta', openMenu: true },
+];
 
+const HomePage: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
-            <Header onNavigate={scrollTo} isHomePage />
             <main className="flex-grow">
                 <Hero onOrderClick={() => { window.location.hash = '#/pedido'; }} />
-                {/* This relative container will contain the leaves for the homepage */}
                 <div className="relative">
-                    {/* The leaves start here, behind the content */}
                     <FallingLeaves position="absolute" />
-                    
-                    {/* The rest of the page content sits on top */}
                     <div id="que-es">
                         <EmulsionExplainedSection />
                     </div>
@@ -75,16 +64,61 @@ const getCurrentHash = () => window.location.hash || '#';
 const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
   const [showSplash, setShowSplash] = React.useState(true);
+  const [tourState, setTourState] = React.useState({ isActive: false, stepIndex: 0, forceMenuOpen: false });
+  const [showWelcomeModal, setShowWelcomeModal] = React.useState(false);
+
+  const startTour = () => {
+    setShowWelcomeModal(false);
+    goToStep(0);
+  };
+  
+  const endTour = () => {
+    setTourState({ isActive: false, stepIndex: 0, forceMenuOpen: false });
+    localStorage.setItem('tourCompleted', 'true');
+  };
+  
+  const skipTour = () => {
+    setShowWelcomeModal(false);
+    localStorage.setItem('tourCompleted', 'true');
+  };
+
+  const goToStep = (index: number) => {
+    if (index < 0 || index >= tourSteps.length) {
+      endTour();
+      return;
+    }
+
+    const step = tourSteps[index];
+    const currentRoute = getCurrentHash();
+
+    const navigateAndSetStep = () => {
+        setTourState({ isActive: true, stepIndex: index, forceMenuOpen: !!step.openMenu });
+        if (step.route === '#') {
+            const element = document.querySelector(step.selector);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }, 350);
+            }
+        }
+    };
+
+    if (step.route !== currentRoute) {
+        window.location.hash = step.route;
+        setTimeout(navigateAndSetStep, 100);
+    } else {
+        navigateAndSetStep();
+    }
+  };
+
+  const handleNextStep = () => goToStep(tourState.stepIndex + 1);
+  const handlePrevStep = () => goToStep(tourState.stepIndex - 1);
 
   React.useEffect(() => {
-    // The initial pageview is sent by the gtag.js script in index.html.
-    // This effect only needs to handle subsequent SPA navigation.
     const handleHashChange = () => {
       const newRoute = getCurrentHash();
       setRoute(newRoute);
       window.scrollTo(0, 0);
-
-      // Send a `page_view` event to Google Analytics for SPA navigation.
       if (typeof window.gtag === 'function') {
         window.gtag('event', 'page_view', {
           page_path: newRoute,
@@ -94,12 +128,21 @@ const App: React.FC = () => {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-
-    // Clean up the listener when the component unmounts.
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+  
+  React.useEffect(() => {
+      if (!showSplash) {
+          const tourCompleted = localStorage.getItem('tourCompleted');
+          if (!tourCompleted) {
+              setTimeout(() => {
+                setShowWelcomeModal(true);
+              }, 500);
+          }
+      }
+  }, [showSplash]);
 
   const handleEnter = () => {
     setShowSplash(false);
@@ -107,28 +150,43 @@ const App: React.FC = () => {
   
   let pageContent;
   let isHomePage = false;
+  
+  const renderHeader = (isHome = false) => {
+    const scrollTo = (id: string) => {
+      if (id === 'inicio') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+    return <Header onNavigate={isHome ? scrollTo : undefined} isHomePage={isHome} forceMenuOpen={tourState.isActive && tourState.forceMenuOpen} onMenuStateChange={endTour} />;
+  };
+
   switch (route) {
     case '#/pedido':
-      pageContent = <OrderPage />;
+      pageContent = <OrderPage header={renderHeader()} />;
       break;
     case '#/utilidades':
-      pageContent = <UtilitiesPage />;
+      pageContent = <UtilitiesPage header={renderHeader()} />;
       break;
     case '#/composicion':
-      pageContent = <CompositionPage />;
+      pageContent = <CompositionPage header={renderHeader()} />;
       break;
     case '#/guia-riego':
-      pageContent = <WateringGuidePage />;
+      pageContent = <WateringGuidePage header={renderHeader()} />;
       break;
     case '#/doctor-plantas':
-      pageContent = <PlantDoctorPage />;
+      pageContent = <PlantDoctorPage header={renderHeader()} />;
       break;
     case '#/guia-interactiva':
-        pageContent = <HowToUsePage />;
-        break;
+      pageContent = <HowToUsePage header={renderHeader()} />;
+      break;
     case '#/puntos-de-venta':
-        pageContent = <LocationsPage />;
-        break;
+      pageContent = <LocationsPage header={renderHeader()} />;
+      break;
     default:
       pageContent = <HomePage />;
       isHomePage = true;
@@ -137,19 +195,26 @@ const App: React.FC = () => {
   
   return (
       <div className="relative">
-        {/* Background Color Layer */}
         <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
-
-        {/* Falling Leaves Layer (visible when splash is gone AND not on homepage) */}
         {!showSplash && !isHomePage && <FallingLeaves position="fixed" />}
-
-        {/* Splash Screen on top */}
         {showSplash && <WelcomeSplash onEnter={handleEnter} />}
 
-        {/* Main Content Layer */}
         <div className={!showSplash ? 'animate-fade-in-main' : 'opacity-0'}>
+          {isHomePage ? renderHeader(true) : null}
           {pageContent}
         </div>
+        
+        {showWelcomeModal && <WelcomeTourModal onStart={startTour} onSkip={skipTour} />}
+
+        <TourGuide
+            isActive={tourState.isActive}
+            step={tourSteps[tourState.stepIndex]}
+            stepIndex={tourState.stepIndex}
+            totalSteps={tourSteps.length}
+            onNext={handleNextStep}
+            onPrev={handlePrevStep}
+            onFinish={endTour}
+        />
       </div>
   );
 };
