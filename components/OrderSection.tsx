@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import * as React from 'react';
 import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 
 // Declara la variable global de emailjs para que TypeScript la reconozca.
@@ -7,7 +7,7 @@ import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 declare const emailjs: any;
 
 const OrderSection: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = React.useState({
     name: '',
     email: '',
     phone: '',
@@ -20,9 +20,9 @@ const OrderSection: React.FC = () => {
     postalCode: '',
     references: '',
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

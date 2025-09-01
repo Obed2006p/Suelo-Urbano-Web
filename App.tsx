@@ -3,7 +3,8 @@
 
 
 
-import React, { useState, useEffect } from 'react';
+
+import * as React from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
 import EmulsionExplainedSection from './components/EmulsionExplainedSection';
@@ -72,10 +73,10 @@ const HomePage: React.FC = () => {
 const getCurrentHash = () => window.location.hash || '#';
 
 const App: React.FC = () => {
-  const [route, setRoute] = useState(getCurrentHash());
-  const [showSplash, setShowSplash] = useState(true);
+  const [route, setRoute] = React.useState(getCurrentHash());
+  const [showSplash, setShowSplash] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // The initial pageview is sent by the gtag.js script in index.html.
     // This effect only needs to handle subsequent SPA navigation.
     const handleHashChange = () => {

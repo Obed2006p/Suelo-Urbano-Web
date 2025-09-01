@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import Card from './Card';
 import { PlanetIcon, RecycleIcon, WaterDropIcon, WormIcon } from './icons/Icons';
 

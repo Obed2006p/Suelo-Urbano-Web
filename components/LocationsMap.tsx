@@ -26,6 +26,18 @@ const locations: Location[] = [
         address: "Mercado Tizapan, C. Frontera 2, Tizapán, San Ángel, 01090 Ciudad de México, CDMX",
         lat: 19.3361,
         lng: -99.1956
+    },
+    {
+        name: "Venta de plantas y Alimentos con nutrientes",
+        address: "Av. de las Torres & Av. Lea, El Tanque, La Magdalena Contreras, 10320 Ciudad de México, CDMX",
+        lat: 19.32454,
+        lng: -99.23188
+    },
+    {
+        name: "Mercado del Jueves, venta de plantas",
+        address: "C. Glaciar, La Cascada, La Magdalena Contreras, 10340 Ciudad de México, CDMX",
+        lat: 19.3373164,
+        lng: -99.2078457
     }
 ];
 

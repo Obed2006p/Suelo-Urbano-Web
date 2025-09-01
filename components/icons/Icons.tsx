@@ -56,7 +56,8 @@ export const PlantIcon: React.FC<IconProps> = ({ className }) => (
 
 export const TomatoIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 13a5 5 0 100-10 5 5 0 000 10z" transform="translate(0 4)"/>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-2 0-3-1-3-1M12 8c2 0 3-1 3-1M12 8V5" />
     </svg>
 );
 
@@ -74,7 +75,9 @@ export const UserIcon: React.FC<IconProps> = ({ className }) => (
 
 export const AtomIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 019-4.044 11.955 11.955 0 019 4.044 12.02 12.02 0 00-2.382-9.984z" />
+      <ellipse cx="12" cy="12" rx="9" ry="4.5" />
+      <ellipse cx="12" cy="12" rx="4.5" ry="9" transform="rotate(60 12 12)"/>
+      <ellipse cx="12" cy="12" rx="4.5" ry="9" transform="rotate(120 12 12)"/>
     </svg>
 );
 
@@ -128,14 +131,15 @@ export const QuestionMarkCircleIcon: React.FC<IconProps> = ({ className }) => (
 
 export const VegetableIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-6-6h12" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 21c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14 21c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15V3m0 0l3 3m-3-3L9 6" />
     </svg>
 );
 
 export const FlowerIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-3.333 0-6 2.667-6 6s2.667 6 6 6 6-2.667 6-6-2.667-6-6-6zm0 0V4m0 4c-3.333 0-6-2.667-6-6s2.667-6 6-6 6 2.667 6 6-2.667 6-6 6zm0 0c3.333 0 6 2.667 6 6s-2.667 6-6 6-6-2.667-6-6 2.667-6 6-6z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 0V3m0 18v-4.5m-7.071-7.071L7.5 7.5m9.071 9.071L16.5 16.5m-9.071 0L7.5 16.5m9.071-9.071L16.5 7.5" />
     </svg>
 );
 
@@ -167,7 +171,7 @@ export const CactusIcon: React.FC<IconProps> = ({ className }) => (
 
 export const RoseIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 0V3m0 18v-4.5m-7.071-7.071L7.5 7.5m9.071 9.071L16.5 16.5m-9.071 0L7.5 16.5m9.071-9.071L16.5 7.5" />
     </svg>
 );
 

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { LeafIcon } from './icons/Icons';
 
 const Footer: React.FC = () => {
