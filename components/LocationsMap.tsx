@@ -21,9 +21,8 @@ const locations: Location[] = [
         name: "Mercado Melchor Múzquiz",
         address: "Múzquiz, San Ángel, Álvaro Obregón, 01000 Ciudad de México, CDMX",
         images: [
-            "https://picsum.photos/seed/muzquiz1/800/600",
-            "https://picsum.photos/seed/muzquiz2/800/600",
-            "https://picsum.photos/seed/muzquiz3/800/600",
+            "https://res.cloudinary.com/dsmzpsool/image/upload/v1756765431/WhatsApp_Image_2025-09-01_at_3.44.32_PM_yte3ly.jpg",
+            "https://res.cloudinary.com/dsmzpsool/image/upload/v1756765431/WhatsApp_Image_2025-09-01_at_3.44.32_PM_1_o6z2wd.jpg",
         ]
     },
     {
@@ -33,6 +32,7 @@ const locations: Location[] = [
             "https://res.cloudinary.com/dsmzpsool/image/upload/v1756755782/WhatsApp_Image_2025-09-01_at_12.50.11_PM_zqedcm.jpg",
             "https://res.cloudinary.com/dsmzpsool/image/upload/v1756755781/WhatsApp_Image_2025-09-01_at_12.50.10_PM_zponx0.jpg",
             "https://res.cloudinary.com/dsmzpsool/image/upload/v1756755781/WhatsApp_Image_2025-09-01_at_12.50.10_PM_1_in5nx9.jpg",
+            "https://res.cloudinary.com/dsmzpsool/image/upload/v1756765431/WhatsApp_Image_2025-09-01_at_3.43.33_PM_zjmf7t.jpg",
         ]
     },
     {
