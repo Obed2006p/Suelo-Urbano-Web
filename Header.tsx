@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './components/icons/Icons';
 
@@ -97,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
                     <button
                         key={link.id}
                         onClick={() => onNavigate(link.id)}
-                        className="text-green-200 hover:text-white transition-colors duration-300 font-medium"
+                        className="text-green-100 hover:text-white transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,255,255,0.7)]"
                     >
                         {link.label}
                     </button>
