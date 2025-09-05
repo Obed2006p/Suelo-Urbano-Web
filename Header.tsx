@@ -1,28 +1,14 @@
+
 import * as React from 'react';
 import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './components/icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
   isHomePage?: boolean;
-  forceMenuOpen?: boolean;
-  onMenuStateChange?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, onMenuStateChange }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (forceMenuOpen) {
-      setIsMenuOpen(true);
-    }
-  }, [forceMenuOpen]);
-
-  const handleSetMenuOpen = (isOpen: boolean) => {
-    if (!isOpen && onMenuStateChange) {
-      onMenuStateChange();
-    }
-    setIsMenuOpen(isOpen);
-  }
 
   React.useEffect(() => {
     localStorage.removeItem('theme');
@@ -54,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     window.location.hash = href;
-    handleSetMenuOpen(false);
+    setIsMenuOpen(false);
   };
   
   const handleInPageLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -62,12 +48,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
     if (onNavigate) {
         onNavigate(id);
     }
-    handleSetMenuOpen(false);
+    setIsMenuOpen(false);
   }
   
   const navigateHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    handleSetMenuOpen(false);
+    setIsMenuOpen(false);
     if (isHomePage && onNavigate) {
         onNavigate('inicio');
     } else {
@@ -81,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
       <header className="bg-green-700 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-6 py-3 flex justify-between items-center relative">
             <div className="flex items-center gap-4">
-                 <button id="main-menu-toggle" onClick={() => handleSetMenuOpen(!isMenuOpen)} className="text-green-100 hover:text-white focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
+                 <button id="main-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-green-100 hover:text-white focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
                     <MenuIcon className="w-7 h-7" />
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
@@ -109,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
       <div className={`fixed inset-0 z-[100] ${isMenuOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div 
             className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} 
-            onClick={() => handleSetMenuOpen(false)}
+            onClick={() => setIsMenuOpen(false)}
             aria-hidden="true"
         ></div>
         
@@ -125,7 +111,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, forceMenuOpen, 
                     <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-10" />
                     <span className="text-xl font-bold text-white">Suelo Urbano</span>
                 </div>
-                <button onClick={() => handleSetMenuOpen(false)} className="text-green-200 hover:text-white p-2 rounded-full hover:bg-green-800 transition-colors" aria-label="Cerrar menú">
+                <button onClick={() => setIsMenuOpen(false)} className="text-green-200 hover:text-white p-2 rounded-full hover:bg-green-800 transition-colors" aria-label="Cerrar menú">
                     <XIcon className="w-7 h-7" />
                 </button>
             </div>

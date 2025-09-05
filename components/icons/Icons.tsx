@@ -299,3 +299,9 @@ export const CelebrationIcon: React.FC<IconProps> = ({ className }) => (
         <path d="M3.51472 3.51475L4.92893 4.92896" />
     </svg>
 );
+
+export const YouTubeIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M21.582,6.186c-0.23-0.854-0.906-1.531-1.76-1.76C18.253,4,12,4,12,4S5.747,4,4.178,4.426 c-0.854,0.229-1.531,0.906-1.76,1.76C2,7.755,2,12,2,12s0,4.245,0.418,5.814c0.23,0.854,0.906,1.531,1.76,1.76 C5.747,20,12,20,12,20s6.253,0,7.822-0.426c0.854-0.229,1.531-0.906,1.76-1.76C22,16.245,22,12,22,12S22,7.755,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z" />
+  </svg>
+);
