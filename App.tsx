@@ -13,8 +13,11 @@ import WateringGuidePage from './components/WateringGuidePage';
 import PlantDoctorPage from './components/PlantDoctorPage';
 import HowToUsePage from './components/HowToUsePage';
 import LocationsPage from './components/LocationsPage';
+import DonationPage from './components/DonationPage';
+import DonationSuccessPage from './components/DonationSuccessPage';
 import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
+import FloatingDonationButton from './components/FloatingDonationButton';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -114,6 +117,12 @@ const App: React.FC = () => {
     case '#/puntos-de-venta':
       pageContent = <LocationsPage header={renderHeader()} />;
       break;
+    case '#/donar':
+      pageContent = <DonationPage header={renderHeader()} />;
+      break;
+    case '#/donacion-exitosa':
+      pageContent = <DonationSuccessPage header={renderHeader()} />;
+      break;
     default:
       pageContent = <HomePage />;
       isHomePage = true;
@@ -125,6 +134,8 @@ const App: React.FC = () => {
         <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
         {!showSplash && !isHomePage && <FallingLeaves position="fixed" />}
         {showSplash && <WelcomeSplash onEnter={handleEnter} />}
+
+        {!showSplash && isHomePage && <FloatingDonationButton />}
 
         <div className={!showSplash ? 'animate-fade-in-main' : 'opacity-0'}>
           {isHomePage ? renderHeader(true) : null}

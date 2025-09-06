@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './components/icons/Icons';
 

@@ -300,6 +300,12 @@ export const CelebrationIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+export const HeartIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+);
+
 export const YouTubeIcon: React.FC<IconProps> = ({ className }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M21.582,6.186c-0.23-0.854-0.906-1.531-1.76-1.76C18.253,4,12,4,12,4S5.747,4,4.178,4.426 c-0.854,0.229-1.531,0.906-1.76,1.76C2,7.755,2,12,2,12s0,4.245,0.418,5.814c0.23,0.854,0.906,1.531,1.76,1.76 C5.747,20,12,20,12,20s6.253,0,7.822-0.426c0.854-0.229,1.531-0.906,1.76-1.76C22,16.245,22,12,22,12S22,7.755,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z" />
