@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Footer from './Footer';
 import { HeartIcon, BankIcon, ClipboardCopyIcon, ClipboardCheckIcon } from './icons/Icons';
@@ -11,10 +10,10 @@ const DonationPage: React.FC<DonationPageProps> = ({ header }) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const bankDetails = {
-    bank: "Banco Bienestar",
-    beneficiary: "Suelo Urbano Tu Hogar S.A. de C.V.",
-    clabe: "123456789012345678",
-    account: "0987654321",
+    bank: "BBVA Bancomer",
+    beneficiary: "Obed Valencia",
+    clabe: "012180015518498492",
+    account: "155 184 9849",
     concept: "Donación Suelo Urbano"
   };
 
@@ -52,8 +51,8 @@ const DonationPage: React.FC<DonationPageProps> = ({ header }) => {
 
             <div className="space-y-5">
               <DetailRow label="Banco" value={bankDetails.bank} />
-              <DetailRow label="Beneficiario" value={bankDetails.beneficiary} />
-              <CopyableDetailRow label="CLABE" value={bankDetails.clabe} field="clabe" copiedField={copiedField} onCopy={handleCopy} />
+              <DetailRow label="Titular" value={bankDetails.beneficiary} />
+              <CopyableDetailRow label="CLABE Interbancaria" value={bankDetails.clabe} field="clabe" copiedField={copiedField} onCopy={handleCopy} />
               <CopyableDetailRow label="No. de Cuenta" value={bankDetails.account} field="account" copiedField={copiedField} onCopy={handleCopy} />
               <DetailRow label="Concepto (Sugerido)" value={bankDetails.concept} />
             </div>
