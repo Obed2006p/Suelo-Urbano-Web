@@ -1,7 +1,6 @@
-
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, QuestionMarkCircleIcon } from './icons/Icons';
 
 interface PlantIdentifierSectionProps {
     onNavigate: (id: string) => void;
@@ -137,6 +136,10 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                     <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
                         ¿No sabes qué planta tienes o cómo cuidarla? Sube una foto y deja que nuestra IA te ayude.
                     </p>
+                     <div className="max-w-3xl mx-auto mt-4 text-xs text-stone-500 bg-stone-100 dark:bg-stone-800 dark:text-stone-400 p-3 rounded-lg flex items-start text-left gap-2">
+                        <QuestionMarkCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-stone-400" />
+                        <span>Nuestra Inteligencia Artificial está en constante aprendizaje. La precisión de la identificación puede variar según la calidad y el ángulo de la imagen. Los resultados son una guía y recomendamos confirmarlos si es necesario.</span>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                     {/* Left Column: Uploader */}

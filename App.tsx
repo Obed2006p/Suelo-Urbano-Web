@@ -14,7 +14,6 @@ import PlantDoctorPage from './components/PlantDoctorPage';
 import HowToUsePage from './components/HowToUsePage';
 import LocationsPage from './components/LocationsPage';
 import DonationPage from './components/DonationPage';
-import DonationSuccessPage from './components/DonationSuccessPage';
 import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
 import FloatingDonationButton from './components/FloatingDonationButton';
@@ -121,7 +120,10 @@ const App: React.FC = () => {
       pageContent = <DonationPage header={renderHeader()} />;
       break;
     case '#/donacion-exitosa':
-      pageContent = <DonationSuccessPage header={renderHeader()} />;
+      // This route is no longer used, but we'll redirect to home just in case.
+      window.location.hash = '#';
+      pageContent = <HomePage />;
+      isHomePage = true;
       break;
     default:
       pageContent = <HomePage />;
