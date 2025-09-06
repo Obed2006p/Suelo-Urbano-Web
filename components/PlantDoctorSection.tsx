@@ -21,6 +21,8 @@ interface DetailedPlantDiagnosis {
     cuidadosPreventivos: string;
 }
 
+const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
+
 
 // --- Componentes de UI ---
 
@@ -49,9 +51,12 @@ const HumidityScale = ({ level }: { level: BriefPlantDiagnosis['humedad'] }) => 
 
 const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diagnosis }) => (
     <div className="animate-fade-in-up w-full text-left space-y-4">
-        <div>
-            <h3 className="text-2xl font-bold text-green-800 mb-1 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
-            <p className="text-stone-600 font-semibold dark:text-stone-300">Estado de Salud: <span className="font-bold">{diagnosis.salud}</span></p>
+        <div className="flex items-center gap-4">
+             <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 flex-shrink-0" />
+            <div>
+                <h3 className="text-2xl font-bold text-green-800 mb-1 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
+                <p className="text-stone-600 font-semibold dark:text-stone-300">Estado de Salud: <span className="font-bold">{diagnosis.salud}</span></p>
+            </div>
         </div>
         
         <p className="text-stone-700 text-sm leading-relaxed bg-white/50 p-3 rounded-lg dark:bg-stone-800/40 dark:text-stone-300">{diagnosis.diagnosticoBreve}</p>
@@ -78,37 +83,52 @@ const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diag
 
 const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: DetailedPlantDiagnosis }> = ({ brief, detailed }) => (
     <div className="animate-fade-in-up w-full text-left space-y-4">
-        <h3 className="text-2xl font-bold text-green-800 dark:text-green-300">{brief.nombrePlanta} - Análisis Completo</h3>
+        <div className="flex items-center gap-4">
+            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 flex-shrink-0" />
+            <h3 className="text-2xl font-bold text-green-800 dark:text-green-300">{brief.nombrePlanta} - Análisis Completo</h3>
+        </div>
         
+        {/* Quick Summary in Detailed View */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-stone-200 dark:border-stone-700 pb-4">
+            <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40">
+                <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><PhIcon className="h-4 w-4"/>pH Ideal</h4>
+                <p className="text-stone-700 font-bold text-lg dark:text-stone-300">{brief.phSueloIdeal}</p>
+            </div>
+            <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40">
+                <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><HumidityIcon className="h-4 w-4"/>Humedad</h4>
+                <HumidityScale level={brief.humedad} />
+            </div>
+        </div>
+
         <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
             <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><HeartbeatIcon className="h-5 w-5"/>Diagnóstico Detallado:</h4>
-            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300">{detailed.diagnosticoDetallado}</p>
+            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.diagnosticoDetallado}</p>
         </div>
         
         <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
             <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><ClipboardListIcon className="h-5 w-5"/>Plan de Acción:</h4>
-            <ul className="space-y-2 text-stone-700 text-sm dark:text-stone-300">
+            <ol className="list-decimal list-inside space-y-2 text-stone-700 text-sm dark:text-stone-300 text-justify">
                 {detailed.planDeAccion.map((step, index) => 
                     <li key={index}>
-                        <strong className="font-medium">{index + 1}. {step.paso}:</strong> {step.detalle}
+                        <strong className="font-medium">{step.paso}:</strong> {step.detalle}
                     </li>
                 )}
-            </ul>
+            </ol>
         </div>
         
         <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
             <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><MixIcon className="h-5 w-5"/>Análisis de Fertilizantes:</h4>
-            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300">{detailed.analisisFertilizantes}</p>
+            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.analisisFertilizantes}</p>
         </div>
 
         <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
             <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Uso de Emulsión Suelo Urbano:</h4>
-            <p className="text-green-800 text-sm dark:text-green-300">{detailed.recomendacionEmulsionDetallada}</p>
+            <p className="text-green-800 text-sm dark:text-green-300 text-justify">{detailed.recomendacionEmulsionDetallada}</p>
         </div>
         
          <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
             <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><SparklesIcon className="h-5 w-5"/>Cuidados Preventivos:</h4>
-            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300">{detailed.cuidadosPreventivos}</p>
+            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.cuidadosPreventivos}</p>
         </div>
     </div>
 );
@@ -182,7 +202,7 @@ const PlantDoctorSection: React.FC = () => {
                 properties: {
                     nombrePlanta: { type: Type.STRING, description: "Nombre común de la planta." },
                     salud: { type: Type.STRING, description: "Estado de salud general (ej: 'Saludable', 'Necesita atención', 'En estado crítico')." },
-                    diagnosticoBreve: { type: Type.STRING, description: "Un diagnóstico muy breve y conciso (máximo 2-3 frases)." },
+                    diagnosticoBreve: { type: Type.STRING, description: "Un diagnóstico breve pero descriptivo (aproximadamente 4-5 líneas) sobre el estado actual de la planta." },
                     fertilizanteSugerido: { type: Type.STRING, description: "Nombre del fertilizante más adecuado (ej: 'Triple 17', 'Humus de lombriz', 'Emulsión Suelo Urbano')." },
                     justificacionFertilizante: { type: Type.STRING, description: "Justificación muy breve (1 frase) de por qué se recomienda ese fertilizante." },
                     phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
@@ -190,7 +210,7 @@ const PlantDoctorSection: React.FC = () => {
                 },
             };
 
-            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO y CONCISO. Recomienda el fertilizante más adecuado para la situación actual, ya sea químico (como Triple 17), orgánico (humus de lombriz), o la emulsión 'Suelo Urbano', y justifica brevemente por qué. Mantén toda la información muy breve y al punto.";
+            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO. El diagnóstico breve debe ser descriptivo, de aproximadamente 4 a 5 líneas, explicando lo que observas en la planta, sus posibles causas y el estado general. Recomienda el fertilizante más adecuado para la situación actual, ya sea químico (como Triple 17), orgánico (humus de lombriz), o la emulsión 'Suelo Urbano', y justifica brevemente por qué.";
             
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -236,11 +256,16 @@ const PlantDoctorSection: React.FC = () => {
                     },
                     analisisFertilizantes: { type: Type.STRING, description: "Explicación más profunda de por qué se sugirió el fertilizante inicial y menciona otras alternativas viables." },
                     recomendacionEmulsionDetallada: { type: Type.STRING, description: "Explica en detalle cómo la emulsión 'Suelo Urbano' puede beneficiar a esta planta a largo plazo." },
-                    cuidadosPreventivos: { type: Type.STRING, description: "Consejos para evitar que el problema vuelva a ocurrir en el futuro." }
+                    cuidadosPreventivos: { type: Type.STRING, description: "Consejos en formato de lista de viñetas para evitar que el problema vuelva a ocurrir." }
                 }
             };
 
-            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo y detallado. Expande sobre el diagnóstico, crea un plan de acción paso a paso, y profundiza en la recomendación de fertilizantes.`;
+            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo y detallado. Estructura tu respuesta de la siguiente manera y sé conciso:
+- **diagnosticoDetallado**: Expande el diagnóstico inicial en un párrafo claro.
+- **planDeAccion**: Crea una lista de pasos numerados. Cada paso debe ser una acción clara y breve.
+- **analisisFertilizantes**: Explica de forma concisa por qué se sugirió el fertilizante inicial y menciona 1 o 2 alternativas, explicando su beneficio brevemente.
+- **recomendacionEmulsionDetallada**: Explica en un párrafo cómo la emulsión 'Suelo Urbano' ayuda específicamente a esta planta y su problema.
+- **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave (usando viñetas) para evitar que el problema vuelva a ocurrir.`;
 
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -272,8 +297,8 @@ const PlantDoctorSection: React.FC = () => {
         if (isLoading) {
             return (
                 <div className="animate-pulse flex flex-col items-center text-green-700 dark:text-green-300">
-                    <SparklesIcon className="h-16 w-16 mb-4" />
-                    <p className="font-semibold text-lg">Preparando el diagnóstico rápido...</p>
+                    <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas pensando" className="h-24 w-24 mx-auto mb-4 opacity-75" />
+                    <p className="font-semibold text-lg">Nuestro doctor está analizando tu planta...</p>
                 </div>
             );
         }
@@ -319,7 +344,7 @@ const PlantDoctorSection: React.FC = () => {
         }
         return (
             <div className="text-stone-500 dark:text-stone-400">
-                <HeartbeatIcon className="h-16 w-16 mx-auto mb-4 text-stone-400"/>
+                <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-24 w-24 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold">El diagnóstico aparecerá aquí</h3>
                 <p className="text-sm">Sube una foto de tu planta para empezar.</p>
             </div>
