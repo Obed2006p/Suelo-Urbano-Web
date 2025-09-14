@@ -17,6 +17,7 @@ import DonationPage from './components/DonationPage';
 import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
 import FloatingDonationButton from './components/FloatingDonationButton';
+import VideoIntro from './components/VideoIntro';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -50,9 +51,11 @@ const HomePage: React.FC = () => {
 
 const getCurrentHash = () => window.location.hash || '#';
 
+type AppState = 'splash' | 'video' | 'home';
+
 const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
-  const [showSplash, setShowSplash] = React.useState(true);
+  const [appState, setAppState] = React.useState<AppState>('splash');
 
   React.useEffect(() => {
     const handleHashChange = () => {
@@ -73,8 +76,18 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleEnter = () => {
-    setShowSplash(false);
+  const handleEnterSplash = () => {
+    const hasSeenVideo = localStorage.getItem('hasSeenIntroVideo');
+    if (hasSeenVideo) {
+      setAppState('home');
+    } else {
+      setAppState('video');
+    }
+  };
+
+  const handleVideoComplete = () => {
+    localStorage.setItem('hasSeenIntroVideo', 'true');
+    setAppState('home');
   };
   
   let pageContent;
@@ -120,7 +133,6 @@ const App: React.FC = () => {
       pageContent = <DonationPage header={renderHeader()} />;
       break;
     case '#/donacion-exitosa':
-      // This route is no longer used, but we'll redirect to home just in case.
       window.location.hash = '#';
       pageContent = <HomePage />;
       isHomePage = true;
@@ -133,16 +145,23 @@ const App: React.FC = () => {
   
   return (
       <div className="relative">
-        <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
-        {!showSplash && !isHomePage && <FallingLeaves position="fixed" />}
-        {showSplash && <WelcomeSplash onEnter={handleEnter} />}
-
-        {!showSplash && isHomePage && <FloatingDonationButton />}
-
-        <div className={!showSplash ? 'animate-fade-in-main' : 'opacity-0'}>
-          {isHomePage ? renderHeader(true) : null}
-          {pageContent}
+        {/* Main Content Wrapper - gets blurred */}
+        <div className={`transition-all duration-500 ${appState === 'video' ? 'blur-md brightness-75 pointer-events-none' : ''}`}>
+            <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
+            
+            {/* Content that is part of the page and should be blurred */}
+            <div className={appState === 'splash' ? 'opacity-0' : (appState === 'home' ? 'animate-fade-in-main' : 'opacity-100')}>
+                {appState === 'home' && !isHomePage && <FallingLeaves position="fixed" />}
+                {appState === 'home' && isHomePage && <FloatingDonationButton />}
+                
+                {isHomePage ? renderHeader(true) : null}
+                {pageContent}
+            </div>
         </div>
+
+        {/* Overlays that are not blurred */}
+        {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
+        {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
       </div>
   );
 };
