@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { HeartbeatIcon } from './icons/Icons';
 
 interface WelcomeSplashProps {
     onEnter: () => void;
@@ -8,10 +9,23 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
     const [isExiting, setIsExiting] = useState(false);
 
     const handleEnterClick = () => {
+        if (isExiting) return;
         setIsExiting(true);
         // Wait for the fade-out animation to complete before calling onEnter
         setTimeout(onEnter, 1000); 
     };
+    
+    const handleGoToDoctor = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        if (isExiting) return;
+        
+        // Set the hash for the new route first
+        window.location.hash = '#/doctor-plantas';
+        
+        // Then trigger the exit animation
+        handleEnterClick();
+    };
+
 
     return (
         <div 
@@ -29,8 +43,8 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/60"></div>
             
-            {/* Content */}
-            <div className="relative z-10 text-center text-white px-6">
+            {/* Main Content */}
+            <div className="relative z-10 text-center text-white px-6 flex-grow flex flex-col items-center justify-center">
                 <div className="animate-fade-in-down">
                     <img 
                         src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" 
@@ -53,6 +67,28 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                     </button>
                 </div>
             </div>
+
+            {/* Secondary CTA Banner for Plant Doctor */}
+            <a 
+                href="#/doctor-plantas"
+                onClick={handleGoToDoctor}
+                className="relative z-10 w-full max-w-4xl p-4 animate-fade-in-up"
+                style={{ animationDelay: '0.8s' }}
+                aria-label="Ir al Doctor de Plantas"
+            >
+                <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4 text-white hover:bg-black/50 transition-colors duration-300">
+                    <div className="flex-shrink-0 bg-green-500/20 p-3 rounded-full">
+                         <HeartbeatIcon className="h-8 w-8 text-green-200" />
+                    </div>
+                    <div className="text-center sm:text-left">
+                        <p className="font-semibold">¿Ves a tu planta enferma o sin vida?</p>
+                        <p className="text-sm text-green-200">¡Prueba nuestro Doctor de Plantas con IA ahora!</p>
+                    </div>
+                     <div className="sm:ml-auto text-green-200 font-bold hidden sm:block">
+                        Ir ahora &rarr;
+                    </div>
+                </div>
+            </a>
         </div>
     );
 };
