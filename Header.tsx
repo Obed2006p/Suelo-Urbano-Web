@@ -70,8 +70,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                     <MenuIcon className="w-7 h-7" />
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
-                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-12" />
-                    <span className="text-xl sm:text-2xl font-bold text-white">Suelo Urbano</span>
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-12" />
+                    <div>
+                        <span className="block text-xl sm:text-2xl font-bold text-white leading-tight">Alimento para plantas</span>
+                        <span className="block text-xs sm:text-sm font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
+                    </div>
                 </a>
             </div>
 
@@ -107,8 +110,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
         >
             <div className="flex justify-between items-center p-5 border-b border-green-600">
                 <div className="flex items-center gap-2">
-                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-10" />
-                    <span className="text-xl font-bold text-white">Suelo Urbano</span>
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-10" />
+                    <div>
+                        <span className="block text-xl font-bold text-white leading-tight">Alimento para plantas</span>
+                        <span className="block text-sm font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
+                    </div>
                 </div>
                 <button onClick={() => setIsMenuOpen(false)} className="text-green-200 hover:text-white p-2 rounded-full hover:bg-green-800 transition-colors" aria-label="Cerrar menú">
                     <XIcon className="w-7 h-7" />
@@ -129,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
               ))}
             </nav>
             <div className="p-4 text-center text-green-300 text-sm border-t border-green-600 mt-auto">
-              <p>&copy; {new Date().getFullYear()} Suelo Urbano.</p>
+              <p>&copy; {new Date().getFullYear()} Alimento para plantas.</p>
             </div>
         </div>
       </div>

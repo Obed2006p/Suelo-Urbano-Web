@@ -34,7 +34,7 @@ const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
                             playsInline
                             controlsList="nodownload"
                             className="w-full h-auto max-h-[70vh] object-contain rounded-xl focus:outline-none"
-                            aria-label="Video de introducción de Suelo Urbano"
+                            aria-label="Video de introducción de Alimento para plantas"
                         />
                     </div>
                 </div>

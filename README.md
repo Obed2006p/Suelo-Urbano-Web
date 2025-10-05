@@ -1,17 +1,45 @@
-# Run and deploy your AI Studio app
+# Alimento para plantas Web Application
 
-This contains everything you need to run your app locally.
+This is the official web application for Alimento para plantas, a premium organic emulsion for vibrant gardens.
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
+### Prerequisites
 
+- Node.js
+- npm (or yarn/pnpm)
 
-1. Install dependencies:
-   `npm install`
-2. Create a file named `.env.local` in the project root and add your API keys. Replace the placeholder values with your actual keys:
-   `API_KEY="your_gemini_api_key_here"`
-3. Run the app:
-   `npm run dev`
+### Installation
 
-When deploying to a service like Vercel, make sure to set an environment variable for `API_KEY`.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd suelo-urbano-web
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the Development Server
+
+To start the local development server, run:
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`.
+
+## Building for Production
+
+To create a production-ready build, run:
+
+```bash
+npm run build
+```
+
+This will generate the static files in the `dist` directory.

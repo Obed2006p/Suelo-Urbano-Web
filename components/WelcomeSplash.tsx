@@ -33,12 +33,12 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
             <div className="relative z-10 text-center text-white px-6">
                 <div className="animate-fade-in-down">
                     <img 
-                        src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" 
-                        alt="Suelo Urbano Logo" 
+                        src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" 
+                        alt="Alimento para plantas Logo" 
                         className="h-24 mx-auto mb-4" 
                     />
                     <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>
-                        Bienvenido a Suelo Urbano
+                        Bienvenido a Alimento para plantas
                     </h1>
                 </div>
                 <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LeafIcon, ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
 
@@ -9,7 +10,7 @@ interface Location {
 
 const locations: Location[] = [
     { 
-        name: "Suelo Urbano", 
+        name: "Alimento para plantas", 
         address: "Av. San Bernabé 295, Independencia Batan Nte, La Magdalena Contreras, 10200 Ciudad de México, CDMX", 
         images: [
             "https://picsum.photos/seed/suelo1/800/600",
@@ -122,7 +123,7 @@ const LocationsMap: React.FC = () => {
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Puntos de Venta</h2>
                     <p className="max-w-3xl mx-auto text-stone-600 dark:text-stone-300">
-                        Encuentra nuestras tiendas para adquirir la emulsión Suelo Urbano.
+                        Encuentra nuestras tiendas para adquirir la emulsión Alimento para plantas.
                     </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

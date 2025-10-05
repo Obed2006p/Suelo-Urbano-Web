@@ -14,7 +14,7 @@ const DonationPage: React.FC<DonationPageProps> = ({ header }) => {
     beneficiary: "Obed Valencia",
     clabe: "012180015518498492",
     account: "155 184 9849",
-    concept: "Donación Suelo Urbano"
+    concept: "Donación Alimento para plantas"
   };
 
   const handleCopy = (text: string, field: string) => {
