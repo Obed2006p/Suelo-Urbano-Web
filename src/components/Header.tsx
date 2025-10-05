@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 // FIX: Corrected imports for icon components
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from '../../components/icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;

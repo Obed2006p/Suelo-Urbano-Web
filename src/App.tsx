@@ -1,22 +1,26 @@
+
 import * as React from 'react';
+// Imports for components already in src/components
 import Header from './components/Header';
 import Hero from './components/Hero';
-import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
 import UsageSection from './components/UsageSection';
 import Footer from './components/Footer';
-import OrderPage from './components/OrderPage';
-import UtilitiesPage from './components/UtilitiesPage';
-import CompositionPage from './components/CompositionPage';
-import WateringGuidePage from './components/WateringGuidePage';
-import PlantDoctorPage from './components/PlantDoctorPage';
-import HowToUsePage from './components/HowToUsePage';
-import LocationsPage from './components/LocationsPage';
-import DonationPage from './components/DonationPage';
-import FallingLeaves from './components/FallingLeaves';
-import WelcomeSplash from './components/WelcomeSplash';
-import FloatingDonationButton from './components/FloatingDonationButton';
-import VideoIntro from './components/VideoIntro';
+
+// Adjusted imports for components located in the root /components directory
+import EmulsionExplainedSection from '../components/EmulsionExplainedSection';
+import OrderPage from '../components/OrderPage';
+import UtilitiesPage from '../components/UtilitiesPage';
+import CompositionPage from '../components/CompositionPage';
+import WateringGuidePage from '../components/WateringGuidePage';
+import PlantDoctorPage from '../components/PlantDoctorPage';
+import HowToUsePage from '../components/HowToUsePage';
+import LocationsPage from '../components/LocationsPage';
+import DonationPage from '../components/DonationPage';
+import FallingLeaves from '../components/FallingLeaves';
+import WelcomeSplash from '../components/WelcomeSplash';
+import FloatingDonationButton from '../components/FloatingDonationButton';
+import VideoIntro from '../components/VideoIntro';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
