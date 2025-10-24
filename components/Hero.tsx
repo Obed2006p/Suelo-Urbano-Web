@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface HeroProps {
@@ -8,15 +7,15 @@ interface HeroProps {
 const Hero: React.FC<HeroProps> = ({ onOrderClick }) => {
   return (
     <section 
-      className="relative bg-cover bg-center text-white py-32 md:py-48 px-6" 
+      className="relative bg-cover bg-center text-white py-24 md:py-48 px-4 sm:px-6 hero-section" 
       style={{ backgroundImage: "url('https://picsum.photos/1600/900?image=1011&blur=2')" }}
     >
       <div className="absolute inset-0 bg-black/50"></div>
       <div className="relative container mx-auto text-center z-10">
-        <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 animate-fade-in-down">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold leading-tight mb-4 animate-fade-in-down">
           Nutre tu tierra, cultiva vida.
         </h1>
-        <p className="text-lg md:text-xl max-w-3xl mx-auto mb-12 animate-fade-in-up">
+        <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto mb-12 animate-fade-in-up">
           Descubre el poder de la emulsión{' '}
           <span 
             className="font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-500"

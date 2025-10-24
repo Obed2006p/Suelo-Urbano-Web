@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 import Footer from './Footer';
@@ -98,11 +97,11 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
   return (
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       {header}
-      <main className="flex-grow py-16 md:py-24">
+      <main className="flex-grow py-12 md:py-24 section-padding">
         {isSubmitted ? (
-          <div className="container mx-auto px-6 text-center max-w-2xl">
+          <div className="container mx-auto px-4 sm:px-6 text-center max-w-2xl">
             <CheckCircleIcon className="h-24 w-24 text-green-500 mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">¡Pedido Recibido!</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">¡Pedido Recibido!</h2>
             <p className="text-stone-600 text-lg mb-8 dark:text-stone-300">
               Gracias por tu pedido, {formData.name}. Nos pondremos en contacto contigo muy pronto a través de tu correo {formData.email} para confirmar los detalles.
             </p>
@@ -114,14 +113,14 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
             </button>
           </div>
         ) : (
-          <div className="container mx-auto px-6">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Realiza tu Pedido</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Realiza tu Pedido</h2>
               <p className="max-w-2xl mx-auto text-stone-600 dark:text-stone-300">
                 Es fácil y rápido. Llena el formulario y nos pondremos en contacto para coordinar la entrega.
               </p>
             </div>
-            <div id="order-form-container" className="max-w-2xl mx-auto bg-stone-50 p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
+            <div id="order-form-container" className="max-w-2xl mx-auto bg-stone-50 p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
                   <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">

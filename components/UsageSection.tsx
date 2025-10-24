@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Card from './Card';
 import { MagnifyingGlassIcon, MixIcon, BookOpenIcon } from './icons/Icons';
@@ -23,9 +22,9 @@ const UsageSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Modo de Empleo</h2>
+    <section className="py-12 md:py-24 section-padding">
+      <div className="container mx-auto px-4 sm:px-6 text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Modo de Empleo</h2>
         <p className="max-w-3xl mx-auto text-stone-600 mb-12 dark:text-stone-300">
           Sigue estos sencillos pasos para aprovechar al máximo el poder de nuestra emulsión y darle a tu jardín la nutrición que merece.
         </p>

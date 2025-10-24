@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, ShieldCheckIcon, XIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
 interface BriefPlantDiagnosis {
@@ -22,7 +22,6 @@ interface DetailedPlantDiagnosis {
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
-
 
 // --- Componentes de UI ---
 
@@ -88,7 +87,6 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
             <h3 className="text-2xl font-bold text-green-800 dark:text-green-300">{brief.nombrePlanta} - Análisis Completo</h3>
         </div>
         
-        {/* Quick Summary in Detailed View */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-stone-200 dark:border-stone-700 pb-4">
             <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40">
                 <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><PhIcon className="h-4 w-4"/>pH Ideal</h4>
@@ -122,7 +120,7 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
         </div>
 
         <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
-            <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Uso de Emulsión Suelo Urbano:</h4>
+            <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Uso de Emulsión Alimento para plantas:</h4>
             <p className="text-green-800 text-sm dark:text-green-300 text-justify">{detailed.recomendacionEmulsionDetallada}</p>
         </div>
         
@@ -132,6 +130,110 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
         </div>
     </div>
 );
+
+const PremiumGateModal: React.FC<{ onActivate: () => void; onClose: () => void; }> = ({ onActivate, onClose }) => {
+    const [code, setCode] = useState('');
+    const [error, setError] = useState('');
+    const [isActivating, setIsActivating] = useState(false);
+    const [statusMessage, setStatusMessage] = useState("Esta es una función premium. Ingresa tu código para desbloquear el diagnóstico por 30 días.");
+
+    useEffect(() => {
+        const premiumData = localStorage.getItem('plantDoctorPremium');
+        if (premiumData) {
+            const { expirationDate } = JSON.parse(premiumData);
+            if (Date.now() > expirationDate) {
+                setStatusMessage("Tu acceso premium ha expirado. Ingresa un nuevo código para renovar.");
+            }
+        }
+    }, []);
+
+    const VALID_CODES = ['123456789012', '987654321098', '112233445566', '998877665544'];
+    const USED_CODES_KEY = 'usedPlantDoctorCodes';
+
+    const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value.replace(/-/g, '').slice(0, 12);
+        if (/^\d*$/.test(rawValue)) {
+            setError('');
+            setCode(rawValue);
+        }
+    };
+
+    const formattedCode = code.replace(/(\d{4})(?=\d)/g, '$1-');
+
+    const handleActivate = () => {
+        if (code.length !== 12) {
+            setError('El código debe tener 12 dígitos.');
+            return;
+        }
+        setIsActivating(true);
+        setError('');
+
+        setTimeout(() => {
+            const usedCodes = JSON.parse(localStorage.getItem(USED_CODES_KEY) || '[]');
+            
+            if (usedCodes.includes(code)) {
+                setError('Este código ya ha sido utilizado en este dispositivo.');
+                setIsActivating(false);
+                return;
+            }
+
+            if (VALID_CODES.includes(code)) {
+                const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                localStorage.setItem('plantDoctorPremium', JSON.stringify({ expirationDate }));
+                
+                usedCodes.push(code);
+                localStorage.setItem(USED_CODES_KEY, JSON.stringify(usedCodes));
+                onActivate();
+            } else {
+                setError('Código inválido. Por favor, verifica el código e inténtalo de nuevo.');
+            }
+            setIsActivating(false);
+        }, 1000);
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in-main" aria-modal="true" role="dialog">
+             <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg p-8 text-center border border-stone-200 dark:border-stone-700 max-w-2xl w-full relative animate-scale-in">
+                <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition-colors" aria-label="Cerrar">
+                    <XIcon className="h-6 w-6"/>
+                </button>
+                <ShieldCheckIcon className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4"/>
+                <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-2 dark:text-stone-100">Acceso Premium Requerido</h2>
+                <p className="text-stone-600 mb-6 dark:text-stone-300">{statusMessage}</p>
+                
+                <div className="max-w-md mx-auto space-y-4">
+                    <input
+                        type="text"
+                        value={formattedCode}
+                        onChange={handleCodeChange}
+                        placeholder="XXXX-XXXX-XXXX"
+                        maxLength={14}
+                        className="w-full px-4 py-3 text-center text-lg tracking-widest font-mono bg-stone-100 border border-stone-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"
+                        aria-label="Código de activación de 12 dígitos"
+                    />
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    <button
+                        onClick={handleActivate}
+                        disabled={isActivating || code.length !== 12}
+                        className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {isActivating ? (
+                            <>
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                Activando...
+                            </>
+                        ) : "Activar y Diagnosticar"}
+                    </button>
+                </div>
+
+                <p className="text-sm text-stone-500 mt-8 dark:text-stone-400">
+                    ¿No tienes un código? Adquiere tu emulsión para obtener acceso.<br/>
+                    <a href="#/pedido" onClick={(e) => { e.preventDefault(); window.location.hash = '#/pedido'; }} className="text-green-700 dark:text-green-400 font-semibold hover:underline">Ir a la página de pedidos &rarr;</a>
+                </p>
+            </div>
+        </div>
+    );
+};
 
 
 const PlantDoctorSection: React.FC = () => {
@@ -143,9 +245,30 @@ const PlantDoctorSection: React.FC = () => {
     const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
+    const [isPremium, setIsPremium] = useState(false);
+    const [showPremiumGate, setShowPremiumGate] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        checkPremiumStatus();
+    }, []);
+
+    const checkPremiumStatus = () => {
+        const premiumData = localStorage.getItem('plantDoctorPremium');
+        if (premiumData) {
+            const { expirationDate } = JSON.parse(premiumData);
+            if (Date.now() < expirationDate) {
+                setIsPremium(true);
+            } else {
+                localStorage.removeItem('plantDoctorPremium');
+                setIsPremium(false);
+            }
+        } else {
+            setIsPremium(false);
+        }
+    };
 
     const fileToGenerativePart = async (file: File) => {
         const base64EncodedDataPromise = new Promise<string>((resolve) => {
@@ -164,12 +287,12 @@ const PlantDoctorSection: React.FC = () => {
                 setError('Por favor, selecciona un archivo de imagen válido.');
                 return;
             }
-            reset(); // Reset everything when a new file is chosen
+            reset();
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
         }
     };
-
+    
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         handleFile(e.target.files?.[0] || null);
         e.target.value = '';
@@ -184,42 +307,39 @@ const PlantDoctorSection: React.FC = () => {
         handleFile(e.dataTransfer.files?.[0] || null);
     };
 
+    const handleDiagnoseClick = () => {
+        checkPremiumStatus(); // Re-check just in case it expired in another tab
+        if(isPremium) {
+            runDiagnosis();
+        } else {
+            setShowPremiumGate(true);
+        }
+    };
+
     const runDiagnosis = async () => {
         if (!imageFile) return;
-
         setIsLoading(true);
         setError(null);
         setBriefDiagnosis(null);
         setDetailedDiagnosis(null);
-
         try {
             if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = await fileToGenerativePart(imageFile);
-
             const briefSchema = {
-                type: Type.OBJECT,
-                properties: {
-                    nombrePlanta: { type: Type.STRING, description: "Nombre común de la planta." },
-                    salud: { type: Type.STRING, description: "Estado de salud general (ej: 'Saludable', 'Necesita atención', 'En estado crítico')." },
-                    diagnosticoBreve: { type: Type.STRING, description: "Un diagnóstico breve pero descriptivo (aproximadamente 4-5 líneas) sobre el estado actual de la planta." },
-                    fertilizanteSugerido: { type: Type.STRING, description: "Nombre del fertilizante más adecuado (ej: 'Triple 17', 'Humus de lombriz', 'Emulsión Suelo Urbano')." },
-                    justificacionFertilizante: { type: Type.STRING, description: "Justificación muy breve (1 frase) de por qué se recomienda ese fertilizante." },
-                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
-                    humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'], description: "El nivel de humedad ambiental preferido." },
+                type: Type.OBJECT, properties: {
+                    nombrePlanta: { type: Type.STRING }, salud: { type: Type.STRING }, diagnosticoBreve: { type: Type.STRING },
+                    fertilizanteSugerido: { type: Type.STRING }, justificacionFertilizante: { type: Type.STRING },
+                    phSueloIdeal: { type: Type.STRING }, humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'] },
                 },
             };
-
-            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO. El diagnóstico breve debe ser descriptivo, de aproximadamente 4 a 5 líneas, explicando lo que observas en la planta, sus posibles causas y el estado general. Recomienda el fertilizante más adecuado para la situación actual, ya sea químico (como Triple 17), orgánico (humus de lombriz), o la emulsión 'Suelo Urbano', y justifica brevemente por qué.";
-            
+            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO. Recomienda el fertilizante más adecuado, ya sea químico (Triple 17), orgánico (humus), o la emulsión 'Alimento para plantas', y justifica brevemente por qué.";
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: briefSchema }
             });
-
             setBriefDiagnosis(JSON.parse(response.text));
-
         } catch (err) {
             console.error(err);
             setError('Hubo un error al generar el diagnóstico rápido. Inténtalo de nuevo.');
@@ -230,51 +350,28 @@ const PlantDoctorSection: React.FC = () => {
 
     const getDetailedDiagnosis = async () => {
         if (!imageFile || !briefDiagnosis) return;
-
         setIsDetailLoading(true);
         setError(null);
-
         try {
             if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = await fileToGenerativePart(imageFile);
-
             const detailedSchema = {
-                type: Type.OBJECT,
-                properties: {
-                    diagnosticoDetallado: { type: Type.STRING, description: "Análisis exhaustivo del problema de la planta, expandiendo el diagnóstico inicial." },
-                    planDeAccion: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                paso: { type: Type.STRING },
-                                detalle: { type: Type.STRING },
-                            }
-                        },
-                        description: "Plan de acción detallado con pasos numerados para tratar a la planta."
-                    },
-                    analisisFertilizantes: { type: Type.STRING, description: "Explicación más profunda de por qué se sugirió el fertilizante inicial y menciona otras alternativas viables." },
-                    recomendacionEmulsionDetallada: { type: Type.STRING, description: "Explica en detalle cómo la emulsión 'Suelo Urbano' puede beneficiar a esta planta a largo plazo." },
-                    cuidadosPreventivos: { type: Type.STRING, description: "Consejos en formato de lista de viñetas para evitar que el problema vuelva a ocurrir." }
+                type: Type.OBJECT, properties: {
+                    diagnosticoDetallado: { type: Type.STRING },
+                    planDeAccion: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { paso: { type: Type.STRING }, detalle: { type: Type.STRING } } } },
+                    analisisFertilizantes: { type: Type.STRING },
+                    recomendacionEmulsionDetallada: { type: Type.STRING },
+                    cuidadosPreventivos: { type: Type.STRING }
                 }
             };
-
-            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo y detallado. Estructura tu respuesta de la siguiente manera y sé conciso:
-- **diagnosticoDetallado**: Expande el diagnóstico inicial en un párrafo claro.
-- **planDeAccion**: Crea una lista de pasos numerados. Cada paso debe ser una acción clara y breve.
-- **analisisFertilizantes**: Explica de forma concisa por qué se sugirió el fertilizante inicial y menciona 1 o 2 alternativas, explicando su beneficio brevemente.
-- **recomendacionEmulsionDetallada**: Explica en un párrafo cómo la emulsión 'Suelo Urbano' ayuda específicamente a esta planta y su problema.
-- **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave (usando viñetas) para evitar que el problema vuelva a ocurrir.`;
-
+            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo. Explica cómo la emulsión 'Alimento para plantas' ayuda a esta planta.`;
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.5-pro',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: detailedSchema }
             });
-            
             setDetailedDiagnosis(JSON.parse(response.text));
-
         } catch (err) {
             console.error(err);
             setError('No se pudo obtener el diagnóstico detallado. Inténtalo de nuevo.');
@@ -318,25 +415,8 @@ const PlantDoctorSection: React.FC = () => {
                 <div className="w-full">
                     <BriefDiagnosisView diagnosis={briefDiagnosis} />
                     <div className="mt-6">
-                        <button 
-                            onClick={getDetailedDiagnosis} 
-                            disabled={isDetailLoading}
-                            className="w-full bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {isDetailLoading ? (
-                                <>
-                                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                    </svg>
-                                    Analizando a fondo...
-                                </>
-                            ) : (
-                                <>
-                                    <ChevronDownIcon className="h-5 w-5"/>
-                                    Obtener Diagnóstico Completo y Plan de Acción
-                                </>
-                            )}
+                        <button onClick={getDetailedDiagnosis} disabled={isDetailLoading} className="w-full bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            {isDetailLoading ? ( <><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Analizando a fondo...</> ) : ( <><ChevronDownIcon className="h-5 w-5"/>Obtener Diagnóstico Completo</> )}
                         </button>
                     </div>
                 </div>
@@ -353,6 +433,16 @@ const PlantDoctorSection: React.FC = () => {
 
     return (
         <section className="py-16 md:py-24">
+            {showPremiumGate && 
+                <PremiumGateModal 
+                    onClose={() => setShowPremiumGate(false)}
+                    onActivate={() => {
+                        setIsPremium(true);
+                        setShowPremiumGate(false);
+                        runDiagnosis();
+                    }}
+                />
+            }
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Doctor de Plantas con IA</h2>
@@ -361,16 +451,13 @@ const PlantDoctorSection: React.FC = () => {
                     </p>
                      <div className="max-w-3xl mx-auto mt-4 text-xs text-stone-500 bg-stone-100 dark:bg-stone-800 dark:text-stone-400 p-3 rounded-lg flex items-start text-left gap-2">
                         <QuestionMarkCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-stone-400" />
-                        <span>Nuestra Inteligencia Artificial está en constante aprendizaje y mejora. Los diagnósticos proporcionados son una guía sugerida y, como toda IA, pueden cometer errores. Para problemas serios, considera consultar a un experto.</span>
+                        <span>Nuestra IA está en constante aprendizaje. Los diagnósticos son una guía y pueden cometer errores. Para problemas serios, considera consultar a un experto.</span>
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-                    {/* Left Column: Uploader */}
                     <div className="bg-white p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
                         {!imagePreview ? (
-                            <div 
-                                onDragEnter={handleDragEnter} onDragOver={handleDragEvents} onDragLeave={handleDragLeave} onDrop={handleDrop}
-                                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-stone-300 dark:border-stone-600'}`}>
+                            <div onDragEnter={handleDragEnter} onDragOver={handleDragEvents} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-stone-300 dark:border-stone-600'}`}>
                                 <CameraIcon className="h-16 w-16 mx-auto text-stone-400 mb-4" />
                                 <p className="text-stone-600 font-semibold mb-2 dark:text-stone-300">Arrastra una foto de tu planta aquí</p>
                                 <p className="text-stone-500 mb-4 dark:text-stone-400">o</p>
@@ -385,7 +472,7 @@ const PlantDoctorSection: React.FC = () => {
                             <div className="text-center">
                                 <img src={imagePreview} alt="Vista previa de la planta a diagnosticar" className="max-h-80 w-auto mx-auto rounded-lg shadow-md mb-6" />
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <button onClick={runDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                    <button onClick={handleDiagnoseClick} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                         {isLoading ? 'Analizando...' : 'Diagnosticar Planta'}
                                     </button>
                                     <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500">
@@ -395,8 +482,6 @@ const PlantDoctorSection: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    
-                    {/* Right Column: Results */}
                     <div className="bg-green-50/50 p-6 md:p-8 rounded-2xl h-full flex flex-col justify-center items-center text-center min-h-[400px] dark:bg-green-900/20">
                         {renderResults()}
                     </div>

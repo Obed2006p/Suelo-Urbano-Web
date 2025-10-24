@@ -54,25 +54,25 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                     />
 
                     {/* Centered actions and title */}
-                    <div className="w-full max-w-7xl mx-auto flex justify-around items-center gap-4">
+                    <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-around items-center gap-4">
                         
                         {/* Left Action: Doctor IA */}
                         <a 
                             href="#/doctor-plantas"
                             onClick={handleGoToDoctor}
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
+                            className="flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
                             aria-label="Ir al Doctor de Plantas"
                         >
-                            <div className="bg-red-500/30 p-3 rounded-full">
-                                <HeartbeatIcon className="h-8 w-8 text-red-100" />
+                            <div className="bg-red-500/30 p-2 md:p-3 rounded-full">
+                                <HeartbeatIcon className="h-6 w-6 md:h-8 md:w-8 text-red-100" />
                             </div>
-                            <div className="hidden md:block text-left">
-                                <p className="font-bold text-base text-white">¿Planta Enferma?</p>
-                                <p className="text-sm text-white/80">Usa el Doctor IA &rarr;</p>
+                            <div className="text-left">
+                                <p className="font-bold text-sm md:text-base text-white">¿Planta Enferma?</p>
+                                <p className="text-xs md:text-sm text-white/80">Usa el Doctor IA &rarr;</p>
                             </div>
                         </a>
 
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight" style={{textShadow: '0 2px 6px rgba(0,0,0,0.6)'}}>
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold leading-tight my-4 md:my-0" style={{textShadow: '0 2px 6px rgba(0,0,0,0.6)'}}>
                             Bienvenido a<br/>Alimento para plantas
                         </h1>
 
@@ -81,15 +81,15 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             href="https://youtu.be/kuCRR-3TbxI?si=91sbDh14gOvjeRBD"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
+                            className="flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
                             aria-label="Ver video sobre Suelo Urbano"
                         >
-                            <div className="bg-red-500/30 p-3 rounded-full">
-                                <YouTubeIcon className="h-8 w-8 text-red-100" />
+                            <div className="bg-red-500/30 p-2 md:p-3 rounded-full">
+                                <YouTubeIcon className="h-6 w-6 md:h-8 md:w-8 text-red-100" />
                             </div>
-                            <div className="hidden md:block text-left">
-                                <p className="font-bold text-base text-white">¿Qué es Suelo Urbano?</p>
-                                <p className="text-sm text-white/80">Descúbrelo aquí &rarr;</p>
+                            <div className="text-left">
+                                <p className="font-bold text-sm md:text-base text-white">¿Qué es Suelo Urbano?</p>
+                                <p className="text-xs md:text-sm text-white/80">Descúbrelo aquí &rarr;</p>
                             </div>
                         </a>
                     </div>
@@ -97,12 +97,12 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
 
                 {/* Subtitle and Main CTA button */}
                 <div className="animate-fade-in-up mt-8" style={{ animationDelay: '0.4s' }}>
-                    <p className="text-lg md:text-xl max-w-2xl mx-auto mb-12" style={{textShadow: '0 1px 3px rgba(0,0,0,0.5)'}}>
+                    <p className="text-base md:text-xl max-w-2xl mx-auto mb-8 md:mb-12" style={{textShadow: '0 1px 3px rgba(0,0,0,0.5)'}}>
                         Descubre una nueva forma de nutrir tu tierra y conectar con la naturaleza.
                     </p>
                     <button
                         onClick={handleEnterClick}
-                        className="bg-green-600 text-white font-bold py-4 px-10 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg text-lg"
+                        className="bg-green-600 text-white font-bold py-3 px-8 md:py-4 md:px-10 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg text-base md:text-lg"
                     >
                         Vamos a ello
                     </button>

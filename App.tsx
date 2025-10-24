@@ -1,10 +1,12 @@
 
+
 import * as React from 'react';
 import Header from './Header';
 import Hero from './components/Hero';
 import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
 import UsageSection from './components/UsageSection';
+import CompostInfoSection from './components/CompostInfoSection'; // Importación de la nueva sección
 import Footer from './components/Footer';
 import OrderPage from './components/OrderPage';
 import UtilitiesPage from './components/UtilitiesPage';
@@ -41,6 +43,9 @@ const HomePage: React.FC = () => {
                     </div>
                     <div id="modo-uso">
                         <UsageSection />
+                    </div>
+                    <div id="composta">
+                        <CompostInfoSection />
                     </div>
                 </div>
             </main>

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import Card from './Card';
 import { PlanetIcon, RecycleIcon, WaterDropIcon, WormIcon } from './icons/Icons';
@@ -28,13 +27,13 @@ const BenefitsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Beneficios para el Planeta</h2>
+    <section className="py-12 md:py-24 section-padding">
+      <div className="container mx-auto px-4 sm:px-6 text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Beneficios para el Planeta</h2>
         <p className="max-w-2xl mx-auto text-stone-600 mb-12 dark:text-stone-300">
           Usar emulsión no solo transforma tu jardín, sino que también es un paso poderoso hacia un futuro más sostenible.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 responsive-grid">
           {benefits.map((benefit, index) => (
             <Card key={index} icon={benefit.icon} title={benefit.title} description={benefit.description} />
           ))}

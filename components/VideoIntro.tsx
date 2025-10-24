@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface VideoIntroProps {
@@ -22,10 +21,10 @@ const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
             aria-modal="true"
             role="dialog"
         >
-            <main className="w-full max-w-4xl flex flex-col items-center gap-8">
+            <main className="w-full max-w-4xl flex flex-col items-center gap-6 sm:gap-8">
                 {/* Video Player Container */}
                 <div className="relative w-full">
-                     <div className="p-1 rounded-2xl bg-gradient-to-br from-green-500 via-lime-400 to-green-500 shadow-2xl shadow-green-400/20">
+                     <div className="p-1 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-500 via-lime-400 to-green-500 shadow-2xl shadow-green-400/20">
                         <video 
                             src={VIDEO_URL}
                             controls
@@ -33,7 +32,7 @@ const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
                             muted
                             playsInline
                             controlsList="nodownload"
-                            className="w-full h-auto max-h-[70vh] object-contain rounded-xl focus:outline-none"
+                            className="w-full h-auto max-h-[70vh] object-contain rounded-lg sm:rounded-xl focus:outline-none"
                             aria-label="Video de introducción de Alimento para plantas"
                         />
                     </div>
@@ -43,7 +42,7 @@ const VideoIntro: React.FC<VideoIntroProps> = ({ onComplete }) => {
                 {/* Continue Button */}
                 <button
                     onClick={handleComplete}
-                    className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg text-lg"
+                    className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg text-base sm:text-lg"
                 >
                     Saltar Introducción
                 </button>
