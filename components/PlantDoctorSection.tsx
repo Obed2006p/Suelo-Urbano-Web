@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, ShieldCheckIcon, XIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
 interface BriefPlantDiagnosis {
@@ -22,6 +22,7 @@ interface DetailedPlantDiagnosis {
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
+
 
 // --- Componentes de UI ---
 
@@ -131,111 +132,6 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
     </div>
 );
 
-const PremiumGateModal: React.FC<{ onActivate: () => void; onClose: () => void; }> = ({ onActivate, onClose }) => {
-    const [code, setCode] = useState('');
-    const [error, setError] = useState('');
-    const [isActivating, setIsActivating] = useState(false);
-    const [statusMessage, setStatusMessage] = useState("Esta es una función premium. Ingresa tu código para desbloquear el diagnóstico por 30 días.");
-
-    useEffect(() => {
-        const premiumData = localStorage.getItem('plantDoctorPremium');
-        if (premiumData) {
-            const { expirationDate } = JSON.parse(premiumData);
-            if (Date.now() > expirationDate) {
-                setStatusMessage("Tu acceso premium ha expirado. Ingresa un nuevo código para renovar.");
-            }
-        }
-    }, []);
-
-    const VALID_CODES = ['123456789012', '987654321098', '112233445566', '998877665544'];
-    const USED_CODES_KEY = 'usedPlantDoctorCodes';
-
-    const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value.replace(/-/g, '').slice(0, 12);
-        if (/^\d*$/.test(rawValue)) {
-            setError('');
-            setCode(rawValue);
-        }
-    };
-
-    const formattedCode = code.replace(/(\d{4})(?=\d)/g, '$1-');
-
-    const handleActivate = () => {
-        if (code.length !== 12) {
-            setError('El código debe tener 12 dígitos.');
-            return;
-        }
-        setIsActivating(true);
-        setError('');
-
-        setTimeout(() => {
-            const usedCodes = JSON.parse(localStorage.getItem(USED_CODES_KEY) || '[]');
-            
-            if (usedCodes.includes(code)) {
-                setError('Este código ya ha sido utilizado en este dispositivo.');
-                setIsActivating(false);
-                return;
-            }
-
-            if (VALID_CODES.includes(code)) {
-                const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
-                localStorage.setItem('plantDoctorPremium', JSON.stringify({ expirationDate }));
-                
-                usedCodes.push(code);
-                localStorage.setItem(USED_CODES_KEY, JSON.stringify(usedCodes));
-                onActivate();
-            } else {
-                setError('Código inválido. Por favor, verifica el código e inténtalo de nuevo.');
-            }
-            setIsActivating(false);
-        }, 1000);
-    };
-    
-    return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in-main" aria-modal="true" role="dialog">
-             <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-lg p-8 text-center border border-stone-200 dark:border-stone-700 max-w-2xl w-full relative animate-scale-in">
-                <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition-colors" aria-label="Cerrar">
-                    <XIcon className="h-6 w-6"/>
-                </button>
-                <ShieldCheckIcon className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4"/>
-                <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-2 dark:text-stone-100">Acceso Premium Requerido</h2>
-                <p className="text-stone-600 mb-6 dark:text-stone-300">{statusMessage}</p>
-                
-                <div className="max-w-md mx-auto space-y-4">
-                    <input
-                        type="text"
-                        value={formattedCode}
-                        onChange={handleCodeChange}
-                        placeholder="XXXX-XXXX-XXXX"
-                        maxLength={14}
-                        className="w-full px-4 py-3 text-center text-lg tracking-widest font-mono bg-stone-100 border border-stone-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"
-                        aria-label="Código de activación de 12 dígitos"
-                    />
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                    <button
-                        onClick={handleActivate}
-                        disabled={isActivating || code.length !== 12}
-                        className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {isActivating ? (
-                            <>
-                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                Activando...
-                            </>
-                        ) : "Activar y Diagnosticar"}
-                    </button>
-                </div>
-
-                <p className="text-sm text-stone-500 mt-8 dark:text-stone-400">
-                    ¿No tienes un código? Adquiere tu emulsión para obtener acceso.<br/>
-                    <a href="#/pedido" onClick={(e) => { e.preventDefault(); window.location.hash = '#/pedido'; }} className="text-green-700 dark:text-green-400 font-semibold hover:underline">Ir a la página de pedidos &rarr;</a>
-                </p>
-            </div>
-        </div>
-    );
-};
-
-
 const PlantDoctorSection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -245,30 +141,9 @@ const PlantDoctorSection: React.FC = () => {
     const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
-    const [isPremium, setIsPremium] = useState(false);
-    const [showPremiumGate, setShowPremiumGate] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        checkPremiumStatus();
-    }, []);
-
-    const checkPremiumStatus = () => {
-        const premiumData = localStorage.getItem('plantDoctorPremium');
-        if (premiumData) {
-            const { expirationDate } = JSON.parse(premiumData);
-            if (Date.now() < expirationDate) {
-                setIsPremium(true);
-            } else {
-                localStorage.removeItem('plantDoctorPremium');
-                setIsPremium(false);
-            }
-        } else {
-            setIsPremium(false);
-        }
-    };
 
     const fileToGenerativePart = async (file: File) => {
         const base64EncodedDataPromise = new Promise<string>((resolve) => {
@@ -305,15 +180,6 @@ const PlantDoctorSection: React.FC = () => {
         handleDragEvents(e);
         setDragOver(false);
         handleFile(e.dataTransfer.files?.[0] || null);
-    };
-
-    const handleDiagnoseClick = () => {
-        checkPremiumStatus(); // Re-check just in case it expired in another tab
-        if(isPremium) {
-            runDiagnosis();
-        } else {
-            setShowPremiumGate(true);
-        }
     };
 
     const runDiagnosis = async () => {
@@ -433,16 +299,6 @@ const PlantDoctorSection: React.FC = () => {
 
     return (
         <section className="py-16 md:py-24">
-            {showPremiumGate && 
-                <PremiumGateModal 
-                    onClose={() => setShowPremiumGate(false)}
-                    onActivate={() => {
-                        setIsPremium(true);
-                        setShowPremiumGate(false);
-                        runDiagnosis();
-                    }}
-                />
-            }
             <div className="container mx-auto px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Doctor de Plantas con IA</h2>
@@ -472,7 +328,7 @@ const PlantDoctorSection: React.FC = () => {
                             <div className="text-center">
                                 <img src={imagePreview} alt="Vista previa de la planta a diagnosticar" className="max-h-80 w-auto mx-auto rounded-lg shadow-md mb-6" />
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <button onClick={handleDiagnoseClick} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                    <button onClick={runDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                         {isLoading ? 'Analizando...' : 'Diagnosticar Planta'}
                                     </button>
                                     <button onClick={reset} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-full hover:bg-stone-300 transition-colors dark:bg-stone-600 dark:text-stone-200 dark:hover:bg-stone-500">
