@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon } from './icons/Icons';
@@ -82,7 +81,7 @@ const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diag
         <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
             <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><SparklesIcon className="h-5 w-5"/>Fertilizante Sugerido:</h4>
             <p className="text-green-800 font-bold text-lg mb-1 dark:text-green-300">{diagnosis.fertilizanteSugerido}</p>
-            <p className="text-green-800 text-sm dark:text-green-300">{diagnosis.justificacionFertilizante}</p>
+            <p className="text-green-800 text-sm dark:text-green-300 text-justify">{diagnosis.justificacionFertilizante}</p>
         </div>
     </div>
 );
@@ -212,7 +211,7 @@ const PlantDoctorSection: React.FC = () => {
                     salud: { type: Type.STRING, description: "Estado de salud general en 2-3 palabras (ej: 'Saludable', 'Necesita atención', 'Estrés hídrico')." },
                     diagnosticoBreve: { type: Type.STRING, description: "Un párrafo conciso (3-4 líneas) que explique el problema principal observado, como si fuera un resumen para un cliente." },
                     fertilizanteSugerido: { type: Type.STRING, description: "El nombre del fertilizante más adecuado para la acción inmediata (ej: 'Humus de lombriz', 'Triple 17', 'Alimento para plantas')." },
-                    justificacionFertilizante: { type: Type.STRING, description: "UNA ÚNICA frase, muy concisa, que justifique la elección del fertilizante para la situación actual." },
+                    justificacionFertilizante: { type: Type.STRING, description: "Un párrafo corto pero específico (2-4 líneas) explicando por qué se eligió ese fertilizante, cómo ayuda al problema actual, y si hay alguna consideración especial al aplicarlo (ej. 'aplicar después de corregir el riego')." },
                     phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
                     humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'], description: "El nivel de humedad ambiental preferido." },
                     temporadaIdeal: { type: Type.STRING, description: "La estación o periodo ideal de la planta (ej: 'Floración en Primavera y Verano')." }
@@ -220,7 +219,7 @@ const PlantDoctorSection: React.FC = () => {
                 required: ["nombrePlanta", "salud", "diagnosticoBreve", "fertilizanteSugerido", "justificacionFertilizante", "phSueloIdeal", "humedad", "temporadaIdeal"]
             };
             
-            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO y muy estructurado. Sé claro y conciso. El 'diagnosticoBreve' debe ser un párrafo corto que explique lo que observas. La 'justificacionFertilizante' debe ser UNA SOLA frase corta. Identifica la temporada ideal de la planta (floración, crecimiento, etc.). El objetivo es dar información clave de un vistazo.";
+            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen para un diagnóstico RÁPIDO. Tu objetivo principal es la sección de fertilizantes. Debes recomendar el fertilizante MÁS ADECUADO para el problema actual de la planta. Considera estas opciones: 'Alimento para plantas' (nuestra emulsión orgánica suave), 'Humus de lombriz' (orgánico, bueno para estructura del suelo), o fertilizantes químicos como 'Triple 17' (para deficiencias severas en plantas no estresadas). Prioriza 'Alimento para plantas' si es una buena opción, pero sé honesto si otro es mejor (por ejemplo, si la planta está muy estresada por exceso de agua, un fertilizante suave como el humus es mejor que uno químico). En 'justificacionFertilizante', escribe un párrafo corto pero muy específico (2-4 líneas) explicando por qué elegiste ese fertilizante, cómo ayuda al problema específico y cuándo o cómo aplicarlo. Sé muy claro y útil.";
             
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
