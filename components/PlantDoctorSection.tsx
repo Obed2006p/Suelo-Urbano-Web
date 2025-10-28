@@ -17,8 +17,7 @@ interface BriefPlantDiagnosis {
 interface DetailedPlantDiagnosis {
     diagnosticoDetallado: string;
     planDeAccion: { paso: string; detalle: string }[];
-    analisisFertilizantes: string;
-    recomendacionEmulsionDetallada: string;
+    analisisFertilizanteSugerido: string;
     cuidadosPreventivos: string;
     analisisDeTemporada: string;
 }
@@ -126,14 +125,9 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
             <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.analisisDeTemporada}</p>
         </div>
         
-        <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
-            <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><MixIcon className="h-5 w-5"/>Análisis de Fertilizantes:</h4>
-            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.analisisFertilizantes}</p>
-        </div>
-
         <div className="bg-green-200/50 border border-green-300 p-4 rounded-lg dark:bg-green-900/40 dark:border-green-700">
-            <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Uso de Emulsión Alimento para plantas:</h4>
-            <p className="text-green-800 text-sm dark:text-green-300 text-justify">{detailed.recomendacionEmulsionDetallada}</p>
+            <h4 className="font-semibold text-green-900 flex items-center gap-2 mb-2 dark:text-green-200"><LeafIcon className="h-5 w-5"/>Análisis del Fertilizante Sugerido:</h4>
+            <p className="text-green-800 text-sm dark:text-green-300 text-justify">{detailed.analisisFertilizanteSugerido}</p>
         </div>
         
          <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
@@ -210,7 +204,7 @@ const PlantDoctorSection: React.FC = () => {
                     nombrePlanta: { type: Type.STRING, description: "Nombre común y popular de la planta." },
                     salud: { type: Type.STRING, description: "Estado de salud general en 2-3 palabras (ej: 'Saludable', 'Necesita atención', 'Estrés hídrico')." },
                     diagnosticoBreve: { type: Type.STRING, description: "Un párrafo conciso (3-4 líneas) que explique el problema principal observado, como si fuera un resumen para un cliente." },
-                    fertilizanteSugerido: { type: Type.STRING, description: "El nombre del fertilizante más adecuado para la acción inmediata (ej: 'Humus de lombriz', 'Triple 17', 'Alimento para plantas')." },
+                    fertilizanteSugerido: { type: Type.STRING, description: "El nombre del fertilizante más adecuado para la acción inmediata (ej: 'Humus de lombriz', 'Triple 17', 'Suelo Urbano Tu Hogar')." },
                     justificacionFertilizante: { type: Type.STRING, description: "Un párrafo corto pero específico (2-4 líneas) explicando por qué se eligió ese fertilizante, cómo ayuda al problema actual, y si hay alguna consideración especial al aplicarlo (ej. 'aplicar después de corregir el riego')." },
                     phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
                     humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'], description: "El nivel de humedad ambiental preferido." },
@@ -219,7 +213,11 @@ const PlantDoctorSection: React.FC = () => {
                 required: ["nombrePlanta", "salud", "diagnosticoBreve", "fertilizanteSugerido", "justificacionFertilizante", "phSueloIdeal", "humedad", "temporadaIdeal"]
             };
             
-            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen para un diagnóstico RÁPIDO. Tu objetivo principal es la sección de fertilizantes. Debes recomendar el fertilizante MÁS ADECUADO para el problema actual de la planta. Considera estas opciones: 'Alimento para plantas' (nuestra emulsión orgánica suave), 'Humus de lombriz' (orgánico, bueno para estructura del suelo), o fertilizantes químicos como 'Triple 17' (para deficiencias severas en plantas no estresadas). Prioriza 'Alimento para plantas' si es una buena opción, pero sé honesto si otro es mejor (por ejemplo, si la planta está muy estresada por exceso de agua, un fertilizante suave como el humus es mejor que uno químico). En 'justificacionFertilizante', escribe un párrafo corto pero muy específico (2-4 líneas) explicando por qué elegiste ese fertilizante, cómo ayuda al problema específico y cuándo o cómo aplicarlo. Sé muy claro y útil.";
+            const prompt = `Actúa como un 'Doctor de Plantas' experto y específico. Tu tarea es analizar la imagen y recomendar el fertilizante MÁS adecuado. Tienes 3 opciones principales, cada una con un propósito claro:
+1. 'Humus de lombriz': Recomiéndalo PRINCIPALMENTE para plantas que muestren signos de ESTRÉS por exceso de riego (hojas amarillas y blandas, pudrición) o para mejorar la estructura de suelos pobres. Es un acondicionador de suelo suave.
+2. 'Suelo Urbano Tu Hogar': Esta es nuestra emulsión nutritiva. Recomiéndala para plantas que necesitan un IMPULSO general de nutrientes, muestran crecimiento lento pero no están críticamente estresadas, o para mantenimiento regular.
+3. 'Triple 17' (u otro químico): Úsalo como ÚLTIMO RECURSO para deficiencias de nutrientes MUY SEVERAS y evidentes (decoloración extrema) en plantas que NO están estresadas por exceso de agua.
+Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Luego, en 'justificacionFertilizante', explica con claridad por qué tu elección es la mejor para el problema específico de la planta.`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -261,18 +259,19 @@ const PlantDoctorSection: React.FC = () => {
                         },
                         description: "Plan de acción detallado con 3 a 5 pasos numerados para tratar a la planta."
                     },
-                    analisisFertilizantes: { type: Type.STRING, description: "Explicación más profunda de por qué se sugirió el fertilizante inicial y menciona otras alternativas viables, en un párrafo." },
-                    recomendacionEmulsionDetallada: { type: Type.STRING, description: "Explica en detalle cómo la emulsión 'Alimento para plantas' beneficia a esta planta a largo plazo, en un párrafo." },
+                    analisisFertilizanteSugerido: { type: Type.STRING, description: "Una explicación detallada sobre el fertilizante que ya fue sugerido en el diagnóstico breve, explicando por qué es la mejor opción y cómo aplicarlo." },
                     cuidadosPreventivos: { type: Type.STRING, description: "Una lista de 2-3 consejos clave en viñetas para evitar que el problema vuelva a ocurrir." },
                     analisisDeTemporada: { type: Type.STRING, description: "Análisis detallado sobre la temporada de la planta. Explica si los síntomas son normales para la temporada actual y qué cuidados especiales se necesitan si está fuera de temporada, en un párrafo."}
                 },
-                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizantes", "recomendacionEmulsionDetallada", "cuidadosPreventivos", "analisisDeTemporada"]
+                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizanteSugerido", "cuidadosPreventivos", "analisisDeTemporada"]
             };
             
-            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo y DETALLADO. Estructura tu respuesta de forma muy clara y concisa en cada sección, evitando texto redundante. Sigue el esquema JSON estrictamente.
-- En 'analisisDeTemporada', sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.
-- El 'planDeAccion' debe ser una guía práctica y fácil de seguir.
-- En 'recomendacionEmulsionDetallada' destaca los beneficios específicos del producto para el problema detectado.`;
+            const prompt = `Basado en la imagen y el diagnóstico inicial, proporciona un análisis completo. El diagnóstico breve ya sugirió usar '${briefDiagnosis.fertilizanteSugerido}'. Tu tarea es expandir esta información de forma clara y concisa.
+- **diagnosticoDetallado**: Expande el diagnóstico inicial en un párrafo claro.
+- **planDeAccion**: Crea una guía práctica y fácil de seguir con pasos numerados.
+- **analisisFertilizanteSugerido**: Aquí, explica en un párrafo detallado POR QUÉ '${briefDiagnosis.fertilizanteSugerido}' es la elección correcta para el problema detectado. Si es 'Suelo Urbano Tu Hogar', detalla sus beneficios. Si es 'Humus de lombriz', explica su acción suave y reparadora. Si es un químico, advierte sobre su uso correcto.
+- **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave para el futuro.
+- **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-pro',
