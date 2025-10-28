@@ -1,6 +1,7 @@
+
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon } from './icons/Icons';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
 interface BriefPlantDiagnosis {
@@ -11,6 +12,7 @@ interface BriefPlantDiagnosis {
     justificacionFertilizante: string;
     phSueloIdeal: string;
     humedad: 'Baja' | 'Media' | 'Alta' | string;
+    temporadaIdeal: string;
 }
 
 interface DetailedPlantDiagnosis {
@@ -19,6 +21,7 @@ interface DetailedPlantDiagnosis {
     analisisFertilizantes: string;
     recomendacionEmulsionDetallada: string;
     cuidadosPreventivos: string;
+    analisisDeTemporada: string;
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -61,7 +64,7 @@ const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diag
         
         <p className="text-stone-700 text-sm leading-relaxed bg-white/50 p-3 rounded-lg dark:bg-stone-800/40 dark:text-stone-300">{diagnosis.diagnosticoBreve}</p>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40">
                 <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><PhIcon className="h-4 w-4"/>pH Ideal</h4>
                 <p className="text-stone-700 font-bold text-lg dark:text-stone-300">{diagnosis.phSueloIdeal}</p>
@@ -69,6 +72,10 @@ const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diag
             <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40">
                 <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><HumidityIcon className="h-4 w-4"/>Humedad</h4>
                 <HumidityScale level={diagnosis.humedad} />
+            </div>
+            <div className="bg-white/50 p-3 rounded-lg dark:bg-stone-800/40 sm:col-span-2">
+                <h4 className="font-semibold text-stone-800 flex items-center gap-2 text-sm mb-1 dark:text-stone-200"><CalendarIcon className="h-4 w-4"/>Temporada Ideal</h4>
+                <p className="text-stone-700 font-semibold text-base dark:text-stone-300">{diagnosis.temporadaIdeal}</p>
             </div>
         </div>
 
@@ -113,6 +120,11 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
                     </li>
                 )}
             </ol>
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
+            <h4 className="font-semibold text-stone-800 flex items-center gap-2 mb-2 dark:text-stone-200"><CalendarIcon className="h-5 w-5"/>Análisis de Temporada:</h4>
+            <p className="text-stone-700 text-sm leading-relaxed dark:text-stone-300 text-justify">{detailed.analisisDeTemporada}</p>
         </div>
         
         <div className="bg-white/50 p-4 rounded-lg dark:bg-stone-800/40">
@@ -192,19 +204,30 @@ const PlantDoctorSection: React.FC = () => {
             if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = await fileToGenerativePart(imageFile);
+            
             const briefSchema = {
-                type: Type.OBJECT, properties: {
-                    nombrePlanta: { type: Type.STRING }, salud: { type: Type.STRING }, diagnosticoBreve: { type: Type.STRING },
-                    fertilizanteSugerido: { type: Type.STRING }, justificacionFertilizante: { type: Type.STRING },
-                    phSueloIdeal: { type: Type.STRING }, humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'] },
+                type: Type.OBJECT,
+                properties: {
+                    nombrePlanta: { type: Type.STRING, description: "Nombre común y popular de la planta." },
+                    salud: { type: Type.STRING, description: "Estado de salud general en 2-3 palabras (ej: 'Saludable', 'Necesita atención', 'Estrés hídrico')." },
+                    diagnosticoBreve: { type: Type.STRING, description: "Un párrafo conciso (3-4 líneas) que explique el problema principal observado, como si fuera un resumen para un cliente." },
+                    fertilizanteSugerido: { type: Type.STRING, description: "El nombre del fertilizante más adecuado para la acción inmediata (ej: 'Humus de lombriz', 'Triple 17', 'Alimento para plantas')." },
+                    justificacionFertilizante: { type: Type.STRING, description: "UNA ÚNICA frase, muy concisa, que justifique la elección del fertilizante para la situación actual." },
+                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
+                    humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'], description: "El nivel de humedad ambiental preferido." },
+                    temporadaIdeal: { type: Type.STRING, description: "La estación o periodo ideal de la planta (ej: 'Floración en Primavera y Verano')." }
                 },
+                required: ["nombrePlanta", "salud", "diagnosticoBreve", "fertilizanteSugerido", "justificacionFertilizante", "phSueloIdeal", "humedad", "temporadaIdeal"]
             };
-            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO. Recomienda el fertilizante más adecuado, ya sea químico (Triple 17), orgánico (humus), o la emulsión 'Alimento para plantas', y justifica brevemente por qué.";
+            
+            const prompt = "Actúa como un 'Doctor de Plantas' experto. Analiza la imagen. Proporciona un diagnóstico RÁPIDO y muy estructurado. Sé claro y conciso. El 'diagnosticoBreve' debe ser un párrafo corto que explique lo que observas. La 'justificacionFertilizante' debe ser UNA SOLA frase corta. Identifica la temporada ideal de la planta (floración, crecimiento, etc.). El objetivo es dar información clave de un vistazo.";
+            
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: briefSchema }
             });
+
             setBriefDiagnosis(JSON.parse(response.text));
         } catch (err) {
             console.error(err);
@@ -222,21 +245,42 @@ const PlantDoctorSection: React.FC = () => {
             if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = await fileToGenerativePart(imageFile);
+            
             const detailedSchema = {
-                type: Type.OBJECT, properties: {
-                    diagnosticoDetallado: { type: Type.STRING },
-                    planDeAccion: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { paso: { type: Type.STRING }, detalle: { type: Type.STRING } } } },
-                    analisisFertilizantes: { type: Type.STRING },
-                    recomendacionEmulsionDetallada: { type: Type.STRING },
-                    cuidadosPreventivos: { type: Type.STRING }
-                }
+                type: Type.OBJECT,
+                properties: {
+                    diagnosticoDetallado: { type: Type.STRING, description: "Análisis exhaustivo del problema, expandiendo el diagnóstico inicial en un párrafo claro y fácil de entender." },
+                    planDeAccion: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                paso: { type: Type.STRING, description: "El título del paso, ej: 'Paso 1: Revisar Riego'" },
+                                detalle: { type: Type.STRING, description: "La explicación detallada de la acción a tomar en ese paso." },
+                            },
+                            required: ["paso", "detalle"]
+                        },
+                        description: "Plan de acción detallado con 3 a 5 pasos numerados para tratar a la planta."
+                    },
+                    analisisFertilizantes: { type: Type.STRING, description: "Explicación más profunda de por qué se sugirió el fertilizante inicial y menciona otras alternativas viables, en un párrafo." },
+                    recomendacionEmulsionDetallada: { type: Type.STRING, description: "Explica en detalle cómo la emulsión 'Alimento para plantas' beneficia a esta planta a largo plazo, en un párrafo." },
+                    cuidadosPreventivos: { type: Type.STRING, description: "Una lista de 2-3 consejos clave en viñetas para evitar que el problema vuelva a ocurrir." },
+                    analisisDeTemporada: { type: Type.STRING, description: "Análisis detallado sobre la temporada de la planta. Explica si los síntomas son normales para la temporada actual y qué cuidados especiales se necesitan si está fuera de temporada, en un párrafo."}
+                },
+                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizantes", "recomendacionEmulsionDetallada", "cuidadosPreventivos", "analisisDeTemporada"]
             };
-            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo. Explica cómo la emulsión 'Alimento para plantas' ayuda a esta planta.`;
+            
+            const prompt = `Basado en la imagen y el diagnóstico inicial de "${briefDiagnosis.diagnosticoBreve}", proporciona un análisis completo y DETALLADO. Estructura tu respuesta de forma muy clara y concisa en cada sección, evitando texto redundante. Sigue el esquema JSON estrictamente.
+- En 'analisisDeTemporada', sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.
+- El 'planDeAccion' debe ser una guía práctica y fácil de seguir.
+- En 'recomendacionEmulsionDetallada' destaca los beneficios específicos del producto para el problema detectado.`;
+            
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: detailedSchema }
             });
+
             setDetailedDiagnosis(JSON.parse(response.text));
         } catch (err) {
             console.error(err);
