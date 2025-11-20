@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { LeafIcon, CheckCircleIcon, XIcon, SunIcon, SparklesIcon, CalendarIcon, ChevronDownIcon } from './icons/Icons';
+import { LeafIcon, CheckCircleIcon, XIcon, SunIcon, SparklesIcon, CalendarIcon, ChevronDownIcon, HeartbeatIcon } from './icons/Icons';
 
 // Subcomponente para los bloques de información
 const InfoBlock: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; }> = ({ title, icon, children }) => (
@@ -92,7 +93,7 @@ const CompostInfoSection: React.FC = () => {
                 </div>
 
                 {/* --- Acordeón de Información --- */}
-                <div className="mt-16 max-w-4xl mx-auto">
+                <div className="mt-12 max-w-4xl mx-auto">
                      <AccordionItem title="¿Cuándo y cómo debo abonar?" isOpen={openAccordion === 0} onClick={() => handleAccordionToggle(0)}>
                         <p>Primavera y verano son ideales, ya que las plantas crecen activamente. Aplica cada 15-30 días. En otoño, reduce la frecuencia para fortalecer raíces, y en invierno, úsala como capa superficial (mulch) para proteger del frío.</p>
                         <ol className="list-decimal list-inside space-y-2 pl-2">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HeartbeatIcon, YouTubeIcon } from './icons/Icons';
 
@@ -60,15 +61,15 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                         <a 
                             href="#/doctor-plantas"
                             onClick={handleGoToDoctor}
-                            className="flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
+                            className="group flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/80 backdrop-blur-md border border-lime-400/30 hover:bg-stone-900 hover:border-lime-400/60 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_0_15px_rgba(163,230,53,0.15)] hover:shadow-[0_0_25px_rgba(163,230,53,0.3)]"
                             aria-label="Ir al Doctor de Plantas"
                         >
-                            <div className="bg-red-500/30 p-2 md:p-3 rounded-full">
-                                <HeartbeatIcon className="h-6 w-6 md:h-8 md:w-8 text-red-100" />
+                            <div className="bg-lime-400/20 p-2 md:p-3 rounded-full group-hover:bg-lime-400/30 transition-colors">
+                                <HeartbeatIcon className="h-6 w-6 md:h-8 md:w-8 text-lime-400" />
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-sm md:text-base text-white">¿Planta Enferma?</p>
-                                <p className="text-xs md:text-sm text-white/80">Usa el Doctor IA &rarr;</p>
+                                <p className="font-bold text-sm md:text-base text-lime-400">¿Planta enferma?</p>
+                                <p className="text-xs md:text-sm text-white/90 group-hover:text-white">Diagnostícala con nuestro Doctor IA &rarr;</p>
                             </div>
                         </a>
 
@@ -81,15 +82,15 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             href="https://youtu.be/kuCRR-3TbxI?si=91sbDh14gOvjeRBD"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/40 backdrop-blur-md border border-white/10 hover:bg-stone-900/60 hover:border-white/20 transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
+                            className="group flex items-center gap-4 p-3 md:p-4 rounded-2xl bg-stone-900/80 backdrop-blur-md border border-lime-400/30 hover:bg-stone-900 hover:border-lime-400/60 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_0_15px_rgba(163,230,53,0.15)] hover:shadow-[0_0_25px_rgba(163,230,53,0.3)]"
                             aria-label="Ver video sobre Suelo Urbano"
                         >
-                            <div className="bg-red-500/30 p-2 md:p-3 rounded-full">
-                                <YouTubeIcon className="h-6 w-6 md:h-8 md:w-8 text-red-100" />
+                            <div className="bg-lime-400/20 p-2 md:p-3 rounded-full group-hover:bg-lime-400/30 transition-colors">
+                                <YouTubeIcon className="h-6 w-6 md:h-8 md:w-8 text-lime-400" />
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-sm md:text-base text-white">¿Qué es Suelo Urbano?</p>
-                                <p className="text-xs md:text-sm text-white/80">Descúbrelo aquí &rarr;</p>
+                                <p className="font-bold text-sm md:text-base text-lime-400">¿Qué es Suelo Urbano?</p>
+                                <p className="text-xs md:text-sm text-white/90 group-hover:text-white">Descúbrelo aquí &rarr;</p>
                             </div>
                         </a>
                     </div>

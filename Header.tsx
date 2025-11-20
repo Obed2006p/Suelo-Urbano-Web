@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './components/icons/Icons';
 
@@ -66,26 +67,28 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     <>
       <header className="bg-green-700 sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center relative">
-            <div className="flex items-center gap-2 sm:gap-4">
+            {/* Logo Container - z-10 asegura que esté por encima si la pantalla se achica */}
+            <div className="flex items-center gap-2 sm:gap-4 z-10">
                  <button id="main-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-green-100 hover:text-white focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
                     <MenuIcon className="w-6 h-6 sm:w-7 sm:h-7" />
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
                     <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-10 sm:h-12" />
-                    <div className="hidden sm:block">
+                    <div className="hidden sm:block text-center">
                         <span className="block text-xl sm:text-2xl font-bold text-white leading-tight">Alimento para plantas</span>
                         <span className="block text-xs sm:text-sm font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
                     </div>
                 </a>
             </div>
 
+            {/* Centered Navigation */}
             {isHomePage && onNavigate && (
-                 <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+                 <nav className="hidden md:flex items-center gap-4 lg:gap-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-max">
                     {inPageNavLinks.map((link) => (
                     <button
                         key={link.id}
                         onClick={() => onNavigate(link.id)}
-                        className="text-green-100 hover:text-white transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,255,255,0.7)]"
+                        className="text-green-100 hover:text-white transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,255,255,0.7)] text-sm lg:text-base"
                     >
                         {link.label}
                     </button>
