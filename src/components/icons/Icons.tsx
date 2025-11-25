@@ -77,26 +77,20 @@ export const CheckCircleIcon: React.FC<IconProps> = ({ className }) => (
 
 export const AtomIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {/* Network structure simulating the provided image */}
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
         <line x1="12" y1="5" x2="19" y2="12" />
         <line x1="19" y1="12" x2="12" y2="19" />
         <line x1="12" y1="19" x2="5" y2="12" />
         <line x1="5" y1="12" x2="12" y2="5" />
-        
         <circle cx="12" cy="12" r="3" className="fill-white dark:fill-stone-900"/>
         <circle cx="12" cy="12" r="3" />
-        
         <circle cx="12" cy="5" r="2" className="fill-white dark:fill-stone-900"/>
         <circle cx="12" cy="5" r="2" />
-        
         <circle cx="19" cy="12" r="2" className="fill-white dark:fill-stone-900"/>
         <circle cx="19" cy="12" r="2" />
-        
         <circle cx="12" cy="19" r="2" className="fill-white dark:fill-stone-900"/>
         <circle cx="12" cy="19" r="2" />
-        
         <circle cx="5" cy="12" r="2" className="fill-white dark:fill-stone-900"/>
         <circle cx="5" cy="12" r="2" />
     </svg>
@@ -134,7 +128,6 @@ export const UniversityIcon: React.FC<IconProps> = ({ className }) => (
   </svg>
 );
 
-// FIX: Corrected imports for icon components
 export const MenuIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -173,7 +166,6 @@ export const MapPinIcon: React.FC<IconProps> = ({ className }) => (
   </svg>
 );
 
-// FIX: Added missing icons that were causing import errors.
 export const CameraIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -211,7 +203,7 @@ export const HumidityIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.272c3.333-3.42 5.5-5.92 5.5-8.372a5.5 5.5 0 00-11 0c0 2.452 2.167 4.952 5.5 8.372z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.272a2 2 0 100-4 2 2 0 000 4z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2 15s1-1 2-1 2 1 2 1 1-1 2-1 2 1 2 1 1-1 2-1 2 1 1-1 2-1 2 1" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2 15s1-1 2-1 2 1 2 1 1-1 2-1 2 1 2 1 1-1 2-1 2 1 2 1" />
     </svg>
 );
 
@@ -372,3 +364,21 @@ export const CelebrationIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+// New Icons for Chatbot
+export const ChatBubbleIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+);
+
+export const PaperAirplaneIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+);
+
+export const RobotIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+    </svg>
+);
