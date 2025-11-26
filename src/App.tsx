@@ -1,12 +1,12 @@
 
 import * as React from 'react';
+// Imports for components
 import Header from './components/Header';
 import Hero from './components/Hero';
-import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
 import UsageSection from './components/UsageSection';
-import CompostInfoSection from './components/CompostInfoSection';
 import Footer from './components/Footer';
+import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import OrderPage from './components/OrderPage';
 import UtilitiesPage from './components/UtilitiesPage';
 import CompositionPage from './components/CompositionPage';
@@ -43,9 +43,6 @@ const HomePage: React.FC = () => {
                     </div>
                     <div id="modo-uso">
                         <UsageSection />
-                    </div>
-                    <div id="composta">
-                        <CompostInfoSection />
                     </div>
                 </div>
             </main>
@@ -150,9 +147,6 @@ const App: React.FC = () => {
   
   return (
       <div className="relative">
-        {/* Chatbot rendered at top level to ensure it's always available and uses Portal */}
-        <Chatbot />
-
         {/* Main Content Wrapper - gets blurred */}
         <div className={`transition-all duration-500 ${appState === 'video' ? 'blur-md brightness-75 pointer-events-none' : ''}`}>
             <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
@@ -167,7 +161,8 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        {/* Overlays that are not blurred */}
+        {/* Overlays that are not blurred and sit on top of everything */}
+        {appState === 'home' && <Chatbot />}
         {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
       </div>

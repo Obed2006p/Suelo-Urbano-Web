@@ -1,6 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { GoogleGenAI } from "@google/genai";
 import { ChatBubbleIcon, XIcon, PaperAirplaneIcon, RobotIcon } from './icons/Icons';
 
@@ -39,11 +38,6 @@ const Chatbot: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Force mount check
-    useEffect(() => {
-        console.log("Chatbot: Componente montado y listo.");
-    }, []);
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -64,17 +58,11 @@ const Chatbot: React.FC = () => {
         setIsLoading(true);
 
         try {
-            if (!process.env.API_KEY) {
-                // Fallback for when API key is missing in dev environment to prevent crash
-                setTimeout(() => {
-                    setMessages(prev => [...prev, { text: "Lo siento, no puedo conectar con mi cerebro (API Key faltante). Por favor, verifica la configuración. 🌱", sender: 'bot' }]);
-                    setIsLoading(false);
-                }, 600);
-                return;
-            }
+            if (!process.env.API_KEY) throw new Error("API_KEY no configurada");
             
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
+            // Construct history for context
             const history = messages.map(msg => ({
                 role: msg.sender === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.text }]
@@ -105,63 +93,50 @@ const Chatbot: React.FC = () => {
         }
     };
 
-    // Portal to body ensures it floats above everything regardless of overflow:hidden on parents
-    return ReactDOM.createPortal(
-        <div 
-            className="chatbot-container"
-            style={{ 
-                position: 'fixed', 
-                bottom: '24px', 
-                left: '24px', 
-                zIndex: 999999, 
-                fontFamily: 'Inter, sans-serif',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                pointerEvents: 'none' // Allow clicking through the container area, re-enable on elements
-            }}
-        >
-            {/* Chat Window */}
-            <div 
-                className={`bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-green-600 dark:border-stone-700 overflow-hidden transition-all duration-300 origin-bottom-left flex flex-col mb-4`} 
-                style={{ 
-                    width: 'min(90vw, 380px)',
-                    height: '500px', 
-                    maxHeight: '60vh',
-                    boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-                    transform: isOpen ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(20px)',
-                    opacity: isOpen ? 1 : 0,
-                    pointerEvents: isOpen ? 'auto' : 'none',
-                    visibility: isOpen ? 'visible' : 'hidden'
-                }}
-            >
+    return (
+        <>
+            {/* Chat Toggle Button - BOTTOM LEFT */}
+            <div className="fixed bottom-6 left-6 z-[9999] flex flex-col items-start gap-2">
+                {/* Helper text bubble */}
+                <div className={`bg-white text-green-800 text-xs font-bold py-1 px-2 rounded-lg shadow-md border border-green-100 transition-opacity duration-500 ml-2 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 animate-pulse'}`}>
+                    ¿Dudas? Pregúntame
+                </div>
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-green-600 ${isOpen ? 'bg-stone-600 hover:bg-stone-700 border-none text-white' : 'bg-white hover:bg-stone-50 text-green-600'}`}
+                    aria-label={isOpen ? "Cerrar chat" : "Abrir asistente virtual"}
+                >
+                    {isOpen ? <XIcon className="h-7 w-7" /> : <ChatBubbleIcon className="h-7 w-7" />}
+                </button>
+            </div>
+
+            {/* Chat Window - Anchored Left */}
+            <div className={`fixed bottom-24 left-6 w-80 sm:w-96 bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden z-[9999] transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`} style={{ height: '500px', maxHeight: '80vh' }}>
+                
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-700 to-green-600 p-4 flex items-center justify-between shadow-md flex-shrink-0">
-                    <div className="flex items-center gap-3 text-white">
-                        <div className="bg-white/20 p-1.5 rounded-full border border-white/30 backdrop-blur-sm">
-                            <RobotIcon className="h-6 w-6 text-white" />
+                <div className="bg-green-700 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white">
+                        <div className="bg-white/20 p-1.5 rounded-full">
+                            <RobotIcon className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm md:text-base text-white">Asistente Suelo Urbano</h3>
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                                <span className="text-xs text-green-100">En línea</span>
-                            </div>
+                            <h3 className="font-bold text-sm">Asistente Suelo Urbano</h3>
+                            <span className="text-xs bg-green-600 px-2 py-0.5 rounded-full text-green-100 border border-green-500">En línea</span>
                         </div>
                     </div>
-                    <button onClick={() => setIsOpen(false)} className="text-green-100 hover:text-white hover:bg-white/10 rounded-full p-1 transition-colors">
+                    <button onClick={() => setIsOpen(false)} className="text-green-200 hover:text-white">
                         <XIcon className="h-5 w-5" />
                     </button>
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 bg-stone-50 dark:bg-stone-900 space-y-4 scroll-smooth">
+                <div className="flex-1 overflow-y-auto p-4 bg-stone-50 dark:bg-stone-900 space-y-4">
                     {messages.map((msg, index) => (
                         <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                                 msg.sender === 'user' 
-                                    ? 'bg-green-600 text-white rounded-br-sm' 
-                                    : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-bl-sm border border-stone-200 dark:border-stone-600'
+                                    ? 'bg-green-600 text-white rounded-br-none' 
+                                    : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-bl-none border border-stone-200 dark:border-stone-600'
                             }`}>
                                 {msg.text}
                             </div>
@@ -169,10 +144,10 @@ const Chatbot: React.FC = () => {
                     ))}
                     {isLoading && (
                         <div className="flex justify-start">
-                            <div className="bg-white dark:bg-stone-700 rounded-2xl rounded-bl-none px-4 py-3 border border-stone-200 dark:border-stone-600 flex items-center gap-1 shadow-sm">
-                                <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                                <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                            <div className="bg-white dark:bg-stone-700 rounded-2xl rounded-bl-none px-4 py-3 border border-stone-200 dark:border-stone-600 flex items-center gap-1">
+                                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                             </div>
                         </div>
                     )}
@@ -180,55 +155,24 @@ const Chatbot: React.FC = () => {
                 </div>
 
                 {/* Input Area */}
-                <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 flex-shrink-0">
+                <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2">
                     <input
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Escribe tu duda..."
-                        className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white dark:focus:bg-stone-600 text-sm transition-all placeholder-stone-400"
+                        className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                     />
                     <button 
                         type="submit" 
                         disabled={isLoading || !inputValue.trim()}
-                        className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 disabled:bg-stone-300 disabled:cursor-not-allowed transition-all transform hover:scale-105 shadow-sm flex-shrink-0"
+                        className="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 disabled:bg-stone-300 disabled:cursor-not-allowed transition-colors"
                     >
-                        <PaperAirplaneIcon className="h-5 w-5 translate-x-0.5 translate-y-0.5" />
+                        <PaperAirplaneIcon className="h-5 w-5" />
                     </button>
                 </form>
             </div>
-
-            {/* Floating Button Container */}
-            <div className="flex flex-col items-start pointer-events-auto relative">
-                {/* Thought Bubble */}
-                <div 
-                    className={`absolute bottom-full left-4 mb-3 bg-white text-green-800 text-xs font-bold py-2 px-3 rounded-2xl rounded-bl-none shadow-xl border border-green-200 transition-all duration-300 whitespace-nowrap ${isOpen ? 'opacity-0 translate-y-4 scale-95' : 'opacity-100 animate-bounce'}`}
-                    style={{ zIndex: 1000000 }}
-                >
-                    ¿Dudas? ¡Pregúntame! 🌿
-                    <div className="absolute -bottom-1.5 left-2 w-3 h-3 bg-white border-b border-r border-green-200 transform rotate-45"></div>
-                </div>
-                
-                {/* Main Toggle Button */}
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`group relative p-0 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center overflow-hidden ${isOpen ? 'rotate-90 bg-stone-800' : 'bg-white'}`}
-                    style={{ 
-                        width: '64px', 
-                        height: '64px',
-                        border: '3px solid #16a34a' // green-600
-                    }}
-                    aria-label={isOpen ? "Cerrar chat" : "Abrir asistente virtual"}
-                >
-                    {isOpen ? (
-                        <XIcon className="h-8 w-8 text-white" />
-                    ) : (
-                        <ChatBubbleIcon className="h-8 w-8 text-green-600 group-hover:text-green-700 transition-colors" />
-                    )}
-                </button>
-            </div>
-        </div>,
-        document.body
+        </>
     );
 };
 
