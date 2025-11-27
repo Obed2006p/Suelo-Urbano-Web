@@ -96,7 +96,7 @@ const Chatbot: React.FC = () => {
     return (
         <>
             {/* Chat Toggle Button - BOTTOM LEFT */}
-            <div className="fixed bottom-6 left-6 z-[9999] flex flex-col items-start gap-2">
+            <div className="fixed bottom-6 left-6 z-[9999] flex flex-col items-start gap-2 pointer-events-auto">
                 {/* Helper text bubble */}
                 <div className={`bg-white text-green-800 text-xs font-bold py-1 px-2 rounded-lg shadow-md border border-green-100 transition-opacity duration-500 ml-2 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 animate-pulse'}`}>
                     ¿Dudas? Pregúntame
@@ -111,7 +111,7 @@ const Chatbot: React.FC = () => {
             </div>
 
             {/* Chat Window - Anchored Left */}
-            <div className={`fixed bottom-24 left-6 w-80 sm:w-96 bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden z-[9999] transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`} style={{ height: '500px', maxHeight: '80vh' }}>
+            <div className={`fixed bottom-24 left-6 w-80 sm:w-96 bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden z-[9999] transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-0 opacity-0 pointer-events-none'}`} style={{ height: '500px', maxHeight: '80vh' }}>
                 
                 {/* Header */}
                 <div className="bg-green-700 p-4 flex items-center justify-between">
