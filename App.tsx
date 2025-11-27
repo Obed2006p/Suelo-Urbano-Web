@@ -1,13 +1,12 @@
 
-
 import * as React from 'react';
-import Header from './Header';
+// Imports for components
+import Header from './components/Header';
 import Hero from './components/Hero';
-import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import BenefitsSection from './components/BenefitsSection';
 import UsageSection from './components/UsageSection';
-import CompostInfoSection from './components/CompostInfoSection'; // Importación de la nueva sección
 import Footer from './components/Footer';
+import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import OrderPage from './components/OrderPage';
 import UtilitiesPage from './components/UtilitiesPage';
 import CompositionPage from './components/CompositionPage';
@@ -20,6 +19,8 @@ import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
 import FloatingDonationButton from './components/FloatingDonationButton';
 import VideoIntro from './components/VideoIntro';
+import Chatbot from './components/Chatbot';
+import CompostInfoSection from './components/CompostInfoSection';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -164,7 +165,9 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        {/* Overlays that are not blurred */}
+        {/* Overlays that are not blurred and sit on top of everything */}
+        <Chatbot />
+        
         {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
       </div>

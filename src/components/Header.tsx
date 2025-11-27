@@ -44,14 +44,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     setIsMenuOpen(false);
   };
   
-  const handleInPageLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    if (onNavigate) {
-        onNavigate(id);
-    }
-    setIsMenuOpen(false);
-  }
-  
   const navigateHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     setIsMenuOpen(false);
@@ -73,7 +65,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
                     <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1755534702/WhatsApp_Image_2025-08-18_at_10.24.22_AM-removebg-preview_itjnyf.png" alt="Suelo Urbano Logo" className="h-12" />
-                    {/* INDICADOR VISUAL DE ACTUALIZACIÓN 2.0 */}
                     <span className="text-xl sm:text-2xl font-bold text-white">Suelo Urbano 2.0 🌿</span>
                 </a>
             </div>

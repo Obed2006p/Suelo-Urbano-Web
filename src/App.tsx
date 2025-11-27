@@ -161,8 +161,7 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        {/* Overlays that are not blurred and sit on top of everything */}
-        {/* Chatbot renderizado SIEMPRE para probar visibilidad */}
+        {/* Overlays that are not blurred */}
         <Chatbot />
         
         {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}

@@ -1,6 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon } from './icons/Icons';
+import { jsPDF } from "jspdf";
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
 interface BriefPlantDiagnosis {
@@ -288,6 +290,140 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         }
     };
     
+    const generatePDF = async () => {
+        if (!briefDiagnosis) return;
+
+        const doc = new jsPDF();
+        let y = 20;
+        const margin = 20;
+        const pageWidth = doc.internal.pageSize.width;
+        const contentWidth = pageWidth - (margin * 2);
+
+        // Helper for multi-line text
+        const addWrappedText = (text: string, fontSize: number, isBold: boolean = false) => {
+            doc.setFontSize(fontSize);
+            doc.setFont("helvetica", isBold ? "bold" : "normal");
+            const lines = doc.splitTextToSize(text, contentWidth);
+            doc.text(lines, margin, y);
+            y += (lines.length * fontSize * 0.4) + 2; // spacing
+        };
+
+        // --- Header ---
+        doc.setFillColor(22, 101, 52); // Green-800
+        doc.rect(0, 0, pageWidth, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("Reporte del Doctor de Plantas", margin, 18);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Suelo Urbano Tu Hogar - Diagnóstico IA", margin, 25);
+        
+        y = 45; // Reset Y after header
+        doc.setTextColor(0, 0, 0);
+
+        // --- Plant Info & Image ---
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(22, 101, 52);
+        doc.text(briefDiagnosis.nombrePlanta, margin, y);
+        y += 8;
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Estado de Salud: ${briefDiagnosis.salud}`, margin, y);
+        y += 10;
+
+        // Add Image if available
+        if (imagePreview) {
+            try {
+                const img = new Image();
+                img.src = imagePreview;
+                
+                await new Promise((resolve) => {
+                    if (img.complete) resolve(true);
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                });
+                
+                const imgHeight = 80;
+                const imgWidth = (img.width / img.height) * imgHeight;
+                const finalWidth = Math.min(imgWidth, contentWidth);
+                const finalHeight = (img.height / img.width) * finalWidth;
+
+                doc.addImage(img, 'JPEG', margin, y, finalWidth, finalHeight);
+                y += finalHeight + 10;
+            } catch (e) {
+                console.error("Could not add image to PDF", e);
+            }
+        }
+
+        // --- Brief Diagnosis ---
+        addWrappedText("Diagnóstico Breve:", 14, true);
+        addWrappedText(briefDiagnosis.diagnosticoBreve, 11);
+        y += 5;
+
+        // --- Key Metrics ---
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
+        
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`pH Ideal: ${briefDiagnosis.phSueloIdeal}`, margin, y);
+        doc.text(`Humedad: ${briefDiagnosis.humedad}`, margin + 70, y);
+        y += 10;
+        
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
+
+        // --- Detailed Diagnosis (Only if available) ---
+        if (detailedDiagnosis) {
+            if (y > 250) { doc.addPage(); y = 20; }
+            
+            addWrappedText("Análisis Detallado:", 14, true);
+            addWrappedText(detailedDiagnosis.diagnosticoDetallado, 11);
+            y += 5;
+
+            if (y > 230) { doc.addPage(); y = 20; }
+            addWrappedText("Plan de Acción:", 14, true);
+            detailedDiagnosis.planDeAccion.forEach((step, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                addWrappedText(`${i + 1}. ${step.paso}:`, 11, true);
+                addWrappedText(step.detalle, 11);
+                y += 2;
+            });
+            y += 5;
+        }
+
+        // --- Fertilizer ---
+        if (y > 230) { doc.addPage(); y = 20; }
+        addWrappedText("Fertilizante Recomendado:", 14, true);
+        doc.setTextColor(22, 101, 52);
+        addWrappedText(briefDiagnosis.fertilizanteSugerido, 12, true);
+        doc.setTextColor(0, 0, 0);
+        
+        if (detailedDiagnosis) {
+             addWrappedText(detailedDiagnosis.analisisFertilizanteSugerido, 11);
+             y += 5;
+        } else {
+             addWrappedText(briefDiagnosis.justificacionFertilizante, 11);
+             y += 5;
+        }
+
+        // --- Footer ---
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10);
+            doc.setTextColor(150);
+            doc.text('Generado por Suelo Urbano Tu Hogar', pageWidth / 2, 285, { align: 'center' });
+        }
+
+        doc.save(`${briefDiagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
+    };
+    
     const reset = () => {
         setImageFile(null);
         setImagePreview(null);
@@ -316,25 +452,56 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
             );
         }
         if (detailedDiagnosis && briefDiagnosis) {
-            return <DetailedDiagnosisView brief={briefDiagnosis} detailed={detailedDiagnosis} />;
+            return (
+                <div className="w-full">
+                    <DetailedDiagnosisView brief={briefDiagnosis} detailed={detailedDiagnosis} />
+                    <div className="mt-6 border-t border-stone-200 pt-6 dark:border-stone-600">
+                        <button 
+                            onClick={generatePDF}
+                            className="w-full bg-stone-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-stone-900 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 dark:bg-stone-700 dark:hover:bg-stone-600"
+                        >
+                            <DownloadIcon className="h-5 w-5"/>
+                            Descargar Reporte Completo PDF
+                        </button>
+                        <p className="text-xs text-stone-500 text-center mt-2">Guarda este diagnóstico para consultarlo más tarde.</p>
+                    </div>
+                </div>
+            );
         }
         if (briefDiagnosis) {
             return (
                 <div className="w-full">
                     <BriefDiagnosisView diagnosis={briefDiagnosis} />
-                    <div className="mt-6">
+                    <div className="mt-6 flex flex-col gap-3">
                         <button onClick={getDetailedDiagnosis} disabled={isDetailLoading} className="w-full bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                             {isDetailLoading ? ( <><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Analizando a fondo...</> ) : ( <><ChevronDownIcon className="h-5 w-5"/>Obtener Diagnóstico Completo</> )}
+                        </button>
+                        <button 
+                            onClick={generatePDF}
+                            className="w-full bg-white text-green-700 border-2 border-green-700 font-bold py-2 px-6 rounded-lg hover:bg-green-50 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 dark:bg-transparent dark:text-green-300 dark:border-green-500 dark:hover:bg-green-900/30"
+                        >
+                            <DownloadIcon className="h-5 w-5"/>
+                            Descargar PDF (Resumen)
                         </button>
                     </div>
                 </div>
             );
         }
+        // Default view: Show disabled button to prove code is deployed
         return (
-            <div className="text-stone-500 dark:text-stone-400">
+            <div className="text-stone-500 dark:text-stone-400 flex flex-col items-center">
                 <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-24 w-24 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold">El diagnóstico aparecerá aquí</h3>
-                <p className="text-sm">Sube una foto de tu planta para empezar.</p>
+                <p className="text-sm mb-6">Sube una foto de tu planta para empezar.</p>
+                
+                {/* Button visible but disabled to prove existence */}
+                <button 
+                    disabled
+                    className="bg-stone-200 text-stone-400 font-bold py-2 px-6 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 border-2 border-stone-200 opacity-70"
+                >
+                    <DownloadIcon className="h-5 w-5"/>
+                    Diagnostica para descargar PDF
+                </button>
             </div>
         );
     };

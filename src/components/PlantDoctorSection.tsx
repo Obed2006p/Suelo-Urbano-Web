@@ -1,10 +1,10 @@
 
 import React, { useState, useRef } from 'react';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon } from './icons/Icons';
 
-// --- Interfaces (Mantenidas igual) ---
+// --- Interfaces para los datos de la IA ---
 interface BriefPlantDiagnosis {
     nombrePlanta: string;
     salud: string;
@@ -26,7 +26,9 @@ interface DetailedPlantDiagnosis {
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
 
-// --- Subcomponentes (Mantenidos igual) ---
+
+// --- Componentes de UI ---
+
 const HumidityScale = ({ level }: { level: BriefPlantDiagnosis['humedad'] }) => {
     const levelMap: { [key: string]: { width: string; color: string; label: string } } = {
         'Baja': { width: '33.33%', color: 'bg-yellow-400', label: 'Baja' },
@@ -266,7 +268,12 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                 required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizanteSugerido", "cuidadosPreventivos", "analisisDeTemporada"]
             };
             
-            const prompt = `Basado en la imagen y el diagnóstico inicial, proporciona un análisis completo. El diagnóstico breve ya sugirió usar '${briefDiagnosis.fertilizanteSugerido}'. Tu tarea es expandir esta información de forma clara y concisa.`;
+            const prompt = `Basado en la imagen y el diagnóstico inicial, proporciona un análisis completo. El diagnóstico breve ya sugirió usar '${briefDiagnosis.fertilizanteSugerido}'. Tu tarea es expandir esta información de forma clara y concisa.
+- **diagnosticoDetallado**: Expande el diagnóstico inicial en un párrafo claro.
+- **planDeAccion**: Crea una guía práctica y fácil de seguir con pasos numerados.
+- **analisisFertilizanteSugerido**: Aquí, explica en un párrafo detallado POR QUÉ '${briefDiagnosis.fertilizanteSugerido}' es la elección correcta para el problema detectado. Si es 'Suelo Urbano Tu Hogar', detalla sus beneficios. Si es 'Humus de lombriz', explica su acción suave y reparadora. Si es un químico, advierte sobre su uso correcto.
+- **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave para el futuro.
+- **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-pro',
@@ -286,127 +293,135 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
     const generatePDF = async () => {
         if (!briefDiagnosis) return;
 
-        try {
-            const doc = new jsPDF();
-            let y = 20;
-            const margin = 20;
-            const pageWidth = doc.internal.pageSize.width;
-            const contentWidth = pageWidth - (margin * 2);
+        const doc = new jsPDF();
+        let y = 20;
+        const margin = 20;
+        const pageWidth = doc.internal.pageSize.width;
+        const contentWidth = pageWidth - (margin * 2);
 
-            const addWrappedText = (text: string, fontSize: number, isBold: boolean = false) => {
-                doc.setFontSize(fontSize);
-                doc.setFont("helvetica", isBold ? "bold" : "normal");
-                const lines = doc.splitTextToSize(text, contentWidth);
-                doc.text(lines, margin, y);
-                y += (lines.length * fontSize * 0.4) + 2;
-            };
+        // Helper for multi-line text
+        const addWrappedText = (text: string, fontSize: number, isBold: boolean = false) => {
+            doc.setFontSize(fontSize);
+            doc.setFont("helvetica", isBold ? "bold" : "normal");
+            const lines = doc.splitTextToSize(text, contentWidth);
+            doc.text(lines, margin, y);
+            y += (lines.length * fontSize * 0.4) + 2; // spacing
+        };
 
-            doc.setFillColor(22, 101, 52);
-            doc.rect(0, 0, pageWidth, 30, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
-            doc.setFont("helvetica", "bold");
-            doc.text("Reporte del Doctor de Plantas", margin, 18);
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text("Suelo Urbano Tu Hogar - Diagnóstico IA", margin, 25);
-            
-            y = 45;
-            doc.setTextColor(0, 0, 0);
+        // --- Header ---
+        doc.setFillColor(22, 101, 52); // Green-800
+        doc.rect(0, 0, pageWidth, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("Reporte del Doctor de Plantas", margin, 18);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Suelo Urbano Tu Hogar - Diagnóstico IA", margin, 25);
+        
+        y = 45; // Reset Y after header
+        doc.setTextColor(0, 0, 0);
 
-            doc.setFontSize(18);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(22, 101, 52);
-            doc.text(briefDiagnosis.nombrePlanta, margin, y);
-            y += 8;
-            
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(80, 80, 80);
-            doc.text(`Estado de Salud: ${briefDiagnosis.salud}`, margin, y);
-            y += 10;
+        // --- Plant Info & Image ---
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(22, 101, 52);
+        doc.text(briefDiagnosis.nombrePlanta, margin, y);
+        y += 8;
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Estado de Salud: ${briefDiagnosis.salud}`, margin, y);
+        y += 10;
 
-            if (imagePreview) {
-                try {
-                    const img = new Image();
-                    img.src = imagePreview;
-                    await new Promise((resolve) => {
-                        if (img.complete) resolve(true);
-                        img.onload = () => resolve(true);
-                        img.onerror = () => resolve(false);
-                    });
-                    const imgHeight = 80;
-                    const imgWidth = (img.width / img.height) * imgHeight;
-                    const finalWidth = Math.min(imgWidth, contentWidth);
-                    const finalHeight = (img.height / img.width) * finalWidth;
-                    doc.addImage(img, 'JPEG', margin, y, finalWidth, finalHeight);
-                    y += finalHeight + 10;
-                } catch (e) {
-                    console.error("Image load error for PDF", e);
-                }
-            }
-
-            addWrappedText("Diagnóstico Breve:", 14, true);
-            addWrappedText(briefDiagnosis.diagnosticoBreve, 11);
-            y += 5;
-
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.text(`pH Ideal: ${briefDiagnosis.phSueloIdeal}`, margin, y);
-            doc.text(`Humedad: ${briefDiagnosis.humedad}`, margin + 70, y);
-            y += 10;
-            
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-
-            if (detailedDiagnosis) {
-                if (y > 250) { doc.addPage(); y = 20; }
-                addWrappedText("Análisis Detallado:", 14, true);
-                addWrappedText(detailedDiagnosis.diagnosticoDetallado, 11);
-                y += 5;
-
-                if (y > 230) { doc.addPage(); y = 20; }
-                addWrappedText("Plan de Acción:", 14, true);
-                detailedDiagnosis.planDeAccion.forEach((step, i) => {
-                    if (y > 270) { doc.addPage(); y = 20; }
-                    addWrappedText(`${i + 1}. ${step.paso}:`, 11, true);
-                    addWrappedText(step.detalle, 11);
-                    y += 2;
+        // Add Image if available
+        if (imagePreview) {
+            try {
+                const img = new Image();
+                img.src = imagePreview;
+                
+                await new Promise((resolve) => {
+                    if (img.complete) resolve(true);
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
                 });
-                y += 5;
+                
+                const imgHeight = 80;
+                const imgWidth = (img.width / img.height) * imgHeight;
+                const finalWidth = Math.min(imgWidth, contentWidth);
+                const finalHeight = (img.height / img.width) * finalWidth;
+
+                doc.addImage(img, 'JPEG', margin, y, finalWidth, finalHeight);
+                y += finalHeight + 10;
+            } catch (e) {
+                console.error("Could not add image to PDF", e);
             }
+        }
+
+        // --- Brief Diagnosis ---
+        addWrappedText("Diagnóstico Breve:", 14, true);
+        addWrappedText(briefDiagnosis.diagnosticoBreve, 11);
+        y += 5;
+
+        // --- Key Metrics ---
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
+        
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`pH Ideal: ${briefDiagnosis.phSueloIdeal}`, margin, y);
+        doc.text(`Humedad: ${briefDiagnosis.humedad}`, margin + 70, y);
+        y += 10;
+        
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 10;
+
+        // --- Detailed Diagnosis (Only if available) ---
+        if (detailedDiagnosis) {
+            if (y > 250) { doc.addPage(); y = 20; }
+            
+            addWrappedText("Análisis Detallado:", 14, true);
+            addWrappedText(detailedDiagnosis.diagnosticoDetallado, 11);
+            y += 5;
 
             if (y > 230) { doc.addPage(); y = 20; }
-            addWrappedText("Fertilizante Recomendado:", 14, true);
-            doc.setTextColor(22, 101, 52);
-            addWrappedText(briefDiagnosis.fertilizanteSugerido, 12, true);
-            doc.setTextColor(0, 0, 0);
-            
-            if (detailedDiagnosis) {
-                 addWrappedText(detailedDiagnosis.analisisFertilizanteSugerido, 11);
-            } else {
-                 addWrappedText(briefDiagnosis.justificacionFertilizante, 11);
-            }
+            addWrappedText("Plan de Acción:", 14, true);
+            detailedDiagnosis.planDeAccion.forEach((step, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                addWrappedText(`${i + 1}. ${step.paso}:`, 11, true);
+                addWrappedText(step.detalle, 11);
+                y += 2;
+            });
             y += 5;
-
-            // FIX: Use doc.getNumberOfPages() directly on jsPDF instance
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(10);
-                doc.setTextColor(150);
-                doc.text('Generado por Suelo Urbano Tu Hogar', pageWidth / 2, 285, { align: 'center' });
-            }
-
-            doc.save(`${briefDiagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
-        } catch (err) {
-            console.error("Error generating PDF:", err);
-            alert("Hubo un error al generar el PDF. Por favor intenta de nuevo.");
         }
+
+        // --- Fertilizer ---
+        if (y > 230) { doc.addPage(); y = 20; }
+        addWrappedText("Fertilizante Recomendado:", 14, true);
+        doc.setTextColor(22, 101, 52);
+        addWrappedText(briefDiagnosis.fertilizanteSugerido, 12, true);
+        doc.setTextColor(0, 0, 0);
+        
+        if (detailedDiagnosis) {
+             addWrappedText(detailedDiagnosis.analisisFertilizanteSugerido, 11);
+             y += 5;
+        } else {
+             addWrappedText(briefDiagnosis.justificacionFertilizante, 11);
+             y += 5;
+        }
+
+        // --- Footer ---
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10);
+            doc.setTextColor(150);
+            doc.text('Generado por Suelo Urbano Tu Hogar', pageWidth / 2, 285, { align: 'center' });
+        }
+
+        doc.save(`${briefDiagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
     };
     
     const reset = () => {
