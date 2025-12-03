@@ -21,6 +21,7 @@ import FloatingDonationButton from './components/FloatingDonationButton';
 import VideoIntro from './components/VideoIntro';
 import Chatbot from './components/Chatbot';
 import CompostInfoSection from './components/CompostInfoSection';
+import PlantCareGuideSection from './components/PlantCareGuideSection';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -41,6 +42,9 @@ const HomePage: React.FC = () => {
                     </div>
                     <div id="beneficios">
                         <BenefitsSection />
+                    </div>
+                    <div id="guia-cuidados">
+                        <PlantCareGuideSection />
                     </div>
                     <div id="modo-uso">
                         <UsageSection />
