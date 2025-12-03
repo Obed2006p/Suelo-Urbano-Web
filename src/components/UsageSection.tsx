@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Card from './Card';
 import { CalendarIcon, BeakerIcon, SpoonIcon, WateringCanIcon } from './icons/Icons';
@@ -6,7 +7,7 @@ const usageSteps = [
   {
     icon: <SpoonIcon className="h-10 w-10 text-cyan-600" />,
     title: "1. Dosificación",
-    description: "Para una regadera de 10 litros, utiliza 300 gramos (aprox. una taza) de nuestra emulsión. Ajusta la cantidad según necesites."
+    description: "La medida perfecta es sencilla: utiliza una cucharada sopera de nuestra emulsión por cada litro de agua."
   },
   {
     icon: <BeakerIcon className="h-10 w-10 text-purple-600" />,
