@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { PhIcon, BeakerIcon, CheckCircleIcon, XIcon, SproutIcon } from './icons/Icons';
+import { PhIcon, BeakerIcon, CheckCircleIcon, XIcon, SproutIcon, CaretDownIcon, CaretUpIcon, SearchIcon } from './icons/Icons';
 
 const PhInfoSection: React.FC = () => {
     const [activeStep, setActiveStep] = useState(0);

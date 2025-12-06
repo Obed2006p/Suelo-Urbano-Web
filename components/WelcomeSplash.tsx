@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { HeartbeatIcon, YouTubeIcon, CameraIcon } from './icons/Icons';
+import { HeartbeatIcon, YouTubeIcon, CameraIcon, BeakerIcon } from './icons/Icons';
 
 interface WelcomeSplashProps {
     onEnter: () => void;
@@ -19,12 +19,24 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
     const handleGoToDoctor = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (isExiting) return;
-        
-        // Set the hash for the new route first
         window.location.hash = '#/doctor-plantas';
-        
-        // Then trigger the exit animation
         handleEnterClick();
+    };
+
+    const handleGoToPh = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        if (isExiting) return;
+        
+        // Iniciamos la salida
+        handleEnterClick();
+        
+        // Esperamos a que la home se cargue y hacemos scroll
+        setTimeout(() => {
+            const element = document.getElementById('info-ph');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 1100);
     };
 
 
@@ -58,8 +70,8 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                         Bienvenido a<br/>Alimento para plantas
                     </h1>
 
-                    {/* Grid of actions */}
-                    <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+                    {/* Grid of actions - Updated to 2x2 on tablet, 4x1 on desktop */}
+                    <div className="w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4">
                         
                         {/* Action 1: Doctor IA */}
                         <a 
@@ -71,9 +83,9 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             <div className="bg-lime-400/20 p-3 rounded-full group-hover:bg-lime-400/30 transition-colors flex-shrink-0">
                                 <HeartbeatIcon className="h-6 w-6 text-lime-400" />
                             </div>
-                            <div>
-                                <p className="font-bold text-sm md:text-base text-lime-400">¿Planta enferma?</p>
-                                <p className="text-xs text-white/90 group-hover:text-white">Diagnostícala con nuestro Doctor IA &rarr;</p>
+                            <div className="min-w-0">
+                                <p className="font-bold text-sm text-lime-400 truncate">¿Planta enferma?</p>
+                                <p className="text-xs text-white/90 group-hover:text-white truncate">Diagnóstico con IA &rarr;</p>
                             </div>
                         </a>
 
@@ -88,13 +100,13 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             <div className="bg-lime-400/20 p-3 rounded-full group-hover:bg-lime-400/30 transition-colors flex-shrink-0">
                                 <YouTubeIcon className="h-6 w-6 text-lime-400" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="font-bold text-sm md:text-base text-lime-400">¿Qué es Suelo Urbano?</p>
-                                <p className="text-xs text-white/90 group-hover:text-white">Descúbrelo aquí &rarr;</p>
+                                <p className="text-xs text-white/90 group-hover:text-white truncate">Descúbrelo aquí &rarr;</p>
                             </div>
                         </a>
 
-                        {/* Action 3: Before and After (New) */}
+                        {/* Action 3: Before and After */}
                         <a 
                             href="https://youtu.be/zyOJhsOhv7Q?si=aEE1e2xU9YjyusSb"
                             target="_blank"
@@ -105,9 +117,25 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             <div className="bg-lime-400/20 p-3 rounded-full group-hover:bg-lime-400/30 transition-colors flex-shrink-0">
                                 <CameraIcon className="h-6 w-6 text-lime-400" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="font-bold text-sm md:text-base text-lime-400">El antes y después</p>
-                                <p className="text-xs text-white/90 group-hover:text-white">Mira los resultados aquí &rarr;</p>
+                                <p className="text-xs text-white/90 group-hover:text-white truncate">Mira resultados aquí &rarr;</p>
+                            </div>
+                        </a>
+
+                        {/* Action 4: pH Secret (New) */}
+                        <a 
+                            href="#info-ph"
+                            onClick={handleGoToPh}
+                            className="group flex items-center gap-3 p-3 md:p-4 rounded-2xl bg-stone-900/80 backdrop-blur-md border border-lime-400/30 hover:bg-stone-900 hover:border-lime-400/60 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_0_15px_rgba(163,230,53,0.15)] hover:shadow-[0_0_25px_rgba(163,230,53,0.3)] text-left"
+                            aria-label="Ir a la sección de pH"
+                        >
+                            <div className="bg-lime-400/20 p-3 rounded-full group-hover:bg-lime-400/30 transition-colors flex-shrink-0">
+                                <BeakerIcon className="h-6 w-6 text-lime-400" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="font-bold text-sm md:text-base text-lime-400">El Secreto del pH</p>
+                                <p className="text-xs text-white/90 group-hover:text-white truncate">Guía Interactiva &rarr;</p>
                             </div>
                         </a>
 
