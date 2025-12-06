@@ -22,6 +22,7 @@ import VideoIntro from './components/VideoIntro';
 import Chatbot from './components/Chatbot';
 import CompostInfoSection from './components/CompostInfoSection';
 import PlantCareGuideSection from './components/PlantCareGuideSection';
+import PhInfoSection from './components/PhInfoSection';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -45,6 +46,9 @@ const HomePage: React.FC = () => {
                     </div>
                     <div id="guia-cuidados">
                         <PlantCareGuideSection />
+                    </div>
+                    <div id="info-ph">
+                        <PhInfoSection />
                     </div>
                     <div id="modo-uso">
                         <UsageSection />
@@ -169,7 +173,7 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        {/* Overlays that are not blurred and sit on top of everything */}
+        {/* Overlays that are not blurred */}
         <Chatbot />
         
         {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
