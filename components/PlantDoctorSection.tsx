@@ -276,7 +276,7 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
 - **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
             
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-pro',
+                model: 'gemini-2.5-flash',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: detailedSchema }
             });
