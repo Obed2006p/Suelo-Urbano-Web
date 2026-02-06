@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CheckCircleIcon, CaretUpIcon, CaretDownIcon } from './icons/Icons';
 import Footer from './Footer';
@@ -100,14 +101,14 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
       <main className="flex-grow py-12 md:py-24 section-padding">
         {isSubmitted ? (
           <div className="container mx-auto px-4 sm:px-6 text-center max-w-2xl">
-            <CheckCircleIcon className="h-24 w-24 text-green-500 mx-auto mb-6" />
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">¡Pedido Recibido!</h2>
-            <p className="text-stone-600 text-lg mb-8 dark:text-stone-300">
+            <CheckCircleIcon className="h-24 w-24 text-green-600 mx-auto mb-6" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-4 dark:text-gray-100">¡Pedido Recibido!</h2>
+            <p className="text-gray-800 text-lg mb-8 dark:text-gray-300">
               Gracias por tu pedido, {formData.name}. Nos pondremos en contacto contigo muy pronto a través de tu correo {formData.email} para confirmar los detalles.
             </p>
             <button
               onClick={resetForm}
-              className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-colors duration-300"
+              className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-colors duration-300 shadow-lg"
             >
               Hacer Otro Pedido
             </button>
@@ -115,44 +116,45 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
         ) : (
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-4 dark:text-stone-100">Realiza tu Pedido</h2>
-              <p className="max-w-2xl mx-auto text-stone-600 dark:text-stone-300">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 dark:text-gray-100">Realiza tu Pedido</h2>
+              <p className="max-w-2xl mx-auto text-gray-700 text-lg dark:text-gray-300">
                 Es fácil y rápido. Llena el formulario y nos pondremos en contacto para coordinar la entrega.
               </p>
             </div>
-            <div id="order-form-container" className="max-w-2xl mx-auto bg-stone-50 p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200 dark:bg-stone-800 dark:border-stone-700">
+            {/* Contenedor del formulario: Fondo blanco puro y sombras fuertes */}
+            <div id="order-form-container" className="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
+                  <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
                     <p className="font-bold">Error al enviar</p>
                     <p>{error}</p>
                   </div>
                 )}
                 
-                <h3 className="text-lg font-semibold text-stone-800 pb-2 border-b border-stone-200 dark:text-stone-200 dark:border-stone-600">Datos de Contacto</h3>
+                <h3 className="text-xl font-bold text-green-800 pb-2 border-b border-gray-200 dark:text-green-400 dark:border-gray-600">Datos de Contacto</h3>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Nombre Completo</label>
-                  <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
+                  <label htmlFor="name" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Nombre Completo</label>
+                  <input type="text" name="name" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium"/>
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Correo Electrónico</label>
-                  <input type="email" name="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
+                  <label htmlFor="email" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Correo Electrónico</label>
+                  <input type="email" name="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium"/>
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Teléfono (Opcional)</label>
-                  <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"/>
+                  <label htmlFor="phone" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Teléfono (Opcional)</label>
+                  <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium"/>
                 </div>
 
-                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200 dark:text-stone-200 dark:border-stone-600">Detalles del Pedido</h3>
+                <h3 className="text-xl font-bold text-green-800 pt-4 border-t border-gray-200 dark:text-green-400 dark:border-gray-600">Detalles del Pedido</h3>
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="flex-1">
-                    <label htmlFor="size" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Presentación del Producto</label>
-                    <select name="size" id="size" value={formData.size} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:text-white">
+                    <label htmlFor="size" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Presentación del Producto</label>
+                    <select name="size" id="size" value={formData.size} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-medium">
                       <option value="Bolsa de 300gr">Bolsa de 300gr</option>
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="quantity" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Cantidad</label>
+                    <label htmlFor="quantity" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Cantidad</label>
                     <div className="relative">
                         <input 
                             type="number" 
@@ -162,25 +164,25 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
                             required 
                             value={formData.quantity} 
                             onChange={handleChange} 
-                            className="w-full pl-4 pr-10 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 text-center dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white"
+                            className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 text-center dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-bold"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center p-1">
-                            <div className="flex flex-col h-full w-7 bg-green-200 rounded-md overflow-hidden shadow-sm dark:bg-stone-600">
+                            <div className="flex flex-col h-full w-8 bg-green-100 rounded-md overflow-hidden border border-green-200 shadow-sm dark:bg-gray-600 dark:border-gray-500">
                                 <button 
                                     type="button" 
                                     tabIndex={-1}
                                     onClick={() => handleQuantityChange(1)}
-                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-stone-500"
+                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-200 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-gray-500"
                                     aria-label="Aumentar cantidad"
                                 >
                                     <CaretUpIcon className="h-4 w-4" />
                                 </button>
-                                <div className="w-full h-px bg-green-400/50 dark:bg-stone-500"></div>
+                                <div className="w-full h-px bg-green-300 dark:bg-gray-500"></div>
                                 <button 
                                     type="button" 
                                     tabIndex={-1}
                                     onClick={() => handleQuantityChange(-1)}
-                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-300 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-stone-500"
+                                    className="flex-1 w-full flex items-center justify-center text-green-800 hover:bg-green-200 transition-colors focus:outline-none dark:text-green-300 dark:hover:bg-gray-500"
                                     aria-label="Disminuir cantidad"
                                 >
                                     <CaretDownIcon className="h-4 w-4" />
@@ -191,38 +193,38 @@ const OrderPage: React.FC<OrderPageProps> = ({ header }) => {
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-stone-800 pt-4 border-t border-stone-200 dark:text-stone-200 dark:border-stone-600">Dirección de Entrega</h3>
-                <p className="text-sm text-stone-500 -mt-4 dark:text-stone-400">Llena estos campos si deseas que te entreguemos el pedido a domicilio.</p>
+                <h3 className="text-xl font-bold text-green-800 pt-4 border-t border-gray-200 dark:text-green-400 dark:border-gray-600">Dirección de Entrega</h3>
+                <p className="text-sm text-gray-500 -mt-4 dark:text-gray-400">Llena estos campos si deseas que te entreguemos el pedido a domicilio.</p>
                 
                 <div>
-                    <label htmlFor="street" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Calle</label>
-                    <input type="text" name="street" id="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                    <label htmlFor="street" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Calle</label>
+                    <input type="text" name="street" id="street" value={formData.street} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                 </div>
                  <div className="flex flex-col sm:flex-row gap-6">
                     <div className="flex-1">
-                        <label htmlFor="extNumber" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Número Exterior</label>
-                        <input type="text" name="extNumber" id="extNumber" value={formData.extNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                        <label htmlFor="extNumber" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Número Exterior</label>
+                        <input type="text" name="extNumber" id="extNumber" value={formData.extNumber} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                     </div>
                     <div className="flex-1">
-                        <label htmlFor="intNumber" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Número Interior (Opcional)</label>
-                        <input type="text" name="intNumber" id="intNumber" value={formData.intNumber} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                        <label htmlFor="intNumber" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Número Interior (Opcional)</label>
+                        <input type="text" name="intNumber" id="intNumber" value={formData.intNumber} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                     </div>
                 </div>
                  <div>
-                    <label htmlFor="neighborhood" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Colonia / Delegación</label>
-                    <input type="text" name="neighborhood" id="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                    <label htmlFor="neighborhood" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Colonia / Delegación</label>
+                    <input type="text" name="neighborhood" id="neighborhood" value={formData.neighborhood} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                 </div>
                 <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Código Postal</label>
-                    <input type="text" name="postalCode" id="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                    <label htmlFor="postalCode" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Código Postal</label>
+                    <input type="text" name="postalCode" id="postalCode" value={formData.postalCode} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                 </div>
                 <div>
-                    <label htmlFor="references" className="block text-sm font-medium text-stone-700 mb-1 dark:text-stone-300">Referencias Adicionales</label>
-                    <input type="text" name="references" id="references" value={formData.references} onChange={handleChange} className="w-full px-4 py-2 bg-green-50 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition placeholder-stone-400 text-stone-800 dark:bg-stone-700 dark:border-stone-600 dark:placeholder-stone-400 dark:text-white" />
+                    <label htmlFor="references" className="block text-sm font-bold text-gray-800 mb-1 dark:text-gray-200">Referencias Adicionales</label>
+                    <input type="text" name="references" id="references" value={formData.references} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition placeholder-gray-400 text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white font-medium" />
                 </div>
                 
                 <div className="pt-4">
-                  <button type="submit" disabled={isLoading} className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  <button type="submit" disabled={isLoading} className="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-xl disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg">
                     {isLoading ? (
                       <>
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

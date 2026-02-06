@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-// Imports for components
+// Imports for components in Root
 import Header from './components/Header';
 import Hero from './components/Hero';
 import BenefitsSection from './components/BenefitsSection';
@@ -23,6 +23,7 @@ import Chatbot from './components/Chatbot';
 import CompostInfoSection from './components/CompostInfoSection';
 import PlantCareGuideSection from './components/PlantCareGuideSection';
 import PhInfoSection from './components/PhInfoSection';
+import CuriousFactPopup from './components/CuriousFactPopup';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -33,26 +34,33 @@ declare global {
 
 const HomePage: React.FC = () => {
     return (
-        <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
             <main className="flex-grow">
                 <Hero onOrderClick={() => { window.location.hash = '#/pedido'; }} />
+                
                 <div className="relative">
                     <FallingLeaves position="absolute" />
+                    
                     <div id="que-es">
                         <EmulsionExplainedSection />
                     </div>
+
                     <div id="beneficios">
                         <BenefitsSection />
                     </div>
+
                     <div id="guia-cuidados">
                         <PlantCareGuideSection />
                     </div>
+
                     <div id="info-ph">
                         <PhInfoSection />
                     </div>
+
                     <div id="modo-uso">
                         <UsageSection />
                     </div>
+
                     <div id="composta">
                         <CompostInfoSection />
                     </div>
@@ -70,6 +78,7 @@ type AppState = 'splash' | 'video' | 'home';
 const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
   const [appState, setAppState] = React.useState<AppState>('splash');
+  const [showFactPopup, setShowFactPopup] = React.useState(false);
 
   React.useEffect(() => {
     const handleHashChange = () => {
@@ -89,6 +98,25 @@ const App: React.FC = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
+
+  // Lógica del temporizador para Datos Curiosos
+  React.useEffect(() => {
+    let intervalId: number;
+
+    if (appState === 'home') {
+        // Configurar el intervalo para que se ejecute cada 2 minutos (120,000 ms)
+        // Se puede ajustar a 30000 (30 seg) para pruebas rápidas
+        intervalId = window.setInterval(() => {
+            // Solo mostrar si no hay otro modal intrusivo abierto (por ahora asumimos que no)
+            // y si el popup no está ya visible
+            setShowFactPopup(prev => !prev ? true : prev);
+        }, 120000); 
+    }
+
+    return () => {
+        if (intervalId) clearInterval(intervalId);
+    };
+  }, [appState]);
 
   const handleEnterSplash = () => {
     const hasSeenVideo = localStorage.getItem('hasSeenIntroVideo');
@@ -158,10 +186,10 @@ const App: React.FC = () => {
   }
   
   return (
-      <div className="relative">
+      <div className="relative font-sans text-gray-800 dark:text-gray-100">
         {/* Main Content Wrapper - gets blurred */}
         <div className={`transition-all duration-500 ${appState === 'video' ? 'blur-md brightness-75 pointer-events-none' : ''}`}>
-            <div className="fixed inset-0 bg-stone-50 dark:bg-stone-900 -z-20" />
+            <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 -z-20" />
             
             {/* Content that is part of the page and should be blurred */}
             <div className={appState === 'splash' ? 'opacity-0' : (appState === 'home' ? 'animate-fade-in-main' : 'opacity-100')}>
@@ -175,6 +203,7 @@ const App: React.FC = () => {
 
         {/* Overlays that are not blurred */}
         <Chatbot />
+        <CuriousFactPopup isVisible={showFactPopup} onClose={() => setShowFactPopup(false)} />
         
         {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}

@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
       animation: {
         'bounce-float': 'bounce-float 3s ease-in-out infinite 1s',
         'pulse-shadow': 'pulse-shadow 2.5s infinite 1.5s',
