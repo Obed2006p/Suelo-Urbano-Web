@@ -13,38 +13,52 @@ export interface Fact {
 const facts: Fact[] = [
     {
         id: 1,
-        title: "¿Las plantas sienten estrés?",
-        summary: "Al igual que nosotros, tus plantas pueden estresarse por cambios bruscos.",
-        details: "Estudios demuestran que las plantas emiten señales químicas e incluso sonidos ultrasónicos cuando les falta agua o son cortadas. Nuestra emulsión contiene aminoácidos que actúan como 'antiestrés' natural, ayudándolas a recuperarse de trasplantes o climas extremos rápidamente.",
-        image: "https://images.unsplash.com/photo-1591035904573-0979cb73729e?q=80&w=600&auto=format&fit=crop"
+        title: "Luz adecuada",
+        summary: "Energía para fortalecer raíces.",
+        details: "Cada planta necesita diferente cantidad de luz. No es lo mismo una planta de interior que una de exterior. La luz correcta ayuda a que la planta tenga energía para fortalecer sus raíces.",
+        image: "https://images.unsplash.com/photo-1545241047-6083a3684587?q=80&w=600&auto=format&fit=crop"
     },
     {
         id: 2,
-        title: "La Internet del Bosque",
-        summary: "Debajo de tus pies hay una red de comunicación increíble.",
-        details: "Las raíces de las plantas se conectan mediante hongos (micorrizas) para intercambiar nutrientes y advertencias sobre plagas. Al usar Suelo Urbano, no solo alimentas la planta, sino que fortaleces esta 'internet subterránea' al aportar materia orgánica viva.",
-        image: "https://images.unsplash.com/photo-1598512752271-33f913a5af13?q=80&w=600&auto=format&fit=crop"
+        title: "Riego correcto",
+        summary: "El equilibrio es la clave.",
+        details: "Ni exceso ni escasez. Demasiada agua puede ahogar la raíz. Muy poca agua la debilita. El equilibrio es fundamental para mantener la salud radicular.",
+        image: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?q=80&w=600&auto=format&fit=crop"
     },
     {
         id: 3,
-        title: "Una cucharada de vida",
-        summary: "¿Sabías que una cucharada de suelo sano tiene más organismos que humanos en la Tierra?",
-        details: "Un suelo fértil está repleto de bacterias y hongos benéficos. Los fertilizantes químicos matan esta vida. Nuestra emulsión es un probiótico para tu tierra: repuebla estos microorganismos esenciales que ayudan a tu planta a 'digerir' los nutrientes.",
+        title: "Sustrato equilibrado",
+        summary: "Alimentar y dejar respirar.",
+        details: "Una mezcla adecuada de tierra, humus y material que permita aireación. El suelo debe alimentar, pero también dejar respirar a las raíces.",
         image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=600&auto=format&fit=crop"
     },
     {
         id: 4,
-        title: "¿Por qué las hojas se ponen amarillas?",
-        summary: "No siempre es falta de agua. A veces, es un 'bloqueo estomacal'.",
-        details: "Si el pH del suelo es incorrecto, la planta no puede absorber hierro o nitrógeno, aunque se los des. Esto se llama Clorosis. Suelo Urbano ayuda a regular el pH naturalmente, desbloqueando la despensa de nutrientes para que tus hojas vuelvan a ser verdes.",
-        image: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?q=80&w=600&auto=format&fit=crop"
+        title: "Maceta con buen drenaje",
+        summary: "Evita que la raíz se pudra.",
+        details: "Siempre usa macetas con orificios en la parte inferior. Si el agua no puede salir, se estanca y la raíz se puede pudrir rápidamente.",
+        image: "https://images.unsplash.com/photo-1598512752271-33f913a5af13?q=80&w=600&auto=format&fit=crop"
     },
     {
         id: 5,
-        title: "Las plantas purifican tu aire",
-        summary: "Tener plantas sanas en casa reduce enfermedades respiratorias.",
-        details: "Plantas como la 'Lengua de Suegra' o el 'Potus' filtran toxinas del aire. Pero para filtrar bien, necesitan estar vigorosas. Una dosis mensual de nuestra emulsión potencia su capacidad de fotosíntesis y purificación. ¡Aire más limpio para ti!",
-        image: "https://images.unsplash.com/photo-1545241047-6083a3684587?q=80&w=600&auto=format&fit=crop"
+        title: "Espacio para crecer",
+        summary: "La raíz necesita expandirse.",
+        details: "Si la maceta es muy pequeña, las raíces se enredan y el crecimiento se detiene. La raíz necesita espacio suficiente para expandirse y buscar nutrientes.",
+        image: "https://images.unsplash.com/photo-1591035904573-0979cb73729e?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+        id: 6,
+        title: "¿Mejoran tus raíces?",
+        summary: "Resultados reales que puedes ver.",
+        details: "Signos de mejora: La planta crece constante, hojas firmes y verdes, no se marchita fácil, se recupera rápido tras el riego, raíces blancas al trasplantar y mejor agarre en la maceta.",
+        image: "https://images.unsplash.com/photo-1599598425947-32009226de0d?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+        id: 7,
+        title: "La regla de oro",
+        summary: "Lo que no se ve importa.",
+        details: "“Lo que no se ve es lo que más importa. Una raíz fuerte hace una planta fuerte.”",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop"
     }
 ];
 
@@ -93,14 +107,14 @@ const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose 
                     <button 
                         onClick={handleClose}
                         className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 transition-colors backdrop-blur-sm"
-                        aria-label="Cerrar dato curioso"
+                        aria-label="Cerrar recomendación"
                     >
                         <XIcon className="h-5 w-5" />
                     </button>
 
                     <div className="absolute bottom-3 left-4 flex items-center gap-2">
                         <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
-                            <SproutIcon className="h-3 w-3" /> Dato Curioso
+                            <SproutIcon className="h-3 w-3" /> Recomendación
                         </span>
                     </div>
                 </div>
