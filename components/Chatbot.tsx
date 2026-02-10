@@ -132,22 +132,15 @@ const Chatbot: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             // Construir el historial para el modelo
-            // Nota: Gemini gestiona el historial, pero para imágenes en chats, 
-            // a veces es mejor enviarlas como parte del turno actual.
-            
-            // Convertimos el historial de UI al formato de la API (simplificado texto por ahora para el historial pasado)
-            // Para mantener contexto visual previo, se requeriría almacenar los blobs, 
-            // pero para este MVP, enviamos la imagen actual como parte del mensaje nuevo.
-            
-            const model = ai.getGenerativeModel({ 
+            // Nota: Usamos ai.chats.create para la nueva versión del SDK
+            const chat = ai.chats.create({
                 model: "gemini-2.5-flash",
-                systemInstruction: SYSTEM_INSTRUCTION
-            });
-
-            const chat = model.startChat({
+                config: {
+                    systemInstruction: SYSTEM_INSTRUCTION,
+                },
                 history: messages.map(msg => ({
                     role: msg.sender === 'user' ? 'user' : 'model',
-                    parts: [{ text: msg.text }] // Historial simplificado solo texto para ahorrar tokens/complejidad
+                    parts: [{ text: msg.text }] 
                 }))
             });
 
@@ -164,8 +157,8 @@ const Chatbot: React.FC = () => {
                  messageParts.push({ text: "Analiza esta imagen." });
             }
 
-            const result = await chat.sendMessage(messageParts);
-            const botResponse = result.response.text();
+            const result = await chat.sendMessage({ message: messageParts });
+            const botResponse = result.text;
 
             if (botResponse) {
                 setMessages(prev => [...prev, { text: botResponse, sender: 'bot' }]);
