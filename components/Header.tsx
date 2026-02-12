@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon, HeartIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -67,8 +67,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                  <button id="main-menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-green-100 hover:text-white focus:outline-none z-50 p-2" aria-label="Abrir menú" aria-expanded={isMenuOpen}>
                     <MenuIcon className="w-6 h-6 sm:w-7 sm:h-7" />
                  </button>
-                <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer" aria-label="Volver a la página principal">
-                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-10 sm:h-12" />
+                <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer relative group" aria-label="Volver a la página principal">
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-10 sm:h-12 relative z-10" />
+                    {/* Valentine's decoration on logo hover */}
+                    <HeartIcon className="absolute -top-1 -right-1 h-4 w-4 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse z-20" />
+                    
                     <div className="hidden sm:block text-center">
                         <span className="block text-xl sm:text-2xl font-bold text-white leading-tight">Alimento para plantas</span>
                         <span className="block text-xs sm:text-sm font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
@@ -83,9 +86,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                     <button
                         key={link.id}
                         onClick={() => onNavigate(link.id)}
-                        className="text-green-100 hover:text-white transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,255,255,0.7)] text-sm lg:text-base"
+                        className="text-green-100 hover:text-rose-200 transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,200,200,0.7)] text-sm lg:text-base relative group"
                     >
                         {link.label}
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-rose-400 transition-all duration-300 group-hover:w-full"></span>
                     </button>
                     ))}
                 </nav>
@@ -126,7 +130,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                     id={link.id}
                     href={link.href}
                     onClick={(e) => handleLinkClick(e, link.href!)}
-                    className="flex items-center gap-4 text-gray-300 hover:bg-green-700 hover:text-white transition-all duration-200 font-semibold text-lg w-full text-left py-3 px-4 rounded-lg"
+                    className="flex items-center gap-4 text-gray-300 hover:bg-rose-900/50 hover:text-rose-200 transition-all duration-200 font-semibold text-lg w-full text-left py-3 px-4 rounded-lg"
                   >
                     {link.icon}
                     <span>{link.label}</span>
@@ -134,6 +138,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
               ))}
             </nav>
             <div className="p-4 text-center text-gray-500 text-sm border-t border-gray-800 bg-gray-900 mt-auto">
+              <p className="flex items-center justify-center gap-1">
+                  Hecho con <HeartIcon className="w-3 h-3 text-rose-500 animate-pulse" /> para tu jardín.
+              </p>
               <p>&copy; {new Date().getFullYear()} Alimento para plantas.</p>
             </div>
         </div>

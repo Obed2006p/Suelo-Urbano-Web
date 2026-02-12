@@ -11,6 +11,12 @@ export const SearchIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
+export const LockIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+);
+
 export const LeafIcon: React.FC<IconProps> = ({ className }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66C7.32 16.5 10 12 17 12V8z" />
@@ -299,7 +305,6 @@ export const CelebrationIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
-// New Icons for Chatbot
 export const ChatBubbleIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -392,5 +397,35 @@ export const HumidityIcon: React.FC<IconProps> = ({ className }) => (
 export const SunIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+);
+
+// --- NUEVOS ICONOS SAN VALENTÍN ---
+
+export const RoseSolidIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C10.5 2 9 3 9 4.5C9 5.5 9.5 6 10 7C9 7.5 7.5 8.5 7.5 10C7.5 11.5 9 12.5 10 12.5C9 13.5 8 14.5 8 15.5C8 17 9.5 18 11 18C10 19 9 20 9 21.5C9 22.5 10.5 23 11.5 22.5C12.5 22 13 21 13 20C13 19 12.5 18 12 17.5C13 17.5 14 17 14.5 16C15 15 15 14 14.5 13C15.5 13 16.5 12 16.5 10.5C16.5 9 15.5 8 14.5 8C15 7 15 6 14.5 5C14 4 13 4 12 4.5C12 3 12.5 2 12 2Z" />
+    </svg>
+);
+
+export const HeartArrowIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 5l-7 7-7-7" />
+    </svg>
+);
+
+export const CupidIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 5L5 19" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5l14 14" />
+    </svg>
+);
+
+// Petal icon (simplified teardrop shape)
+export const PetalIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C12 2 17 8 17 14C17 18 14 21 12 21C10 21 7 18 7 14C7 8 12 2 12 2Z" />
     </svg>
 );

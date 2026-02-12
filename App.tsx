@@ -80,6 +80,14 @@ const App: React.FC = () => {
   const [appState, setAppState] = React.useState<AppState>('splash');
   const [showFactPopup, setShowFactPopup] = React.useState(false);
 
+  // Inicializar contador de prueba gratuita si no existe
+  React.useEffect(() => {
+    const firstVisit = localStorage.getItem('suelo_urbano_first_visit');
+    if (!firstVisit) {
+        localStorage.setItem('suelo_urbano_first_visit', Date.now().toString());
+    }
+  }, []);
+
   React.useEffect(() => {
     const handleHashChange = () => {
       const newRoute = getCurrentHash();
