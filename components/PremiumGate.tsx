@@ -73,7 +73,7 @@ const PremiumGate: React.FC<PremiumGateProps> = ({ children, featureName, isEmbe
     // Si el acceso está concedido, mostramos el contenido
     if (accessStatus === 'granted') {
         return (
-            <div className="relative">
+            <div className={`relative ${isEmbedded ? 'h-full flex flex-col' : ''}`}>
                 {/* Pequeña insignia de prueba si aplica */}
                 {daysLeft > 0 && localStorage.getItem('suelo_urbano_premium_activated') !== 'true' && (
                     <div className="absolute top-0 right-0 z-10 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-bl-lg shadow-sm pointer-events-none">
@@ -135,11 +135,5 @@ const PremiumGate: React.FC<PremiumGateProps> = ({ children, featureName, isEmbe
         </div>
     );
 };
-
-// Necesitamos añadir el LockIcon a Icons.tsx o usar uno existente. Usaré un SVG inline si no existe, 
-// pero asumiré que puedo añadirlo a Icons.tsx para mantener consistencia.
-// Como no puedo editar dos archivos en un solo bloque si no me los pides explicitamente,
-// añadiré el icono aquí localmente o reutilizaré uno si es necesario, 
-// pero para mejor práctica, añadiré el LockIcon al archivo Icons.tsx en el siguiente bloque.
 
 export default PremiumGate;

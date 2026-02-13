@@ -77,6 +77,12 @@ const Chatbot: React.FC = () => {
     useEffect(() => {
         if (isOpen) {
             scrollToBottom();
+            // Evitar scroll del body cuando el chat está abierto en móvil
+            if (window.innerWidth < 640) {
+                document.body.style.overflow = 'hidden';
+            }
+        } else {
+            document.body.style.overflow = 'unset';
         }
     }, [messages, isOpen]);
 
@@ -180,47 +186,54 @@ const Chatbot: React.FC = () => {
             {/* Chat Toggle Button & Promo Bubble - BOTTOM LEFT */}
             <div 
                 style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 2147483647 }} 
-                className="flex flex-col items-start gap-2 pointer-events-auto"
+                className={`flex flex-col items-start gap-2 pointer-events-auto transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 {/* Promo Bubble Rotativa */}
-                <div className={`bg-white dark:bg-stone-800 text-stone-800 dark:text-green-300 text-xs font-bold py-2 px-3 rounded-xl rounded-bl-none shadow-lg border border-green-200 dark:border-green-700 transition-all duration-500 ml-2 mb-1 max-w-[200px] relative ${isOpen ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0 animate-bounce-float'}`}>
+                <div className="bg-white dark:bg-stone-800 text-stone-800 dark:text-green-300 text-xs font-bold py-2 px-3 rounded-xl rounded-bl-none shadow-lg border border-green-200 dark:border-green-700 transition-all duration-500 ml-2 mb-1 max-w-[200px] relative animate-bounce-float">
                     {PROMO_MESSAGES[promoIndex]}
                     {/* Triángulo de la burbuja */}
                     <div className="absolute -bottom-1.5 left-3 w-3 h-3 bg-white dark:bg-stone-800 border-b border-r border-green-200 dark:border-green-700 transform rotate-45"></div>
                 </div>
 
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-green-600 ${isOpen ? 'bg-stone-600 hover:bg-stone-700 border-none text-white' : 'bg-white hover:bg-stone-50 text-green-600'}`}
+                    onClick={() => setIsOpen(true)}
+                    className="p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-green-600 bg-white hover:bg-stone-50 text-green-600"
                     aria-label="Abrir chat de ayuda"
                 >
-                    {isOpen ? <XIcon className="h-7 w-7" /> : <RobotIcon className="h-7 w-7" />}
+                    <RobotIcon className="h-7 w-7" />
                 </button>
             </div>
 
-            {/* Chat Window */}
+            {/* Chat Window - Fullscreen on Mobile, Widget on Desktop */}
             <div 
-                style={{ position: 'fixed', bottom: '90px', left: '20px', zIndex: 2147483647, height: '550px', maxHeight: '80vh' }}
-                className={`w-80 sm:w-96 bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-0 opacity-0 pointer-events-none'}`}
+                className={`fixed z-[2147483647] bg-white dark:bg-stone-800 shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden transition-all duration-300 flex flex-col
+                    ${isOpen ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-90'}
+                    ${/* Mobile Styles: Fullscreen */ ''}
+                    inset-0 sm:inset-auto sm:bottom-[90px] sm:left-[20px] sm:w-96 sm:h-[550px] sm:max-h-[80vh] sm:rounded-2xl sm:origin-bottom-left
+                `}
             >
                 {/* Wrap Content with PremiumGate */}
                 <PremiumGate featureName="Jardinero Virtual" isEmbedded={true}>
                     {/* Header */}
-                    <div className="bg-green-700 p-4 flex items-center justify-between shrink-0">
+                    <div className="bg-green-700 p-4 flex items-center justify-between shrink-0 shadow-sm">
                         <div className="flex items-center gap-2 text-white">
                             <div className="bg-white/20 p-1.5 rounded-full relative">
-                                <RobotIcon className="h-5 w-5 text-white" />
-                                <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-400 rounded-full border border-green-700"></span>
+                                <RobotIcon className="h-6 w-6 text-white" />
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-green-700"></span>
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm">Jardinero Virtual</h3>
-                                <p className="text-[10px] text-green-100 opacity-90 flex items-center gap-1">
+                                <h3 className="font-bold text-base">Jardinero Virtual</h3>
+                                <p className="text-[11px] text-green-100 opacity-90 flex items-center gap-1">
                                     <CameraIcon className="h-3 w-3" /> Veo tus plantas
                                 </p>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="text-green-200 hover:text-white transition-colors">
-                            <XIcon className="h-5 w-5" />
+                        <button 
+                            onClick={() => setIsOpen(false)} 
+                            className="text-green-100 hover:text-white bg-green-800/50 p-2 rounded-full hover:bg-green-600 transition-colors"
+                            aria-label="Cerrar chat"
+                        >
+                            <XIcon className="h-6 w-6" />
                         </button>
                     </div>
 
@@ -230,11 +243,11 @@ const Chatbot: React.FC = () => {
                             <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                                 {msg.image && (
                                     <div className={`mb-1 max-w-[85%] rounded-2xl overflow-hidden border-2 ${msg.sender === 'user' ? 'border-green-600' : 'border-stone-200'}`}>
-                                        <img src={msg.image} alt="Enviado por usuario" className="w-full h-auto max-h-40 object-cover" />
+                                        <img src={msg.image} alt="Enviado por usuario" className="w-full h-auto max-h-60 object-cover" />
                                     </div>
                                 )}
                                 {msg.text && (
-                                    <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                                    <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
                                         msg.sender === 'user' 
                                             ? 'bg-green-600 text-white rounded-tr-none' 
                                             : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-tl-none border border-stone-200 dark:border-stone-600'
@@ -261,23 +274,23 @@ const Chatbot: React.FC = () => {
 
                     {/* Preview Area (if image selected) */}
                     {previewUrl && (
-                        <div className="px-4 py-2 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <img src={previewUrl} alt="Preview" className="h-10 w-10 object-cover rounded-lg border border-stone-300" />
+                        <div className="px-4 py-2 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between animate-fade-in-up">
+                            <div className="flex items-center gap-3">
+                                <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border border-stone-300" />
                                 <span className="text-xs text-stone-500 dark:text-stone-400 truncate max-w-[150px]">{selectedFile?.name}</span>
                             </div>
-                            <button onClick={clearFile} className="text-red-500 hover:bg-red-50 p-1 rounded-full">
-                                <XIcon className="h-4 w-4" />
+                            <button onClick={clearFile} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                <XIcon className="h-5 w-5" />
                             </button>
                         </div>
                     )}
 
                     {/* Input Area */}
-                    <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 shrink-0">
+                    <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 shrink-0 safe-area-bottom">
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="text-stone-400 hover:text-green-600 dark:hover:text-green-400 transition-colors p-2 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full"
+                            className="text-stone-500 hover:text-green-600 dark:text-stone-400 dark:hover:text-green-400 transition-colors p-2.5 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full active:scale-95"
                             title="Subir foto de maceta, pH o planta"
                         >
                             <CameraIcon className="h-6 w-6" />
@@ -295,14 +308,14 @@ const Chatbot: React.FC = () => {
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Escribe o sube una foto..."
-                            className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all"
+                            className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all border border-transparent focus:border-green-500"
                         />
                         <button 
                             type="submit" 
                             disabled={isLoading || (!inputValue.trim() && !selectedFile)} 
-                            className="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md flex-shrink-0"
+                            className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md flex-shrink-0 active:scale-95"
                         >
-                            <PaperAirplaneIcon className="h-5 w-5" />
+                            <PaperAirplaneIcon className="h-5 w-5 transform -rotate-45 translate-x-0.5" />
                         </button>
                     </form>
                 </PremiumGate>
