@@ -2,7 +2,6 @@
 import React from 'react';
 import PlantDoctorSection from './PlantDoctorSection';
 import Footer from './Footer';
-import PremiumGate from './PremiumGate';
 
 interface PlantDoctorPageProps {
   header: React.ReactNode;
@@ -15,9 +14,7 @@ const PlantDoctorPage: React.FC<PlantDoctorPageProps> = ({ header }) => {
       <main className="flex-grow">
         <section className="py-16 md:py-24">
             <div className="container mx-auto px-6">
-                <PremiumGate featureName="Dr. Plantas">
-                    <PlantDoctorSection />
-                </PremiumGate>
+                <PlantDoctorSection />
             </div>
         </section>
       </main>

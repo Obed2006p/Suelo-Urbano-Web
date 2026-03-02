@@ -345,7 +345,7 @@ const PlantDoctorSection: React.FC = () => {
 Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Luego, en 'justificacionFertilizante', explica con claridad por qué tu elección es la mejor para el problema específico de la planta.`;
             
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.0-flash',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: briefSchema }
             });
@@ -399,7 +399,7 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
 - **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
             
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.0-flash',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: detailedSchema }
             });
