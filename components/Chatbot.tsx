@@ -133,9 +133,10 @@ const Chatbot: React.FC = () => {
         setIsLoading(true);
 
         try {
-            if (!process.env.API_KEY) throw new Error("API_KEY no configurada");
+            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            if (!apiKey) throw new Error("API_KEY no configurada");
             
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             
             // Construir el historial para el modelo
             // Nota: Usamos ai.chats.create para la nueva versión del SDK

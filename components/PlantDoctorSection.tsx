@@ -319,8 +319,9 @@ const PlantDoctorSection: React.FC = () => {
         setBriefDiagnosis(null);
         setDetailedDiagnosis(null);
         try {
-            if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            if (!apiKey) throw new Error("API_KEY no está configurada.");
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
             
             const briefSchema = {
@@ -364,8 +365,9 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         setIsDetailLoading(true);
         setError(null);
         try {
-            if (!process.env.API_KEY) throw new Error("API_KEY no está configurada.");
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            if (!apiKey) throw new Error("API_KEY no está configurada.");
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
             
             const detailedSchema = {
