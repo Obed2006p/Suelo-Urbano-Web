@@ -106,24 +106,28 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                     {/* Center Column: Video Mosaic */}
                     <div className="animate-fade-in-up order-1 lg:order-2 flex justify-center w-full">
                         <div className="grid grid-cols-2 gap-2 w-full max-w-md lg:max-w-full">
-                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg">
-                                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.31.01_PM_rbnbpl.mp4" type="video/mp4" />
+                                    Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
-                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg">
-                                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.32.03_PM_by8id7.mp4" type="video/mp4" />
+                                    Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
-                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg">
-                                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.33.04_PM_yobxir.mp4" type="video/mp4" />
+                                    Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
-                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg">
-                                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                            <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.34.10_PM_aroegp.mp4" type="video/mp4" />
+                                    Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
                         </div>
