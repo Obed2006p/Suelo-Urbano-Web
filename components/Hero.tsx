@@ -1,58 +1,123 @@
 
 import React from 'react';
-import { LeafIcon } from './icons/Icons';
+import { LeafIcon, HeartbeatIcon, AtomIcon, SearchIcon, ChevronRightIcon } from './icons/Icons';
 
 interface HeroProps {
   onOrderClick: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({ onOrderClick }) => {
+  const navigateTo = (hash: string) => {
+    window.location.hash = hash;
+  };
+
+  const scrollToId = (id: string) => {
+    const el = document.getElementById(id);
+    if(el) el.scrollIntoView({behavior: 'smooth'});
+  };
+
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Background - Imagen estilo "Hiker mirando el lago" funcional */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background - Imagen oscura de naturaleza/suelo */}
       <div 
-        className="absolute inset-0 bg-cover bg-center z-0 bg-scroll md:bg-fixed" 
+        className="absolute inset-0 bg-cover bg-center z-0" 
         style={{ 
-          // Usamos una imagen de Unsplash estable que coincide con la estética de tu captura
-          backgroundImage: "url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&auto=format&fit=crop')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1600&auto=format&fit=crop')",
         }}
       ></div>
       
-      {/* Overlay - Más ligero para que se vea la imagen */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-green-900/50 z-0"></div>
+      {/* Overlay - Oscuro para legibilidad */}
+      <div className="absolute inset-0 bg-black/60 z-0"></div>
       
-      <div className="relative container mx-auto px-4 sm:px-6 z-10 py-20 flex flex-col items-center text-center">
+      <div className="relative container mx-auto px-4 z-10 py-20 flex flex-col items-center text-center h-full justify-center">
         
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-6 text-white drop-shadow-lg animate-fade-in-down" style={{ animationDelay: '0.2s' }}>
-          Nutrición para tu tierra,<br/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-yellow-200 to-green-300">
-            vida para tus plantas.
-          </span>
+        {/* Logo Area */}
+        <div className="mb-8 flex flex-col items-center animate-fade-in-down">
+            <div className="bg-white/10 p-3 rounded-full mb-3 backdrop-blur-sm border border-white/20">
+                <LeafIcon className="w-8 h-8 text-green-400" />
+            </div>
+            <span className="text-white font-bold tracking-widest uppercase text-sm opacity-90">Suelo Urbano</span>
+        </div>
+
+        {/* Main Title */}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 text-white drop-shadow-lg animate-fade-in-down max-w-5xl" style={{ animationDelay: '0.1s' }}>
+          Tu maceta es un ecosistema vivo.<br/>
+          <span className="text-green-400">Aprende a cuidarlo.</span>
         </h1>
         
-        <p className="text-base sm:text-xl md:text-2xl text-stone-100 max-w-3xl mx-auto mb-10 md:mb-12 font-medium leading-relaxed animate-fade-in-up drop-shadow-md px-2">
-          Descubre el poder de nuestra emulsión orgánica. 
-          Cultiva un jardín vibrante y cosechas abundantes de forma 100% natural.
+        {/* Subtitle */}
+        <p className="text-lg sm:text-xl text-gray-200 max-w-3xl mx-auto mb-8 font-medium leading-relaxed animate-fade-in-up drop-shadow-md" style={{ animationDelay: '0.2s' }}>
+          No vendemos tierra. Te enseñamos a crear un suelo vivo, equilibrado y saludable para tus plantas.
         </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 animate-fade-in-up w-full sm:w-auto px-4 sm:px-0" style={{ animationDelay: '0.6s' }}>
-          <button
-            onClick={onOrderClick}
-            className="group relative w-full sm:w-auto bg-green-600 text-white font-bold py-3.5 px-8 md:py-4 md:px-10 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:-translate-y-1 shadow-lg shadow-green-900/50 active:scale-95"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              Ordenar Ahora 
-              <LeafIcon className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 text-green-200" />
-            </span>
-          </button>
-          
-          <button 
-            onClick={() => { const el = document.getElementById('que-es'); if(el) el.scrollIntoView({behavior: 'smooth'}) }}
-            className="w-full sm:w-auto px-8 py-3.5 md:py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/50 text-white font-bold hover:bg-white/20 transition-all duration-300 shadow-lg flex items-center justify-center gap-2 active:scale-95"
-          >
-            Descubrir Más <LeafIcon className="w-4 h-4 text-green-300" />
-          </button>
+
+        {/* Accent Text */}
+        <div className="mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <p className="text-green-300 font-semibold text-xl italic">
+                Una planta fuerte no empieza en la hoja... <br/>
+                empieza en la raíz. 🌿
+            </p>
         </div>
+        
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-5xl mb-12 animate-fade-in-up px-2" style={{ animationDelay: '0.4s' }}>
+            {/* Card 1 */}
+            <button onClick={() => navigateTo('#/doctor-plantas')} className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-xl text-left flex items-center gap-4 transition-all group hover:scale-105">
+                <div className="bg-green-900/60 p-3 rounded-full shrink-0">
+                    <HeartbeatIcon className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                    <p className="text-white font-bold text-sm leading-tight mb-1">¿Tu planta no mejora?</p>
+                    <p className="text-gray-300 text-xs flex items-center gap-1 group-hover:text-green-300 transition-colors">
+                        Diagnóstico del ecosistema <ChevronRightIcon className="w-3 h-3" />
+                    </p>
+                </div>
+            </button>
+
+            {/* Card 2 */}
+            <button onClick={() => scrollToId('que-es')} className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-xl text-left flex items-center gap-4 transition-all group hover:scale-105">
+                <div className="bg-green-900/60 p-3 rounded-full shrink-0">
+                    <AtomIcon className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                    <p className="text-white font-bold text-sm leading-tight mb-1">¿Qué es un suelo vivo?</p>
+                    <p className="text-gray-300 text-xs flex items-center gap-1 group-hover:text-green-300 transition-colors">
+                        Descúbrelo aquí <ChevronRightIcon className="w-3 h-3" />
+                    </p>
+                </div>
+            </button>
+
+            {/* Card 3 */}
+            <button onClick={() => scrollToId('beneficios')} className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-4 rounded-xl text-left flex items-center gap-4 transition-all group hover:scale-105">
+                <div className="bg-green-900/60 p-3 rounded-full shrink-0">
+                    <SearchIcon className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                    <p className="text-white font-bold text-sm leading-tight mb-1">Antes y después del sustrato</p>
+                    <p className="text-gray-300 text-xs flex items-center gap-1 group-hover:text-green-300 transition-colors">
+                        Mira las raíces <ChevronRightIcon className="w-3 h-3" />
+                    </p>
+                </div>
+            </button>
+        </div>
+
+        {/* CTA Button */}
+        <div className="relative z-20 animate-fade-in-up mb-12 md:mb-0" style={{ animationDelay: '0.5s' }}>
+            <button
+                onClick={() => navigateTo('#/doctor-plantas')}
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 px-10 rounded-full shadow-xl shadow-green-900/40 transition-all transform hover:scale-105 active:scale-95 text-lg border border-green-500/30"
+            >
+                Comenzar asesoría gratuita
+            </button>
+        </div>
+
+        {/* Quote */}
+        <div className="mt-8 md:absolute md:bottom-12 md:right-12 max-w-xs text-center md:text-right animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            <p className="text-white/80 italic font-serif text-lg md:text-xl leading-relaxed">
+                “Cuando el suelo está sano, <br/>
+                la planta se defiende sola.”
+            </p>
+        </div>
+
       </div>
     </section>
   );
