@@ -133,7 +133,7 @@ const Chatbot: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no configurada");
             
             const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -141,7 +141,7 @@ const Chatbot: React.FC = () => {
             // Construir el historial para el modelo
             // Nota: Usamos ai.chats.create para la nueva versión del SDK
             const chat = ai.chats.create({
-                model: "gemini-2.0-flash",
+                model: "gemini-3-flash-preview",
                 config: {
                     systemInstruction: SYSTEM_INSTRUCTION,
                 },
@@ -175,9 +175,9 @@ const Chatbot: React.FC = () => {
                 throw new Error("Respuesta vacía");
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Chat error:", error);
-            setMessages(prev => [...prev, { text: "Lo siento, tuve un problema analizando tu consulta. Si enviaste una imagen, intenta que sea más clara o ligera. 🌱", sender: 'bot' }]);
+            setMessages(prev => [...prev, { text: error.message === "API_KEY no configurada" ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Lo siento, tuve un problema: ${error.message || 'Intenta de nuevo.'} 🌱`, sender: 'bot' }]);
         } finally {
             setIsLoading(false);
         }

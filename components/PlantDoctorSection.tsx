@@ -319,7 +319,7 @@ const PlantDoctorSection: React.FC = () => {
         setBriefDiagnosis(null);
         setDetailedDiagnosis(null);
         try {
-            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
@@ -346,15 +346,15 @@ const PlantDoctorSection: React.FC = () => {
 Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Luego, en 'justificacionFertilizante', explica con claridad por qué tu elección es la mejor para el problema específico de la planta.`;
             
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-3-flash-preview',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: briefSchema }
             });
 
             setBriefDiagnosis(JSON.parse(response.text));
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError('Hubo un error al generar el diagnóstico rápido. Inténtalo de nuevo.');
+            setError(err.message === "API_KEY no está configurada." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error: ${err.message || 'Inténtalo de nuevo.'}`);
         } finally {
             setIsLoading(false);
         }
@@ -365,7 +365,7 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         setIsDetailLoading(true);
         setError(null);
         try {
-            const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
@@ -401,15 +401,15 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
 - **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
             
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-3-flash-preview',
                 contents: { parts: [imagePart, { text: prompt }] },
                 config: { responseMimeType: "application/json", responseSchema: detailedSchema }
             });
 
             setDetailedDiagnosis(JSON.parse(response.text));
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError('No se pudo obtener el diagnóstico detallado. Inténtalo de nuevo.');
+            setError(err.message === "API_KEY no está configurada." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `No se pudo obtener el diagnóstico detallado: ${err.message || 'Inténtalo de nuevo.'}`);
         } finally {
             setIsDetailLoading(false);
         }

@@ -77,10 +77,11 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
         setResult(null);
 
         try {
-            if (!process.env.API_KEY) {
+            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
+            if (!apiKey) {
                 throw new Error("API_KEY no está configurada en las variables de entorno.");
             }
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
             
             const schema = {
@@ -101,7 +102,7 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
             };
 
             const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: { parts: [imagePart, { text: "Identifica la planta en la imagen. Proporciona su nombre, cuidados básicos y una recomendación para usar la emulsión 'Suelo Urbano' con ella." }] },
                 config: {
                     responseMimeType: "application/json",
@@ -112,9 +113,9 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
             const parsedResult = JSON.parse(response.text);
             setResult(parsedResult);
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            setError('Hubo un error al identificar la planta. Puede que el servicio no esté disponible, la imagen no sea clara o no se reconozca la planta. Inténtalo de nuevo.');
+            setError(err.message === "API_KEY no está configurada en las variables de entorno." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error al identificar la planta: ${err.message || 'Inténtalo de nuevo.'}`);
         } finally {
             setIsLoading(false);
         }
