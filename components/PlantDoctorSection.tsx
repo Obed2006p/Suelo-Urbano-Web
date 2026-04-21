@@ -22,6 +22,20 @@ interface DetailedPlantDiagnosis {
     analisisFertilizanteSugerido: string;
     cuidadosPreventivos: string;
     analisisDeTemporada: string;
+    recetaSustratoIdeal: {
+        mezclaBase: string[];
+        extra: string;
+    };
+    recomendacionEspecial: {
+        texto: string;
+        advertencia: string;
+    };
+    producto: {
+        sustrato: string;
+        descripcion: string;
+        complemento: string;
+    };
+    resultadosEsperados: string[];
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -250,7 +264,57 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
             <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200 text-justify">{detailed.analisisDeTemporada}</p>
         </div>
         
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800">
+        {detailed.recetaSustratoIdeal && (
+        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800 mt-4 shadow-sm animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-3 dark:text-green-300">
+                <MixIcon className="h-5 w-5"/>🛠️ Solución Recomendada: Mezcla de Sustrato
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h5 className="font-semibold text-green-800 text-sm mb-2 dark:text-green-400">Mezcla Base:</h5>
+                    <ul className="space-y-1">
+                        {detailed.recetaSustratoIdeal.mezclaBase.map((item, idx) => (
+                            <li key={idx} className="flex items-start text-sm text-green-900 dark:text-green-200">
+                                <CheckCircleIcon className="h-4 w-4 mr-1.5 mt-0.5 text-green-600 dark:text-green-500 flex-shrink-0" />
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                    <p className="mt-2 text-sm font-medium text-green-900 dark:text-green-300 bg-green-100 dark:bg-green-800/50 p-2 rounded">
+                        <strong>Extra:</strong> {detailed.recetaSustratoIdeal.extra}
+                    </p>
+                </div>
+                <div className="space-y-3">
+                    <div className="bg-white/60 dark:bg-black/20 p-3 rounded text-sm border border-green-200/50 dark:border-green-700/50">
+                        <p className="text-green-900 dark:text-green-200 font-medium mb-1">{detailed.recomendacionEspecial.texto}</p>
+                        <p className="text-red-700 dark:text-red-400 text-xs flex items-start gap-1 mt-2 bg-red-100 dark:bg-red-900/40 p-1.5 rounded">
+                            <span className="font-bold">⚠️</span> {detailed.recomendacionEspecial.advertencia}
+                        </p>
+                    </div>
+                     <div className="bg-white/60 dark:bg-black/20 p-3 rounded border border-green-200/50 dark:border-green-700/50">
+                        <h5 className="font-semibold text-green-800 text-sm mb-1 dark:text-green-400">🪴 Nuestro Producto:</h5>
+                        <p className="text-sm text-green-900 dark:text-green-200 font-bold underline decoration-green-400 underline-offset-2">{detailed.producto.sustrato}</p>
+                        <p className="text-xs text-green-800 dark:text-green-300 mt-1">{detailed.producto.descripcion}</p>
+                        <div className="mt-2 px-2 py-1 bg-lime-100 dark:bg-lime-900/40 rounded border border-lime-200 dark:border-lime-700 text-xs text-lime-800 dark:text-lime-300 font-medium">
+                            + {detailed.producto.complemento}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-green-200/50 dark:border-green-700/50">
+               <h5 className="font-semibold text-green-800 text-sm mb-2 dark:text-green-400">Resultados Esperados:</h5>
+               <div className="flex flex-wrap gap-2">
+                   {detailed.resultadosEsperados.map((res, idx) => (
+                       <span key={idx} className="text-xs bg-green-200 text-green-900 dark:bg-green-700 dark:text-green-100 px-2.5 py-1.5 rounded-full font-medium border border-green-300 dark:border-green-600 shadow-sm flex items-center">
+                           <SparklesIcon className="h-3 w-3 mr-1 opacity-70" /> {res}
+                       </span>
+                   ))}
+               </div>
+            </div>
+        </div>
+        )}
+        
+        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800 mt-4">
             <h4 className="font-bold text-green-900 flex items-center gap-2 mb-2 dark:text-green-300"><LeafIcon className="h-5 w-5"/>Análisis del Fertilizante Sugerido:</h4>
             <p className="text-green-900 text-sm dark:text-green-100 text-justify">{detailed.analisisFertilizanteSugerido}</p>
         </div>
@@ -388,9 +452,39 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                     },
                     analisisFertilizanteSugerido: { type: Type.STRING, description: "Una explicación detallada sobre el fertilizante que ya fue sugerido en el diagnóstico breve, explicando por qué es la mejor opción y cómo aplicarlo." },
                     cuidadosPreventivos: { type: Type.STRING, description: "Una lista de 2-3 consejos clave en viñetas para evitar que el problema vuelva a ocurrir." },
-                    analisisDeTemporada: { type: Type.STRING, description: "Análisis detallado sobre la temporada de la planta. Explica si los síntomas son normales para la temporada actual y qué cuidados especiales se necesitan si está fuera de temporada, en un párrafo."}
+                    analisisDeTemporada: { type: Type.STRING, description: "Análisis detallado sobre la temporada de la planta. Explica si los síntomas son normales para la temporada actual y qué cuidados especiales se necesitan si está fuera de temporada, en un párrafo." },
+                    recetaSustratoIdeal: {
+                        type: Type.OBJECT,
+                        properties: {
+                            mezclaBase: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Los 4 elementos obligatorios: '40% fibra de coco', '20% tepojal', '20% perlita o tezontle', '20% humus de lombriz'." },
+                            extra: { type: Type.STRING, description: "Modificador obligatorio: 'Agregar 10-15% mejorador orgánico de alta nutrición (abono de borrego compostado)'." }
+                        },
+                        required: ["mezclaBase", "extra"]
+                    },
+                    recomendacionEspecial: {
+                        type: Type.OBJECT,
+                        properties: {
+                            texto: { type: Type.STRING, description: "Texto fijo: 'El abono de borrego compostado aporta nutrientes de liberación lenta, fortalece raíces y mejora el crecimiento.'" },
+                            advertencia: { type: Type.STRING, description: "Texto fijo: 'Usar en proporciones controladas para evitar exceso de nutrientes.'" }
+                        },
+                        required: ["texto", "advertencia"]
+                    },
+                    producto: {
+                        type: Type.OBJECT,
+                        properties: {
+                            sustrato: { type: Type.STRING, description: "Nombre del producto sugerido." },
+                            descripcion: { type: Type.STRING, description: "Texto descriptivo: 'Este sustrato ya incluye mezcla balanceada lista para usar.'" },
+                            complemento: { type: Type.STRING, description: "Texto del complemento: 'Emulsión nutritiva (usar en dosis moderada)'" }
+                        },
+                        required: ["sustrato", "descripcion", "complemento"]
+                    },
+                    resultadosEsperados: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        description: "Array de los 4 beneficios: 'Hojas más verdes', 'Mejor crecimiento', 'Raíces más sanas', 'Mayor resistencia'."
+                    }
                 },
-                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizanteSugerido", "cuidadosPreventivos", "analisisDeTemporada"]
+                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizanteSugerido", "cuidadosPreventivos", "analisisDeTemporada", "recetaSustratoIdeal", "recomendacionEspecial", "producto", "resultadosEsperados"]
             };
             
             const prompt = `Basado en la imagen y el diagnóstico inicial, proporciona un análisis completo. El diagnóstico breve ya sugirió usar '${briefDiagnosis.fertilizanteSugerido}'. Tu tarea es expandir esta información de forma clara y concisa.
@@ -398,7 +492,11 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
 - **planDeAccion**: Crea una guía práctica y fácil de seguir con pasos numerados.
 - **analisisFertilizanteSugerido**: Aquí, explica en un párrafo detallado POR QUÉ '${briefDiagnosis.fertilizanteSugerido}' es la elección correcta para el problema detectado. Si es 'Suelo Urbano Tu Hogar', detalla sus beneficios. Si es 'Humus de lombriz', explica su acción suave y reparadora. Si es un químico, advierte sobre su uso correcto.
 - **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave para el futuro.
-- **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.`;
+- **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.
+- **Valores Fijos a Inyectar (MUY IMPORTANTE)**: Para las nuevas secciones estructuradas, la aplicación requiere mostrar exactamente la solución de sustrato de 'Suelo Urbano'.
+  En mezclaBase, usa estrictamente el array: ["40% fibra de coco", "20% tepojal", "20% perlita o tezontle", "20% humus de lombriz"].
+  En extra usa: "Agregar 10–15% mejorador orgánico de alta nutrición (abono de borrego compostado)".
+  El producto sustrato nombra: "Suelo Urbano Tu Hogar".`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
@@ -520,6 +618,24 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                 y += 2;
             });
             y += 5;
+            if (detailedDiagnosis.recetaSustratoIdeal) {
+                if (y > 220) { doc.addPage(); y = 20; }
+                addWrappedText("Solución Recomendada: Mezcla base de Sustrato", 14, true);
+                detailedDiagnosis.recetaSustratoIdeal.mezclaBase.forEach((item) => {
+                    if (y > 270) { doc.addPage(); y = 20; }
+                    addWrappedText(`• ${item}`, 11);
+                });
+                y += 2;
+                if (y > 270) { doc.addPage(); y = 20; }
+                addWrappedText(`Extra: ${detailedDiagnosis.recetaSustratoIdeal.extra}`, 11, true);
+                
+                y += 5;
+                if (y > 260) { doc.addPage(); y = 20; }
+                addWrappedText("Resultados Esperados:", 14, true);
+                const resultados = detailedDiagnosis.resultadosEsperados.join(", ");
+                addWrappedText(resultados, 11);
+                y += 5;
+            }
         }
 
         // --- Fertilizer ---
