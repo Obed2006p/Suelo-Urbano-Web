@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
+import { saveToGarden, resizeImageToBase64 } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
@@ -335,6 +336,8 @@ const PlantDoctorSection: React.FC = () => {
     const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -665,6 +668,32 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         doc.save(`${briefDiagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
     };
     
+    const handleSaveToGarden = async () => {
+        if (!briefDiagnosis || !detailedDiagnosis || !imageFile) return;
+        setIsSaving(true);
+        try {
+            const base64Img = await resizeImageToBase64(imageFile);
+            const success = saveToGarden({
+                name: briefDiagnosis.nombrePlanta,
+                health: briefDiagnosis.salud,
+                diagnosis: briefDiagnosis.diagnosticoBreve,
+                actionPlan: detailedDiagnosis.planDeAccion,
+                beforeImage: base64Img
+            });
+            if (success) {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 3000);
+            } else {
+                alert("No se pudo guardar la planta. Tal vez tu almacenamiento está lleno.");
+            }
+        } catch (error) {
+            console.error("Error saving to garden", error);
+            alert("Hubo un problema procesando la imagen de tu planta.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const reset = () => {
         setImageFile(null);
         setImagePreview(null);
@@ -700,7 +729,7 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                     {/* Add Soil Test Guide Here in Detailed View as well */}
                     <SoilTestGuide />
 
-                    <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-600">
+                    <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-600 flex flex-col gap-3">
                         <button 
                             onClick={generatePDF}
                             className="w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -708,7 +737,20 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                             <DownloadIcon className="h-5 w-5"/>
                             Descargar Reporte Completo PDF
                         </button>
-                        <p className="text-xs text-gray-500 text-center mt-2">Guarda este diagnóstico para consultarlo más tarde.</p>
+                        
+                        <button 
+                            onClick={handleSaveToGarden}
+                            disabled={isSaving || saveSuccess}
+                            className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm border-2 
+                                ${saveSuccess 
+                                    ? 'bg-green-100 text-green-800 border-green-500 dark:bg-green-900/50 dark:text-green-300 dark:border-green-600 cursor-default' 
+                                    : 'bg-white text-green-700 border-green-700 hover:bg-green-50 hover:scale-105 dark:bg-transparent dark:text-green-300 dark:border-green-500 dark:hover:bg-green-900/40'}`}
+                        >
+                            <HeartbeatIcon className="h-5 w-5"/>
+                            {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado en Mi Jardín!' : 'Guardar en "Mi Jardín Urbano" 🗓️'}
+                        </button>
+                        
+                        <p className="text-xs text-gray-500 text-center mt-2">Guarda este diagnóstico para ver su evolución o descargar el PDF.</p>
                     </div>
                 </div>
             );

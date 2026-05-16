@@ -7,6 +7,7 @@ interface Message {
     text: string;
     sender: 'user' | 'bot';
     image?: string; // URL o base64 para mostrar en el chat
+    action?: 'weather';
 }
 
 const SYSTEM_INSTRUCTION = `Eres el "Jardinero Virtual con Ojos" de Suelo Urbano Tu Hogar. Tu capacidad ha sido mejorada para ver imágenes.
@@ -50,7 +51,8 @@ const PROMO_MESSAGES = [
 const Chatbot: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { text: "¡Hola! 🌿 Soy tu Jardinero Virtual con visión artificial. Puedo leer tus tiras de pH, revisar el drenaje de tus macetas o diagnosticar tus plantas por foto. ¡Inténtalo!", sender: 'bot' }
+        { text: "¡Hola! 🌿 Soy tu Jardinero Virtual con visión artificial. Puedo leer tus tiras de pH, revisar el drenaje de tus macetas o diagnosticar tus plantas por foto. ¡Inténtalo!", sender: 'bot' },
+        { text: "¿Te gustaría un consejo hiper-personalizado para tus plantas basado en el clima exacto de tu ciudad hoy? 🌤️", sender: 'bot', action: 'weather' }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -97,6 +99,49 @@ const Chatbot: React.FC = () => {
         setSelectedFile(null);
         setPreviewUrl(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const handleWeatherRequest = () => {
+        if (!navigator.geolocation) {
+            setMessages(prev => [...prev, { text: "Tu navegador no soporta geolocalización. 😔", sender: 'bot' }]);
+            return;
+        }
+
+        setIsLoading(true);
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const { latitude, longitude } = position.coords;
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                const weatherData = await weatherRes.json();
+                
+                const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=es`);
+                const geoData = await geoRes.json();
+                const city = geoData.city || geoData.locality || "tu ciudad";
+
+                const temp = weatherData.current_weather.temperature;
+                const wind = weatherData.current_weather.windspeed;
+                
+                setMessages(prev => [...prev, { text: `Obteniendo el clima de ${city}... 📍`, sender: 'user' }]);
+
+                const prompt = `El clima actual en ${city} es de ${temp}°C con vientos de ${wind} km/h. Escribe un consejo corto y amigable (máximo 3 oraciones cortas) de jardinería para plantas de interior o huertos urbanos basado en este clima exacto. Menciona a la ciudad y termina recomendando usar 'Suelo Urbano Tu Hogar' para protegerlas o nutrirlas en estas condiciones.`;
+                
+                const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
+                if (!apiKey) throw new Error("API_KEY no configurada");
+                
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                const result = await ai.models.generateContent({ model: "gemini-3-flash-preview", contents: prompt });
+                
+                setMessages(prev => [...prev, { text: result.text || "¡No olvides hidratarlas hoy!", sender: 'bot' }]);
+
+            } catch (err) {
+                setMessages(prev => [...prev, { text: "No pude obtener el clima o generar el consejo en este momento. Intenta más tarde.", sender: 'bot' }]);
+            } finally {
+                setIsLoading(false);
+            }
+        }, () => {
+            setMessages(prev => [...prev, { text: "Necesito permiso de ubicación para darte un consejo sobre tu clima local. 🌍", sender: 'bot' }]);
+            setIsLoading(false);
+        });
     };
 
     const fileToGenerativePart = async (file: File) => {
@@ -253,6 +298,15 @@ const Chatbot: React.FC = () => {
                                         : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-tl-none border border-stone-200 dark:border-stone-600'
                                 }`}>
                                     <div className="whitespace-pre-wrap">{msg.text}</div>
+                                    {msg.action === 'weather' && (
+                                        <button 
+                                            onClick={handleWeatherRequest}
+                                            disabled={isLoading}
+                                            className="mt-3 bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/50 dark:hover:bg-green-800/60 dark:text-green-300 font-bold py-2 px-4 rounded-xl text-xs w-full transition-colors truncate"
+                                        >
+                                            🌤️ Dar Permiso y Obtener Consejo
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>

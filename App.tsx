@@ -24,6 +24,7 @@ import CompostInfoSection from './components/CompostInfoSection';
 import PlantCareGuideSection from './components/PlantCareGuideSection';
 import PhInfoSection from './components/PhInfoSection';
 import CuriousFactPopup from './components/CuriousFactPopup';
+import MyGardenPage from './components/MyGardenPage';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -172,6 +173,9 @@ const App: React.FC = () => {
       break;
     case '#/doctor-plantas':
       pageContent = <PlantDoctorPage header={renderHeader()} />;
+      break;
+    case '#/mi-jardin':
+      pageContent = <MyGardenPage header={renderHeader()} />;
       break;
     case '#/guia-interactiva':
       pageContent = <HowToUsePage header={renderHeader()} />;
