@@ -6,37 +6,19 @@ import { saveToGarden, resizeImageToBase64 } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon } from './icons/Icons';
 
 // --- Interfaces para los datos de la IA ---
-interface BriefPlantDiagnosis {
+interface PlantDiagnosis {
     nombrePlanta: string;
-    salud: string;
+    estadoGeneral: string;
     diagnosticoBreve: string;
-    fertilizanteSugerido: string;
-    justificacionFertilizante: string;
-    phSueloIdeal: string;
-    humedad: 'Baja' | 'Media' | 'Alta' | string;
-    temporadaIdeal: string;
-}
-
-interface DetailedPlantDiagnosis {
-    diagnosticoDetallado: string;
-    planDeAccion: { paso: string; detalle: string }[];
-    analisisFertilizanteSugerido: string;
-    cuidadosPreventivos: string;
-    analisisDeTemporada: string;
-    recetaSustratoIdeal: {
-        mezclaBase: string[];
-        extra: string;
-    };
-    recomendacionEspecial: {
-        texto: string;
-        advertencia: string;
-    };
-    producto: {
-        sustrato: string;
-        descripcion: string;
-        complemento: string;
-    };
-    resultadosEsperados: string[];
+    problemasDetectados: string[];
+    causasPosibles: string[];
+    tratamiento: { paso: string; detalle: string }[];
+    planRecuperacion: string[];
+    sustratoRecomendado: string;
+    luzYRiego: string;
+    prevencion: string[];
+    seguimiento: string;
+    productosRecomendados: { nombre: string; motivo: string }[];
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -44,285 +26,124 @@ const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v17
 
 // --- Componentes de UI ---
 
-const HumidityScale = ({ level }: { level: BriefPlantDiagnosis['humedad'] }) => {
-    const levelMap: { [key: string]: { width: string; color: string; label: string } } = {
-        'Baja': { width: '33.33%', color: 'bg-yellow-400', label: 'Baja' },
-        'Media': { width: '66.66%', color: 'bg-green-400', label: 'Media' },
-        'Alta': { width: '100%', color: 'bg-blue-400', label: 'Alta' },
-    };
-    const currentLevel = levelMap[level] || { width: '66.66%', color: 'bg-gray-400', label: level };
-
-    return (
-        <div className="mt-1">
-             <div className="flex justify-between items-center mb-1">
-                <span className="text-gray-800 font-medium dark:text-gray-200 text-sm">{currentLevel.label}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600">
-                <div 
-                    className={`${currentLevel.color} h-2.5 rounded-full transition-all duration-500`} 
-                    style={{ width: currentLevel.width }}
-                ></div>
-            </div>
-        </div>
-    );
-};
-
-const SoilTestGuide: React.FC = () => {
-    const [activeTest, setActiveTest] = useState<'sediment' | 'ph' | null>(null);
-
-    return (
-        <div className="mt-8 bg-white dark:bg-gray-800 border border-green-200 dark:border-green-700 rounded-2xl p-6 shadow-xl animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="bg-green-100 dark:bg-green-900 p-2 rounded-full">
-                    <BeakerIcon className="h-6 w-6 text-green-700 dark:text-green-300" />
-                </div>
-                <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Laboratorio en Casa</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">Pruebas sencillas recomendadas por Suelo Urbano.</p>
-                </div>
-            </div>
-
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">
-                Antes de aplicar cualquier tratamiento, es ideal conocer tu tierra. Estas pruebas no sustituyen un laboratorio, pero te darán una excelente referencia.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <button 
-                    onClick={() => setActiveTest(activeTest === 'sediment' ? null : 'sediment')}
-                    className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${activeTest === 'sediment' ? 'border-green-500 bg-green-50 dark:bg-green-900/30' : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600'}`}
-                >
-                    <MixIcon className="h-8 w-8 text-amber-600" />
-                    <span className="font-bold text-gray-800 dark:text-gray-200">Prueba de Sedimentación</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Composición del suelo</span>
-                </button>
-                
-                <button 
-                    onClick={() => setActiveTest(activeTest === 'ph' ? null : 'ph')}
-                    className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${activeTest === 'ph' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30' : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'}`}
-                >
-                    <PhIcon className="h-8 w-8 text-purple-600" />
-                    <span className="font-bold text-gray-800 dark:text-gray-200">Prueba de pH</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Acidez o alcalinidad</span>
-                </button>
-            </div>
-
-            {activeTest === 'sediment' && (
-                <div className="bg-amber-50 dark:bg-gray-700/50 rounded-xl p-5 border border-amber-100 dark:border-gray-600 animate-fade-in-down">
-                    <h4 className="font-bold text-lg text-amber-900 dark:text-amber-300 mb-3">Prueba de Sedimentación (Textura)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2"><SpoonIcon className="h-4 w-4"/> Materiales</h5>
-                            <ul className="text-sm list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-1">
-                                <li>Frasco transparente (vidrio/plástico).</li>
-                                <li>Agua limpia (sin cloro preferiblemente).</li>
-                                <li>2 cucharadas de tierra.</li>
-                            </ul>
-                            <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2"><CheckCircleIcon className="h-4 w-4"/> Procedimiento</h5>
-                            <ol className="text-sm list-decimal list-inside text-gray-700 dark:text-gray-300 space-y-1">
-                                <li>Coloca la tierra en el frasco.</li>
-                                <li>Llénalo casi hasta el tope con agua.</li>
-                                <li>Agita fuerte por 1 minuto.</li>
-                                <li><strong>Deja reposar 24 horas</strong> sin mover.</li>
-                            </ol>
-                        </div>
-                        <div className="flex flex-col items-center justify-center">
-                            <div className="relative w-24 h-40 border-2 border-gray-400 bg-blue-100/30 rounded-lg overflow-hidden flex flex-col justify-end">
-                                <div className="w-full h-4 bg-green-800/80 absolute top-2 animate-pulse" title="Materia Orgánica (Flota)"></div>
-                                <div className="w-full h-12 bg-blue-200/50 flex items-center justify-center text-[10px] text-blue-800 font-bold">Agua</div>
-                                <div className="w-full h-8 bg-amber-700/60 flex items-center justify-center text-[10px] text-white">Arcilla</div>
-                                <div className="w-full h-8 bg-amber-800/80 flex items-center justify-center text-[10px] text-white">Limo</div>
-                                <div className="w-full h-8 bg-stone-400 flex items-center justify-center text-[10px] text-black font-bold">Arena</div>
-                            </div>
-                            <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400 max-w-[200px]">
-                                <strong>Interpretación:</strong> Entre más gruesa sea la capa superior flotante, mayor contenido de materia orgánica tiene tu suelo.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeTest === 'ph' && (
-                <div className="bg-purple-50 dark:bg-gray-700/50 rounded-xl p-5 border border-purple-100 dark:border-gray-600 animate-fade-in-down">
-                    <h4 className="font-bold text-lg text-purple-900 dark:text-purple-300 mb-3">Prueba Casera de pH</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2"><SpoonIcon className="h-4 w-4"/> Materiales</h5>
-                            <ul className="text-sm list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 space-y-1">
-                                <li>Tierra del sustrato.</li>
-                                <li>Agua.</li>
-                                <li>Tiras medidoras de pH (o vinagre/bicarbonato).</li>
-                                <li>Vaso transparente.</li>
-                            </ul>
-                            <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2"><CheckCircleIcon className="h-4 w-4"/> Procedimiento</h5>
-                            <ol className="text-sm list-decimal list-inside text-gray-700 dark:text-gray-300 space-y-1">
-                                <li>Mezcla 2 cdas. de tierra con agua.</li>
-                                <li>Deja reposar 20-30 min.</li>
-                                <li>Introduce la tira de pH en el agua clara.</li>
-                                <li>Compara el color.</li>
-                            </ol>
-                        </div>
-                        <div className="flex flex-col justify-center gap-3">
-                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
-                                <h6 className="font-bold text-xs text-center mb-2 uppercase text-gray-500">Interpretación</h6>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between items-center p-2 rounded bg-red-100 dark:bg-red-900/30">
-                                        <span className="font-bold text-red-700 dark:text-red-300">pH {'>'} 7.5</span>
-                                        <span className="text-gray-600 dark:text-gray-300 text-xs">Alcalino (Bloquea nutrientes)</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-2 rounded bg-green-100 dark:bg-green-900/30 ring-2 ring-green-500">
-                                        <span className="font-bold text-green-700 dark:text-green-300">pH 5.5 - 6.5</span>
-                                        <span className="text-gray-600 dark:text-gray-300 text-xs">Ideal (Plantas/Hortalizas)</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-2 rounded bg-yellow-100 dark:bg-yellow-900/30">
-                                        <span className="font-bold text-yellow-700 dark:text-yellow-300">pH 6.5 - 7.5</span>
-                                        <span className="text-gray-600 dark:text-gray-300 text-xs">Neutro</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p className="text-xs text-center italic text-gray-500 dark:text-gray-400">
-                                Recomendación: Ajusta con humus o composta si es necesario.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const BriefDiagnosisView: React.FC<{ diagnosis: BriefPlantDiagnosis }> = ({ diagnosis }) => (
-    <div className="animate-fade-in-up w-full text-left space-y-4">
-        <div className="flex items-center gap-4">
-             <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 flex-shrink-0" />
+const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => (
+    <div className="animate-fade-in-up w-full text-left space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-20 w-20 flex-shrink-0 drop-shadow-md" />
             <div>
-                <h3 className="text-2xl font-bold text-green-900 mb-1 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
-                <p className="text-gray-800 font-semibold dark:text-gray-200">Estado de Salud: <span className="font-bold">{diagnosis.salud}</span></p>
+                <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Planta Observada</p>
+                <h3 className="text-2xl font-black text-green-900 mb-1 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
+                <p className="text-gray-800 font-semibold dark:text-gray-200 mt-1 flex items-center gap-2">
+                    <HeartbeatIcon className="h-5 w-5 text-red-500" />
+                    Estado General: <span className="font-bold text-red-600 dark:text-red-400">{diagnosis.estadoGeneral}</span>
+                </p>
             </div>
         </div>
         
-        <p className="text-gray-800 text-sm leading-relaxed bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 font-medium shadow-sm">{diagnosis.diagnosticoBreve}</p>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-semibold text-green-800 flex items-center gap-2 text-sm mb-1 dark:text-green-300"><PhIcon className="h-4 w-4"/>pH Ideal</h4>
-                <p className="text-gray-800 font-bold text-lg dark:text-gray-100">{diagnosis.phSueloIdeal}</p>
-            </div>
-            <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-semibold text-green-800 flex items-center gap-2 text-sm mb-1 dark:text-green-300"><HumidityIcon className="h-4 w-4"/>Humedad</h4>
-                <HumidityScale level={diagnosis.humedad} />
-            </div>
-            <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 sm:col-span-2">
-                <h4 className="font-semibold text-green-800 flex items-center gap-2 text-sm mb-1 dark:text-green-300"><CalendarIcon className="h-4 w-4"/>Temporada Ideal</h4>
-                <p className="text-gray-800 font-semibold text-base dark:text-gray-100">{diagnosis.temporadaIdeal}</p>
-            </div>
-        </div>
-
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800">
-            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-2 dark:text-green-300"><SparklesIcon className="h-5 w-5"/>Fertilizante Sugerido:</h4>
-            <p className="text-green-800 font-bold text-lg mb-1 dark:text-green-200">{diagnosis.fertilizanteSugerido}</p>
-            <p className="text-green-900 text-sm dark:text-green-100 text-justify">{diagnosis.justificacionFertilizante}</p>
-        </div>
-    </div>
-);
-
-
-const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: DetailedPlantDiagnosis }> = ({ brief, detailed }) => (
-    <div className="animate-fade-in-up w-full text-left space-y-4">
-        <div className="flex items-center gap-4">
-            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 flex-shrink-0" />
-            <h3 className="text-2xl font-bold text-green-900 dark:text-green-300">{brief.nombrePlanta} - Análisis Completo</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
-            <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-semibold text-green-800 flex items-center gap-2 text-sm mb-1 dark:text-green-300"><PhIcon className="h-4 w-4"/>pH Ideal</h4>
-                <p className="text-gray-800 font-bold text-lg dark:text-gray-100">{brief.phSueloIdeal}</p>
-            </div>
-            <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-semibold text-green-800 flex items-center gap-2 text-sm mb-1 dark:text-green-300"><HumidityIcon className="h-4 w-4"/>Humedad</h4>
-                <HumidityScale level={brief.humedad} />
-            </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><HeartbeatIcon className="h-5 w-5"/>Diagnóstico Detallado:</h4>
-            <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200 text-justify">{detailed.diagnosticoDetallado}</p>
-        </div>
-        
-        <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><ClipboardListIcon className="h-5 w-5"/>Plan de Acción:</h4>
-            <ol className="list-decimal list-inside space-y-2 text-gray-800 text-sm dark:text-gray-200 text-justify">
-                {detailed.planDeAccion.map((step, index) => 
-                    <li key={index}>
-                        <strong className="font-medium text-green-900 dark:text-green-400">{step.paso}:</strong> {step.detalle}
-                    </li>
-                )}
-            </ol>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><CalendarIcon className="h-5 w-5"/>Análisis de Temporada:</h4>
-            <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200 text-justify">{detailed.analisisDeTemporada}</p>
-        </div>
-        
-        {detailed.recetaSustratoIdeal && (
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800 mt-4 shadow-sm animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-3 dark:text-green-300">
-                <MixIcon className="h-5 w-5"/>🛠️ Solución Recomendada: Mezcla de Sustrato
+        {/* Diagnóstico Breve */}
+        <div className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-r-lg dark:bg-gray-700 dark:border-green-400 shadow-sm">
+            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-2 dark:text-green-300">
+                <SparklesIcon className="h-5 w-5"/> Diagnóstico Breve
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <h5 className="font-semibold text-green-800 text-sm mb-2 dark:text-green-400">Mezcla Base:</h5>
-                    <ul className="space-y-1">
-                        {detailed.recetaSustratoIdeal.mezclaBase.map((item, idx) => (
-                            <li key={idx} className="flex items-start text-sm text-green-900 dark:text-green-200">
-                                <CheckCircleIcon className="h-4 w-4 mr-1.5 mt-0.5 text-green-600 dark:text-green-500 flex-shrink-0" />
-                                <span>{item}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <p className="mt-2 text-sm font-medium text-green-900 dark:text-green-300 bg-green-100 dark:bg-green-800/50 p-2 rounded">
-                        <strong>Extra:</strong> {detailed.recetaSustratoIdeal.extra}
-                    </p>
-                </div>
-                <div className="space-y-3">
-                    <div className="bg-white/60 dark:bg-black/20 p-3 rounded text-sm border border-green-200/50 dark:border-green-700/50">
-                        <p className="text-green-900 dark:text-green-200 font-medium mb-1">{detailed.recomendacionEspecial.texto}</p>
-                        <p className="text-red-700 dark:text-red-400 text-xs flex items-start gap-1 mt-2 bg-red-100 dark:bg-red-900/40 p-1.5 rounded">
-                            <span className="font-bold">⚠️</span> {detailed.recomendacionEspecial.advertencia}
-                        </p>
-                    </div>
-                     <div className="bg-white/60 dark:bg-black/20 p-3 rounded border border-green-200/50 dark:border-green-700/50">
-                        <h5 className="font-semibold text-green-800 text-sm mb-1 dark:text-green-400">🪴 Nuestro Producto:</h5>
-                        <p className="text-sm text-green-900 dark:text-green-200 font-bold underline decoration-green-400 underline-offset-2">{detailed.producto.sustrato}</p>
-                        <p className="text-xs text-green-800 dark:text-green-300 mt-1">{detailed.producto.descripcion}</p>
-                        <div className="mt-2 px-2 py-1 bg-lime-100 dark:bg-lime-900/40 rounded border border-lime-200 dark:border-lime-700 text-xs text-lime-800 dark:text-lime-300 font-medium">
-                            + {detailed.producto.complemento}
+            <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-100 font-medium">
+                {diagnosis.diagnosticoBreve}
+            </p>
+        </div>
+
+        {/* Dos columnas: Problemas y Causas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-red-50 border border-red-200 p-4 rounded-xl dark:bg-red-900/20 dark:border-red-800 shadow-sm">
+                <h4 className="font-bold text-red-800 flex items-center gap-2 mb-3 dark:text-red-400">
+                    <CheckCircleIcon className="h-5 w-5"/> Problemas Detectados
+                </h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-red-900 dark:text-red-200">
+                    {diagnosis.problemasDetectados.map((prob, idx) => <li key={idx}>{prob}</li>)}
+                </ul>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl dark:bg-amber-900/20 dark:border-amber-800 shadow-sm">
+                <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-3 dark:text-amber-400">
+                    <QuestionMarkCircleIcon className="h-5 w-5"/> Posibles Causas
+                </h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-amber-900 dark:text-amber-200">
+                    {diagnosis.causasPosibles.map((causa, idx) => <li key={idx}>{causa}</li>)}
+                </ul>
+            </div>
+        </div>
+        
+        {/* Tratamiento y Control */}
+        <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-4 dark:text-green-300 text-lg border-b pb-2 dark:border-gray-700">
+                <ClipboardListIcon className="h-6 w-6"/> Tratamiento y Control
+            </h4>
+            <div className="space-y-4">
+                {diagnosis.tratamiento.map((step, index) => 
+                    <div key={index} className="flex gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-800 dark:text-green-300 font-bold border border-green-200 dark:border-green-700">
+                            {index + 1}
+                        </div>
+                        <div>
+                            <strong className="font-bold text-gray-900 dark:text-gray-100 block mb-1">{step.paso}</strong>
+                            <p className="text-gray-700 text-sm dark:text-gray-300 whitespace-pre-wrap">{step.detalle}</p>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
-            <div className="mt-4 pt-3 border-t border-green-200/50 dark:border-green-700/50">
-               <h5 className="font-semibold text-green-800 text-sm mb-2 dark:text-green-400">Resultados Esperados:</h5>
-               <div className="flex flex-wrap gap-2">
-                   {detailed.resultadosEsperados.map((res, idx) => (
-                       <span key={idx} className="text-xs bg-green-200 text-green-900 dark:bg-green-700 dark:text-green-100 px-2.5 py-1.5 rounded-full font-medium border border-green-300 dark:border-green-600 shadow-sm flex items-center">
-                           <SparklesIcon className="h-3 w-3 mr-1 opacity-70" /> {res}
+        </div>
+
+        {/* Plan de recuperación */}
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm dark:bg-blue-900/20 dark:border-blue-800">
+            <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-3 dark:text-blue-300">
+                <LeafIcon className="h-5 w-5"/> Plan de Recuperación a Mediano Plazo
+            </h4>
+            <ul className="list-disc list-inside space-y-1 text-sm text-blue-900 dark:text-blue-200">
+                {diagnosis.planRecuperacion.map((plan, idx) => <li key={idx}>{plan}</li>)}
+            </ul>
+        </div>
+        
+        {/* Luz, Riego y Prevención */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="bg-white border border-gray-200 p-4 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><HumidityIcon className="h-5 w-5"/>Luz y Riego</h4>
+                <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200">{diagnosis.luzYRiego}</p>
+            </div>
+             <div className="bg-white border border-gray-200 p-4 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><CheckCircleIcon className="h-5 w-5"/>Prevención</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                    {diagnosis.prevencion.map((p, idx) => <li key={idx}>{p}</li>)}
+                </ul>
+            </div>
+        </div>
+
+        {/* Sustrato y Productos */}
+        <div className="bg-white border text-center border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-gray-900 mb-2 dark:text-white uppercase tracking-widest text-sm text-center border-b pb-2 dark:border-gray-700">Recomendación Oficial Suelo Urbano</h4>
+            <p className="text-green-800 font-bold text-lg mt-3 dark:text-green-400">Sustrato Ideal: {diagnosis.sustratoRecomendado}</p>
+            
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                {diagnosis.productosRecomendados.map((prod, idx) => (
+                     <div key={idx} className="bg-lime-50 dark:bg-lime-900/30 p-3 rounded-lg border border-lime-200 dark:border-lime-800">
+                         <span className="block font-bold text-lime-900 dark:text-lime-300">{prod.nombre}</span>
+                         <span className="text-xs text-lime-800 dark:text-lime-400">{prod.motivo}</span>
+                     </div>
+                ))}
+            </div>
+        </div>
+        
+        {/* Resultados Esperados y Seguimiento */}
+        <div className="bg-green-600 text-white p-5 rounded-xl shadow-md border border-green-700">
+             <h4 className="font-bold flex items-center gap-2 mb-3 text-lg">
+                <CalendarIcon className="h-6 w-6 text-green-200"/> Resultados y Seguimiento
+            </h4>
+             <p className="text-sm text-green-100 mb-4">{diagnosis.seguimiento}</p>
+             <div className="flex flex-wrap gap-2">
+                 {diagnosis.resultadosEsperados.map((res, idx) => (
+                       <span key={idx} className="text-xs bg-green-800 text-green-50 px-3 py-1.5 rounded-full font-bold shadow-sm flex items-center">
+                           ✅ {res}
                        </span>
-                   ))}
-               </div>
-            </div>
-        </div>
-        )}
-        
-        <div className="bg-green-50 border border-green-200 p-4 rounded-lg dark:bg-green-900/30 dark:border-green-800 mt-4">
-            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-2 dark:text-green-300"><LeafIcon className="h-5 w-5"/>Análisis del Fertilizante Sugerido:</h4>
-            <p className="text-green-900 text-sm dark:text-green-100 text-justify">{detailed.analisisFertilizanteSugerido}</p>
-        </div>
-        
-         <div className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><SparklesIcon className="h-5 w-5"/>Cuidados Preventivos:</h4>
-            <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200 text-justify">{detailed.cuidadosPreventivos}</p>
+                 ))}
+             </div>
         </div>
     </div>
 );
@@ -330,10 +151,8 @@ const DetailedDiagnosisView: React.FC<{ brief: BriefPlantDiagnosis, detailed: De
 const PlantDoctorSection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [briefDiagnosis, setBriefDiagnosis] = useState<BriefPlantDiagnosis | null>(null);
-    const [detailedDiagnosis, setDetailedDiagnosis] = useState<DetailedPlantDiagnosis | null>(null);
+    const [diagnosis, setDiagnosis] = useState<PlantDiagnosis | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isDetailLoading, setIsDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -383,42 +202,81 @@ const PlantDoctorSection: React.FC = () => {
         if (!imageFile) return;
         setIsLoading(true);
         setError(null);
-        setBriefDiagnosis(null);
-        setDetailedDiagnosis(null);
+        setDiagnosis(null);
         try {
             const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no está configurada.");
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
             
-            const briefSchema = {
+            const unifiedSchema = {
                 type: Type.OBJECT,
                 properties: {
                     nombrePlanta: { type: Type.STRING, description: "Nombre común y popular de la planta." },
-                    salud: { type: Type.STRING, description: "Estado de salud general en 2-3 palabras (ej: 'Saludable', 'Necesita atención', 'Estrés hídrico')." },
-                    diagnosticoBreve: { type: Type.STRING, description: "Un párrafo conciso (3-4 líneas) que explique el problema principal observado, como si fuera un resumen para un cliente." },
-                    fertilizanteSugerido: { type: Type.STRING, description: "El nombre del fertilizante más adecuado para la acción inmediata (ej: 'Humus de lombriz', 'Triple 17', 'Suelo Urbano Tu Hogar')." },
-                    justificacionFertilizante: { type: Type.STRING, description: "Un párrafo corto pero específico (2-4 líneas) explicando por qué se eligió ese fertilizante, cómo ayuda al problema actual, y si hay alguna consideración especial al aplicarlo (ej. 'aplicar después de corregir el riego')." },
-                    phSueloIdeal: { type: Type.STRING, description: "El rango de pH ideal para esta planta (ej: '6.0 - 7.0')." },
-                    humedad: { type: Type.STRING, enum: ['Baja', 'Media', 'Alta'], description: "El nivel de humedad ambiental preferido." },
-                    temporadaIdeal: { type: Type.STRING, description: "La estación o periodo ideal de la planta (ej: 'Floración en Primavera y Verano')." }
+                    estadoGeneral: { type: Type.STRING, description: "Estado general (ej: 'Atención moderada', 'Crítico', 'Saludable')." },
+                    diagnosticoBreve: { type: Type.STRING, description: "Párrafo conciso que explique el problema principal observado." },
+                    problemasDetectados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de problemas observables (ej: 'Puntos blancos distribuidos', 'Hojas con desgaste')." },
+                    causasPosibles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de causas posibles (ej: 'Ambiente poco ventilado', 'Humedad elevada')." },
+                    tratamiento: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                paso: { type: Type.STRING, description: "Título del paso (ej: 'Paso 1 - Limpieza manual')." },
+                                detalle: { type: Type.STRING, description: "Detalle de qué hacer y cómo." }
+                            },
+                            required: ["paso", "detalle"]
+                        },
+                        description: "Pasos numerados para tratamiento y control de plagas."
+                    },
+                    planRecuperacion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Medidas a mediano plazo (ej: 'Mejorar ventilación', 'Revisar humedad')." },
+                    sustratoRecomendado: { type: Type.STRING, description: "Nombre del sustrato de 'Suelo Urbano Tu Hogar'." },
+                    luzYRiego: { type: Type.STRING, description: "Recomendaciones específicas de luz y riego." },
+                    prevencion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Consejos clave en viñetas para evitar que el problema vuelva." },
+                    seguimiento: { type: Type.STRING, description: "Qué esperar en los próximos días/semanas." },
+                    productosRecomendados: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                nombre: { type: Type.STRING, description: "Nombre del producto (ej: 'Suelo Urbano Tu Hogar' o 'Abono orgánico')." },
+                                motivo: { type: Type.STRING, description: "Por qué se recomienda." }
+                            },
+                            required: ["nombre", "motivo"]
+                        },
+                        description: "Productos recomendados de Suelo Urbano."
+                    },
+                    resultadosEsperados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Beneficios de seguir el tratamiento." }
                 },
-                required: ["nombrePlanta", "salud", "diagnosticoBreve", "fertilizanteSugerido", "justificacionFertilizante", "phSueloIdeal", "humedad", "temporadaIdeal"]
+                required: [
+                    "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "problemasDetectados", "causasPosibles", 
+                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "prevencion", 
+                    "seguimiento", "productosRecomendados", "resultadosEsperados"
+                ]
             };
             
-            const prompt = `Actúa como un 'Doctor de Plantas' experto y específico. Tu tarea es analizar la imagen y recomendar el fertilizante MÁS adecuado. Tienes 3 opciones principales, cada una con un propósito claro:
-1. 'Humus de lombriz': Recomiéndalo PRINCIPALMENTE para plantas que muestren signos de ESTRÉS por exceso de riego (hojas amarillas y blandas, pudrición) o para mejorar la estructura de suelos pobres. Es un acondicionador de suelo suave.
-2. 'Suelo Urbano Tu Hogar': Esta es nuestra emulsión nutritiva. Recomiéndala para plantas que necesitan un IMPULSO general de nutrientes, muestran crecimiento lento pero no están críticamente estresadas, o para mantenimiento regular.
-3. 'Triple 17' (u otro químico): Úsalo como ÚLTIMO RECURSO para deficiencias de nutrientes MUY SEVERAS y evidentes (decoloración extrema) en plantas que NO están estresadas por exceso de agua.
-Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Luego, en 'justificacionFertilizante', explica con claridad por qué tu elección es la mejor para el problema específico de la planta.`;
+            const prompt = `Actúa como un 'Doctor de Plantas' experto. Tu tarea es analizar la imagen y proporcionar un diagnóstico completo en un solo paso, siguiendo esta estructura exacta:
+1. Nombre de la planta.
+2. Estado general (ej: Atención moderada).
+3. Diagnóstico breve: el problema principal.
+4. Problemas detectados: lista de observaciones visibles.
+5. Causas posibles: lista de por qué ocurrió.
+6. Tratamiento y control de plagas: Plan de acción paso a paso. (Si hay plagas, indícalo. Si no, cómo solucionar el problema actual).
+7. Plan de recuperación: Acciones de soporte.
+8. Sustrato recomendado: Debe ser 'Suelo Urbano Tu Hogar' o variantes.
+9. Luz y riego: Ajustes necesarios.
+10. Prevención: Cómo evitar que regrese.
+11. Seguimiento: Qué esperar ver pronto.
+12. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
+13. Resultados esperados: Mejoras.`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
                 contents: { parts: [imagePart, { text: prompt }] },
-                config: { responseMimeType: "application/json", responseSchema: briefSchema }
+                config: { responseMimeType: "application/json", responseSchema: unifiedSchema }
             });
 
-            setBriefDiagnosis(JSON.parse(response.text));
+            setDiagnosis(JSON.parse(response.text));
         } catch (err: any) {
             console.error(err);
             setError(err.message === "API_KEY no está configurada." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error: ${err.message || 'Inténtalo de nuevo.'}`);
@@ -426,98 +284,9 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
             setIsLoading(false);
         }
     };
-
-    const getDetailedDiagnosis = async () => {
-        if (!imageFile || !briefDiagnosis) return;
-        setIsDetailLoading(true);
-        setError(null);
-        try {
-            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
-            if (!apiKey) throw new Error("API_KEY no está configurada.");
-            const ai = new GoogleGenAI({ apiKey: apiKey });
-            const imagePart = await fileToGenerativePart(imageFile);
-            
-            const detailedSchema = {
-                type: Type.OBJECT,
-                properties: {
-                    diagnosticoDetallado: { type: Type.STRING, description: "Análisis exhaustivo del problema, expandiendo el diagnóstico inicial en un párrafo claro y fácil de entender." },
-                    planDeAccion: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                paso: { type: Type.STRING, description: "El título del paso, ej: 'Paso 1: Revisar Riego'" },
-                                detalle: { type: Type.STRING, description: "La explicación detallada de la acción a tomar en ese paso." },
-                            },
-                            required: ["paso", "detalle"]
-                        },
-                        description: "Plan de acción detallado con 3 a 5 pasos numerados para tratar a la planta."
-                    },
-                    analisisFertilizanteSugerido: { type: Type.STRING, description: "Una explicación detallada sobre el fertilizante que ya fue sugerido en el diagnóstico breve, explicando por qué es la mejor opción y cómo aplicarlo." },
-                    cuidadosPreventivos: { type: Type.STRING, description: "Una lista de 2-3 consejos clave en viñetas para evitar que el problema vuelva a ocurrir." },
-                    analisisDeTemporada: { type: Type.STRING, description: "Análisis detallado sobre la temporada de la planta. Explica si los síntomas son normales para la temporada actual y qué cuidados especiales se necesitan si está fuera de temporada, en un párrafo." },
-                    recetaSustratoIdeal: {
-                        type: Type.OBJECT,
-                        properties: {
-                            mezclaBase: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Los 4 elementos obligatorios: '40% fibra de coco', '20% tepojal', '20% perlita o tezontle', '20% humus de lombriz'." },
-                            extra: { type: Type.STRING, description: "Modificador obligatorio: 'Agregar 10-15% mejorador orgánico de alta nutrición (abono de borrego compostado)'." }
-                        },
-                        required: ["mezclaBase", "extra"]
-                    },
-                    recomendacionEspecial: {
-                        type: Type.OBJECT,
-                        properties: {
-                            texto: { type: Type.STRING, description: "Texto fijo: 'El abono de borrego compostado aporta nutrientes de liberación lenta, fortalece raíces y mejora el crecimiento.'" },
-                            advertencia: { type: Type.STRING, description: "Texto fijo: 'Usar en proporciones controladas para evitar exceso de nutrientes.'" }
-                        },
-                        required: ["texto", "advertencia"]
-                    },
-                    producto: {
-                        type: Type.OBJECT,
-                        properties: {
-                            sustrato: { type: Type.STRING, description: "Nombre del producto sugerido." },
-                            descripcion: { type: Type.STRING, description: "Texto descriptivo: 'Este sustrato ya incluye mezcla balanceada lista para usar.'" },
-                            complemento: { type: Type.STRING, description: "Texto del complemento: 'Emulsión nutritiva (usar en dosis moderada)'" }
-                        },
-                        required: ["sustrato", "descripcion", "complemento"]
-                    },
-                    resultadosEsperados: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                        description: "Array de los 4 beneficios: 'Hojas más verdes', 'Mejor crecimiento', 'Raíces más sanas', 'Mayor resistencia'."
-                    }
-                },
-                required: ["diagnosticoDetallado", "planDeAccion", "analisisFertilizanteSugerido", "cuidadosPreventivos", "analisisDeTemporada", "recetaSustratoIdeal", "recomendacionEspecial", "producto", "resultadosEsperados"]
-            };
-            
-            const prompt = `Basado en la imagen y el diagnóstico inicial, proporciona un análisis completo. El diagnóstico breve ya sugirió usar '${briefDiagnosis.fertilizanteSugerido}'. Tu tarea es expandir esta información de forma clara y concisa.
-- **diagnosticoDetallado**: Expande el diagnóstico inicial en un párrafo claro.
-- **planDeAccion**: Crea una guía práctica y fácil de seguir con pasos numerados.
-- **analisisFertilizanteSugerido**: Aquí, explica en un párrafo detallado POR QUÉ '${briefDiagnosis.fertilizanteSugerido}' es la elección correcta para el problema detectado. Si es 'Suelo Urbano Tu Hogar', detalla sus beneficios. Si es 'Humus de lombriz', explica su acción suave y reparadora. Si es un químico, advierte sobre su uso correcto.
-- **cuidadosPreventivos**: Proporciona una lista de 2-3 puntos clave para el futuro.
-- **analisisDeTemporada**: Sé específico sobre si los síntomas son normales para la época y qué hacer si no lo son para proteger la planta.
-- **Valores Fijos a Inyectar (MUY IMPORTANTE)**: Para las nuevas secciones estructuradas, la aplicación requiere mostrar exactamente la solución de sustrato de 'Suelo Urbano'.
-  En mezclaBase, usa estrictamente el array: ["40% fibra de coco", "20% tepojal", "20% perlita o tezontle", "20% humus de lombriz"].
-  En extra usa: "Agregar 10–15% mejorador orgánico de alta nutrición (abono de borrego compostado)".
-  El producto sustrato nombra: "Suelo Urbano Tu Hogar".`;
-            
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: { parts: [imagePart, { text: prompt }] },
-                config: { responseMimeType: "application/json", responseSchema: detailedSchema }
-            });
-
-            setDetailedDiagnosis(JSON.parse(response.text));
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message === "API_KEY no está configurada." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `No se pudo obtener el diagnóstico detallado: ${err.message || 'Inténtalo de nuevo.'}`);
-        } finally {
-            setIsDetailLoading(false);
-        }
-    };
     
     const generatePDF = async () => {
-        if (!briefDiagnosis) return;
+        if (!diagnosis) return;
 
         const doc = new jsPDF();
         let y = 20;
@@ -552,13 +321,13 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         doc.setFontSize(18);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(22, 101, 52);
-        doc.text(briefDiagnosis.nombrePlanta, margin, y);
+        doc.text(diagnosis.nombrePlanta, margin, y);
         y += 8;
         
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(80, 80, 80);
-        doc.text(`Estado de Salud: ${briefDiagnosis.salud}`, margin, y);
+        doc.text(`Estado General: ${diagnosis.estadoGeneral}`, margin, y);
         y += 10;
 
         // Add Image if available
@@ -586,75 +355,67 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
         }
 
         // --- Brief Diagnosis ---
-        addWrappedText("Diagnóstico Breve:", 14, true);
-        addWrappedText(briefDiagnosis.diagnosticoBreve, 11);
+        addWrappedText("Diagnóstico:", 14, true);
+        addWrappedText(diagnosis.diagnosticoBreve, 11);
+        y += 5;
+        
+        // --- Problems and Causes ---
+        if (y > 230) { doc.addPage(); y = 20; }
+        
+        addWrappedText("Problemas Detectados:", 12, true);
+        diagnosis.problemasDetectados.forEach((item) => {
+            addWrappedText(`• ${item}`, 11);
+        });
+        y += 3;
+        
+        addWrappedText("Causas Posibles:", 12, true);
+        diagnosis.causasPosibles.forEach((item) => {
+            addWrappedText(`• ${item}`, 11);
+        });
         y += 5;
 
-        // --- Key Metrics ---
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 10;
-        
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text(`pH Ideal: ${briefDiagnosis.phSueloIdeal}`, margin, y);
-        doc.text(`Humedad: ${briefDiagnosis.humedad}`, margin + 70, y);
-        y += 10;
-        
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 10;
-
-        // --- Detailed Diagnosis (Only if available) ---
-        if (detailedDiagnosis) {
-            if (y > 250) { doc.addPage(); y = 20; }
-            
-            addWrappedText("Análisis Detallado:", 14, true);
-            addWrappedText(detailedDiagnosis.diagnosticoDetallado, 11);
-            y += 5;
-
-            if (y > 230) { doc.addPage(); y = 20; }
-            addWrappedText("Plan de Acción:", 14, true);
-            detailedDiagnosis.planDeAccion.forEach((step, i) => {
-                if (y > 270) { doc.addPage(); y = 20; }
-                addWrappedText(`${i + 1}. ${step.paso}:`, 11, true);
-                addWrappedText(step.detalle, 11);
-                y += 2;
-            });
-            y += 5;
-            if (detailedDiagnosis.recetaSustratoIdeal) {
-                if (y > 220) { doc.addPage(); y = 20; }
-                addWrappedText("Solución Recomendada: Mezcla base de Sustrato", 14, true);
-                detailedDiagnosis.recetaSustratoIdeal.mezclaBase.forEach((item) => {
-                    if (y > 270) { doc.addPage(); y = 20; }
-                    addWrappedText(`• ${item}`, 11);
-                });
-                y += 2;
-                if (y > 270) { doc.addPage(); y = 20; }
-                addWrappedText(`Extra: ${detailedDiagnosis.recetaSustratoIdeal.extra}`, 11, true);
-                
-                y += 5;
-                if (y > 260) { doc.addPage(); y = 20; }
-                addWrappedText("Resultados Esperados:", 14, true);
-                const resultados = detailedDiagnosis.resultadosEsperados.join(", ");
-                addWrappedText(resultados, 11);
-                y += 5;
-            }
-        }
-
-        // --- Fertilizer ---
+        // --- Detailed Diagnosis ---
         if (y > 230) { doc.addPage(); y = 20; }
-        addWrappedText("Fertilizante Recomendado:", 14, true);
-        doc.setTextColor(22, 101, 52);
-        addWrappedText(briefDiagnosis.fertilizanteSugerido, 12, true);
-        doc.setTextColor(0, 0, 0);
+        addWrappedText("Tratamiento y Control:", 14, true);
+        diagnosis.tratamiento.forEach((step, i) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            addWrappedText(`${i + 1}. ${step.paso}:`, 11, true);
+            addWrappedText(step.detalle, 11);
+            y += 2;
+        });
+        y += 5;
         
-        if (detailedDiagnosis) {
-             addWrappedText(detailedDiagnosis.analisisFertilizanteSugerido, 11);
-             y += 5;
-        } else {
-             addWrappedText(briefDiagnosis.justificacionFertilizante, 11);
-             y += 5;
-        }
+        if (y > 230) { doc.addPage(); y = 20; }
+        addWrappedText("Luz y Riego recomendado:", 12, true);
+        addWrappedText(diagnosis.luzYRiego, 11);
+        y += 5;
+
+        // --- Prevent and Follow up ---
+        if (y > 230) { doc.addPage(); y = 20; }
+        addWrappedText("Plan de Recuperación:", 12, true);
+        diagnosis.planRecuperacion.forEach((item) => {
+           addWrappedText(`• ${item}`, 11);
+        });
+        y += 3;
+
+        addWrappedText("Resultados Esperados:", 12, true);
+        const resultados = diagnosis.resultadosEsperados.join(", ");
+        addWrappedText(resultados, 11);
+        y += 5;
+
+        // --- Fertilizer / Substrato ---
+        if (y > 230) { doc.addPage(); y = 20; }
+        addWrappedText("Productos Recomendados:", 14, true);
+        
+        addWrappedText("Sustrato recomendado:", 11, true);
+        addWrappedText(diagnosis.sustratoRecomendado, 11);
+        y+=2;
+        
+        diagnosis.productosRecomendados.forEach((p) => {
+           addWrappedText(`${p.nombre}:`, 11, true);
+           addWrappedText(p.motivo, 11);
+           y+=2;
+        });
 
         // --- Footer ---
         const pageCount = doc.getNumberOfPages();
@@ -665,19 +426,19 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
             doc.text('Generado por Suelo Urbano Tu Hogar', pageWidth / 2, 285, { align: 'center' });
         }
 
-        doc.save(`${briefDiagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
+        doc.save(`${diagnosis.nombrePlanta.replace(/\s+/g, '_')}_Diagnostico.pdf`);
     };
     
     const handleSaveToGarden = async () => {
-        if (!briefDiagnosis || !detailedDiagnosis || !imageFile) return;
+        if (!diagnosis || !imageFile) return;
         setIsSaving(true);
         try {
             const base64Img = await resizeImageToBase64(imageFile);
             const success = saveToGarden({
-                name: briefDiagnosis.nombrePlanta,
-                health: briefDiagnosis.salud,
-                diagnosis: briefDiagnosis.diagnosticoBreve,
-                actionPlan: detailedDiagnosis.planDeAccion,
+                name: diagnosis.nombrePlanta,
+                health: diagnosis.estadoGeneral,
+                diagnosis: diagnosis.diagnosticoBreve,
+                actionPlan: diagnosis.tratamiento,
                 beforeImage: base64Img
             });
             if (success) {
@@ -697,11 +458,9 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
     const reset = () => {
         setImageFile(null);
         setImagePreview(null);
-        setBriefDiagnosis(null);
-        setDetailedDiagnosis(null);
+        setDiagnosis(null);
         setError(null);
         setIsLoading(false);
-        setIsDetailLoading(false);
     };
 
     const renderResults = () => {
@@ -721,14 +480,11 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                 </div>
             );
         }
-        if (detailedDiagnosis && briefDiagnosis) {
+        if (diagnosis) {
             return (
                 <div className="w-full">
-                    <DetailedDiagnosisView brief={briefDiagnosis} detailed={detailedDiagnosis} />
+                    <DiagnosisView diagnosis={diagnosis} />
                     
-                    {/* Add Soil Test Guide Here in Detailed View as well */}
-                    <SoilTestGuide />
-
                     <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-600 flex flex-col gap-3">
                         <button 
                             onClick={generatePDF}
@@ -751,29 +507,6 @@ Analiza la imagen y elige SOLO UNA de estas opciones basada en los síntomas. Lu
                         </button>
                         
                         <p className="text-xs text-gray-500 text-center mt-2">Guarda este diagnóstico para ver su evolución o descargar el PDF.</p>
-                    </div>
-                </div>
-            );
-        }
-        if (briefDiagnosis) {
-            return (
-                <div className="w-full">
-                    <BriefDiagnosisView diagnosis={briefDiagnosis} />
-                    
-                    {/* Add Soil Test Guide Here */}
-                    <SoilTestGuide />
-
-                    <div className="mt-6 flex flex-col gap-3">
-                        <button onClick={getDetailedDiagnosis} disabled={isDetailLoading} className="w-full bg-green-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-800 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                            {isDetailLoading ? ( <><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Analizando a fondo...</> ) : ( <><ChevronDownIcon className="h-5 w-5"/>Obtener Diagnóstico Completo</> )}
-                        </button>
-                        <button 
-                            onClick={generatePDF}
-                            className="w-full bg-white text-green-700 border-2 border-green-700 font-bold py-2 px-6 rounded-lg hover:bg-green-50 transition-all duration-300 ease-in-out flex items-center justify-center gap-2 dark:bg-transparent dark:text-green-300 dark:border-green-500 dark:hover:bg-green-900/30"
-                        >
-                            <DownloadIcon className="h-5 w-5"/>
-                            Descargar PDF (Resumen)
-                        </button>
                     </div>
                 </div>
             );
