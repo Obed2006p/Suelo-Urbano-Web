@@ -114,19 +114,19 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.32.03_PM_by8id7.mp4" type="video/mp4" />
+                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048276/WhatsApp_Video_2026-05-17_at_1.54.24_PM_1_asrbrz.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.33.04_PM_yobxir.mp4" type="video/mp4" />
+                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048277/WhatsApp_Video_2026-05-17_at_1.54.23_PM_rci0wk.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.34.10_PM_aroegp.mp4" type="video/mp4" />
+                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048277/WhatsApp_Video_2026-05-17_at_1.54.24_PM_ddjhoq.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
