@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { saveToGarden, resizeImageToBase64 } from '../lib/gardenStorage';
@@ -19,12 +19,81 @@ interface PlantDiagnosis {
     prevencion: string[];
     seguimiento: string;
     productosRecomendados: { nombre: string; motivo: string }[];
+    imagenesReferencia: { terminoBusquedaWikipedia: string; descripcionEspanol: string }[];
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
 
 
 // --- Componentes de UI ---
+
+const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term, description }) => {
+    const [imgUrl, setImgUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isFallback, setIsFallback] = useState(false);
+
+    useEffect(() => {
+        const fetchImg = async () => {
+            try {
+                const res = await fetch(`https://es.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&pithumbsize=600&generator=search&gsrsearch=${encodeURIComponent(term)}&gsrlimit=1`);
+                const data = await res.json();
+                if (data.query && data.query.pages) {
+                    const pages = data.query.pages;
+                    const firstPageId = Object.keys(pages)[0];
+                    const thumbnail = pages[firstPageId].thumbnail;
+                    if (thumbnail && thumbnail.source) {
+                        setImgUrl(thumbnail.source);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Wikipedia API error", e);
+            }
+            
+            // Fallback
+            const seed = Math.floor(Math.random() * 100000);
+            setImgUrl(`https://image.pollinations.ai/prompt/${encodeURIComponent(term)}?width=400&height=400&nologo=true&seed=${seed}`);
+            setIsFallback(true);
+        };
+        fetchImg();
+    }, [term]);
+
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="aspect-square w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-inner group relative">
+                {imgUrl && (
+                    <img 
+                        src={imgUrl} 
+                        alt={description}
+                        className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${loading ? 'opacity-0' : 'opacity-100'}`}
+                        loading="lazy"
+                        onLoad={() => setLoading(false)}
+                        onError={(e) => {
+                            if (!e.currentTarget.src.includes('placehold.co')) {
+                                e.currentTarget.src = `https://placehold.co/400x400/e2e8f0/64748b?text=${encodeURIComponent('Sin imagen')}`;
+                                setLoading(false);
+                            }
+                        }}
+                    />
+                )}
+                {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-600 animate-pulse text-gray-500 text-xs text-center p-2">
+                        Buscando en<br/>archivos reales...
+                    </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex items-end">
+                    <span className="text-white text-xs p-2 font-medium drop-shadow-md">{description}</span>
+                </div>
+                {isFallback && !loading && (
+                   <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm" title="Imagen generada por IA al no encontrar foto en enciclopedias">
+                       Generada (IA)
+                   </div>
+                )}
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 text-center font-medium line-clamp-2 md:hidden">{description}</p>
+        </div>
+    );
+};
 
 const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => (
     <div className="animate-fade-in-up w-full text-left space-y-6">
@@ -145,6 +214,19 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
                  ))}
              </div>
         </div>
+
+        {/* Imágenes de Referencia */}
+        <div className="bg-gray-50 border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-4 dark:text-gray-100 text-lg border-b pb-2 dark:border-gray-700">
+                <CameraIcon className="h-6 w-6 text-green-700 dark:text-green-400"/> Ejemplos Visuales
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+                {diagnosis.imagenesReferencia.map((img, idx) => (
+                    <ReferenceImage key={idx} term={img.terminoBusquedaWikipedia} description={img.descripcionEspanol} />
+                ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4 text-center">Estas imágenes son buscadas en enciclopedias (o generadas por IA como respaldo) para servir como referencia visual de la plaga o el estado ideal de tu planta.</p>
+        </div>
     </div>
 );
 
@@ -246,12 +328,24 @@ const PlantDoctorSection: React.FC = () => {
                         },
                         description: "Productos recomendados de Suelo Urbano."
                     },
+                    imagenesReferencia: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                terminoBusquedaWikipedia: { type: Type.STRING, description: "Nombre científico exacto o nombre común muy específico para buscar fotos reales en Wikipedia (ej: 'Tetranychus urticae', 'Phytophthora infestans', 'Solanum lycopersicum'). DEBE ser muy preciso para Wikipedia." },
+                                descripcionEspanol: { type: Type.STRING, description: "Descripción corta en español de lo que se busca (ej: 'Araña roja en hoja', 'Planta de jitomate sana')." }
+                            },
+                            required: ["terminoBusquedaWikipedia", "descripcionEspanol"]
+                        },
+                        description: "4 imágenes. Si hay daño/plaga: 3 de la plaga/enfermedad (nombres científicos) y 1 de la especie botánica de la planta sana. Si está sana: 4 fotos de la planta sana buscando su especie."
+                    },
                     resultadosEsperados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Beneficios de seguir el tratamiento." }
                 },
                 required: [
                     "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "problemasDetectados", "causasPosibles", 
                     "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "prevencion", 
-                    "seguimiento", "productosRecomendados", "resultadosEsperados"
+                    "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados"
                 ]
             };
             
@@ -268,7 +362,8 @@ const PlantDoctorSection: React.FC = () => {
 10. Prevención: Cómo evitar que regrese.
 11. Seguimiento: Qué esperar ver pronto.
 12. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
-13. Resultados esperados: Mejoras.`;
+13. Resultados esperados: Mejoras.
+14. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
