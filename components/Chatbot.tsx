@@ -236,19 +236,42 @@ const Chatbot: React.FC = () => {
                 className={`flex flex-col items-start gap-2 pointer-events-auto transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
                 {/* Promo Bubble Rotativa */}
-                <div className="bg-white dark:bg-stone-800 text-stone-800 dark:text-green-300 text-xs font-bold py-2 px-3 rounded-xl rounded-bl-none shadow-lg border border-green-200 dark:border-green-700 transition-all duration-500 ml-2 mb-1 max-w-[200px] relative animate-bounce-float">
-                    {PROMO_MESSAGES[promoIndex]}
+                <div className="bg-white dark:bg-stone-800 text-stone-850 dark:text-green-300 text-xs font-bold py-2 px-3.5 rounded-xl rounded-bl-none shadow-lg border border-green-200 dark:border-green-700/80 transition-all duration-500 ml-2 mb-1 max-w-[210px] relative animate-bounce-float">
+                    <div className="text-[9px] uppercase tracking-wider text-green-600 dark:text-green-400 mb-1 font-extrabold flex items-center gap-1">
+                        <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                        </span>
+                        Asistente Virtual IA
+                    </div>
+                    <span>{PROMO_MESSAGES[promoIndex]}</span>
                     {/* Triángulo de la burbuja */}
                     <div className="absolute -bottom-1.5 left-3 w-3 h-3 bg-white dark:bg-stone-800 border-b border-r border-green-200 dark:border-green-700 transform rotate-45"></div>
                 </div>
 
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-green-600 bg-white hover:bg-stone-50 text-green-600"
-                    aria-label="Abrir chat de ayuda"
-                >
-                    <RobotIcon className="h-7 w-7" />
-                </button>
+                <div className="flex items-center gap-2">
+                    {/* Botón Circular Principal */}
+                    <button
+                        onClick={() => setIsOpen(true)}
+                        className="p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border-2 border-green-600 bg-white hover:bg-stone-50 text-green-600 relative"
+                        aria-label="Abrir chat de ayuda"
+                    >
+                        <RobotIcon className="h-7 w-7" />
+                        <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500"></span>
+                        </span>
+                    </button>
+
+                    {/* Badge Horizontal Indicativo "Chatbot Jardinero IA" clicable */}
+                    <button
+                        onClick={() => setIsOpen(true)}
+                        className="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 text-white font-bold text-xs py-2.5 px-4 rounded-full shadow-xl flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:translate-x-1 border border-green-500/30 active:scale-95 whitespace-nowrap cursor-pointer"
+                    >
+                        <ChatBubbleIcon className="h-4 w-4 text-green-100 animate-pulse" />
+                        <span>Chatbot Jardinero IA</span>
+                    </button>
+                </div>
             </div>
 
             {/* Chat Window - Fullscreen on Mobile, Widget on Desktop */}
