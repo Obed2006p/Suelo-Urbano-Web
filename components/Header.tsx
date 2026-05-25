@@ -15,6 +15,17 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     document.documentElement.classList.add('dark');
   }, []);
 
+  React.useEffect(() => {
+    if (isMenuOpen) {
+      document.body.classList.add('nav-menu-open');
+    } else {
+      document.body.classList.remove('nav-menu-open');
+    }
+    return () => {
+      document.body.classList.remove('nav-menu-open');
+    };
+  }, [isMenuOpen]);
+
   const inPageNavLinks = [
     { id: 'inicio', label: 'Inicio' },
     { id: 'que-es', label: 'Qué es' },

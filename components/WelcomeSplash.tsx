@@ -173,16 +173,20 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                 </div>
 
                 {/* Footer / Main CTA */}
-                <div className="flex-shrink-0 animate-fade-in-up mt-8 text-center pb-8" style={{ animationDelay: '0.4s' }}>
+                <div className="flex-shrink-0 animate-fade-in-up mt-8 text-center pb-20 md:pb-32" style={{ animationDelay: '0.4s' }}>
                     <p className="text-base md:text-xl max-w-2xl mx-auto mb-6" style={{textShadow: '0 1px 3px rgba(0,0,0,0.5)'}}>
                         Descubre una nueva forma de nutrir tu tierra y conectar con la naturaleza.
                     </p>
-                    <button
-                        onClick={handleEnterClick}
-                        className="bg-green-600 text-white font-bold py-3 px-8 md:py-4 md:px-12 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg text-lg md:text-xl"
-                    >
-                        Comenzar asesoría gratuita
-                    </button>
+                    <div className="inline-block animate-bounce-float relative">
+                        {/* Glowing background aura */}
+                        <div className="absolute -inset-1.5 bg-green-500 rounded-full blur-md opacity-35 animate-pulse"></div>
+                        <button
+                            onClick={handleEnterClick}
+                            className="relative bg-green-600 text-white font-bold py-3.5 px-10 md:py-4 md:px-14 rounded-full hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 shadow-2xl text-lg md:text-xl"
+                        >
+                            Comenzar asesoría gratuita
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

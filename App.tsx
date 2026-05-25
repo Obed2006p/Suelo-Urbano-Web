@@ -214,8 +214,8 @@ const App: React.FC = () => {
         </div>
 
         {/* Overlays that are not blurred */}
-        {/* Chatbot: Solo visible en HomePage y cuando el estado es 'home' (no splash/video) */}
-        {isHomePage && appState === 'home' && <Chatbot />}
+        {/* Chatbot: Visible en HomePage y cuando el estado es 'home' o 'splash' (bienvenida) */}
+        {isHomePage && (appState === 'home' || appState === 'splash') && <Chatbot />}
         
         <CuriousFactPopup isVisible={showFactPopup} onClose={() => setShowFactPopup(false)} />
         

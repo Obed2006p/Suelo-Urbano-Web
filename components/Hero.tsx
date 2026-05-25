@@ -102,12 +102,16 @@ const Hero: React.FC<HeroProps> = ({ onOrderClick }) => {
 
         {/* CTA Button */}
         <div className="relative z-20 animate-fade-in-up mb-12 md:mb-0" style={{ animationDelay: '0.5s' }}>
-            <button
-                onClick={() => navigateTo('#/doctor-plantas')}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 px-10 rounded-full shadow-xl shadow-green-900/40 transition-all transform hover:scale-105 active:scale-95 text-lg border border-green-500/30"
-            >
-                Comenzar asesoría gratuita
-            </button>
+            <div className="inline-block animate-bounce-float relative">
+                {/* Glowing neon aura under the floating button */}
+                <div className="absolute -inset-1.5 bg-green-500 rounded-full blur-md opacity-35 animate-pulse"></div>
+                <button
+                    onClick={() => navigateTo('#/doctor-plantas')}
+                    className="relative bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 px-12 rounded-full shadow-xl shadow-green-900/50 transition-all transform hover:scale-105 active:scale-95 text-lg border border-green-500/30"
+                >
+                    Comenzar asesoría gratuita
+                </button>
+            </div>
         </div>
 
         {/* Quote */}

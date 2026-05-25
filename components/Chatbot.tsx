@@ -50,6 +50,26 @@ const PROMO_MESSAGES = [
 
 const Chatbot: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Observar cambios de clase en el body para detectar de forma de proactiva si el menú de navegación está abierto
+    useEffect(() => {
+        setIsMenuOpen(document.body.classList.contains('nav-menu-open'));
+
+        const observer = new MutationObserver(() => {
+            setIsMenuOpen(document.body.classList.contains('nav-menu-open'));
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+        });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
     const [messages, setMessages] = useState<Message[]>([
         { text: "¡Hola! 🌿 Soy tu Jardinero Virtual con visión artificial. Puedo leer tus tiras de pH, revisar el drenaje de tus macetas o diagnosticar tus plantas por foto. ¡Inténtalo!", sender: 'bot' },
         { text: "¿Te gustaría un consejo hiper-personalizado para tus plantas basado en el clima exacto de tu ciudad hoy? 🌤️", sender: 'bot', action: 'weather' }
@@ -232,8 +252,8 @@ const Chatbot: React.FC = () => {
         <>
             {/* Chat Toggle Button & Promo Bubble - BOTTOM LEFT */}
             <div 
-                style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 2147483647 }} 
-                className={`flex flex-col items-start gap-2 pointer-events-auto transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 210 }} 
+                className={`flex flex-col items-start gap-2 pointer-events-auto transition-all duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : (isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100')}`}
             >
                 {/* Promo Bubble Rotativa */}
                 <div className="bg-white dark:bg-stone-800 text-stone-850 dark:text-green-300 text-xs font-bold py-2 px-3.5 rounded-xl rounded-bl-none shadow-lg border border-green-200 dark:border-green-700/80 transition-all duration-500 ml-2 mb-1 max-w-[210px] relative animate-bounce-float">
@@ -276,7 +296,8 @@ const Chatbot: React.FC = () => {
 
             {/* Chat Window - Fullscreen on Mobile, Widget on Desktop */}
             <div 
-                className={`fixed z-[2147483647] bg-white dark:bg-stone-800 shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden transition-all duration-300 flex flex-col
+                style={{ zIndex: isMenuOpen ? 20 : 220 }}
+                className={`fixed bg-white dark:bg-stone-800 shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden transition-all duration-300 flex flex-col
                     ${isOpen ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-90'}
                     ${/* Mobile Styles: Fullscreen */ ''}
                     inset-0 sm:inset-auto sm:bottom-[90px] sm:left-[20px] sm:w-96 sm:h-[550px] sm:max-h-[80vh] sm:rounded-2xl sm:origin-bottom-left
