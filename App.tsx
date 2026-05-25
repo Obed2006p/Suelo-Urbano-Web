@@ -25,6 +25,7 @@ import PlantCareGuideSection from './components/PlantCareGuideSection';
 import PhInfoSection from './components/PhInfoSection';
 import CuriousFactPopup from './components/CuriousFactPopup';
 import MyGardenPage from './components/MyGardenPage';
+import OrquideasPage from './components/OrquideasPage';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -173,6 +174,9 @@ const App: React.FC = () => {
       break;
     case '#/doctor-plantas':
       pageContent = <PlantDoctorPage header={renderHeader()} />;
+      break;
+    case '#/orquideas':
+      pageContent = <OrquideasPage header={renderHeader()} />;
       break;
     case '#/mi-jardin':
       pageContent = <MyGardenPage header={renderHeader()} />;

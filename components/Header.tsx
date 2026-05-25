@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon, HeartIcon, CalendarIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon, HeartIcon, CalendarIcon, FlowerIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -42,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
     { id: 'nav-link-guia-riego', href: '#/guia-riego', label: 'Guía de Riego', icon: <WaterDropIcon className="h-6 w-6 text-white" /> },
     { id: 'nav-link-guia-interactiva', href: '#/guia-interactiva', label: 'Guía Interactiva', icon: <PlayCircleIcon className="h-6 w-6 text-white" /> },
     { id: 'nav-link-doctor-plantas', href: '#/doctor-plantas', label: 'Doctor de Plantas', icon: <HeartbeatIcon className="h-6 w-6 text-white" /> },
+    { id: 'nav-link-orquideas', href: '#/orquideas', label: 'Orquídeas', icon: <FlowerIcon className="h-6 w-6 text-white" /> },
     { id: 'nav-link-puntos-de-venta', href: '#/puntos-de-venta', label: 'Puntos de Venta', icon: <MapPinIcon className="h-6 w-6 text-white" /> },
   ];
 
