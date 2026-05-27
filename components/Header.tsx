@@ -1,13 +1,15 @@
 
 import * as React from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon, HeartIcon, CalendarIcon, FlowerIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, MapPinIcon, HeartIcon, CalendarIcon, FlowerIcon, LockIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
   isHomePage?: boolean;
+  isPremiumUnlocked?: boolean;
+  onLockStatusChange?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
+const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlocked = false, onLockStatusChange }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   // Tema oscuro fijo, eliminada la lógica de detección automática para evitar parpadeos
@@ -142,7 +144,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                 </button>
             </div>
             <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
-              {pageNavLinks.map((link) => (
+              {pageNavLinks.map((link) => {
+                const PREMIUM_HREFS = ['#/mi-jardin', '#/guia-interactiva', '#/doctor-plantas', '#/orquideas'];
+                const isPremiumItem = PREMIUM_HREFS.includes(link.href);
+                return (
                   <a
                     key={link.href}
                     id={link.id}
@@ -152,10 +157,57 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage }) => {
                   >
                     <div className="p-1 bg-gray-800 rounded-full">{link.icon}</div>
                     <span>{link.label}</span>
+                    {isPremiumItem && (
+                      <span className={`ml-auto text-[10px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1 border ${
+                        isPremiumUnlocked 
+                          ? 'bg-emerald-950 text-emerald-400 border-green-850/50 animate-pulse' 
+                          : 'bg-stone-900 text-stone-500 border-stone-800'
+                      }`}>
+                        {isPremiumUnlocked ? '✨ CLUB' : '🔒 CLUB'}
+                      </span>
+                    )}
                   </a>
-              ))}
+                );
+              })}
             </nav>
-            <div className="p-4 text-center text-gray-500 text-xs border-t border-gray-800 bg-gray-900/80 mt-auto">
+
+            {/* Club Premium Code Control Drawer Panel */}
+            {isPremiumUnlocked ? (
+              <div className="mx-4 my-2 p-3 bg-gradient-to-r from-emerald-950 to-green-950 border border-emerald-850 rounded-2xl flex items-center justify-between text-xs font-bold shadow-lg">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <span className="text-sm">🌟</span>
+                  <div>
+                    <span className="block text-white text-[10px] uppercase font-extrabold tracking-wider leading-none mb-0.5">Acceso Completo</span>
+                    <span className="block text-[11px] text-emerald-300 font-medium">Club Premium Activo</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    if (onLockStatusChange) {
+                      onLockStatusChange();
+                    }
+                  }}
+                  className="bg-stone-905 hover:bg-stone-850 text-stone-400 hover:text-red-450 border border-stone-800 font-bold py-1.5 px-3 rounded-lg text-[10px] uppercase transition-colors pointer-events-auto cursor-pointer"
+                  title="Eliminar caché de código premium"
+                >
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <div className="mx-4 my-2 p-3.5 bg-stone-900/60 border border-stone-800/60 rounded-2xl flex flex-col gap-2.5 text-xs text-center">
+                <div className="text-stone-400 font-bold text-[10px] uppercase tracking-wider">¿Ya tienes tu Emulsión?</div>
+                <a 
+                  href="#/orquideas"
+                  onClick={(e) => handleLinkClick(e, '#/orquideas')}
+                  className="bg-gradient-to-r from-green-700 to-emerald-600 hover:from-green-600 hover:to-emerald-500 text-center text-white font-extrabold py-2 px-3 rounded-xl text-xs tracking-wide transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <LockIcon className="h-3.5 w-3.5 text-green-300" />
+                  <span>Activar Club Premium</span>
+                </a>
+              </div>
+            )}
+
+            <div className="p-4 text-center text-gray-500 text-xs border-t border-gray-800 bg-gray-900/80 mt-2">
               <p className="flex items-center justify-center gap-1 mb-1">
                   Hecho con <HeartIcon className="w-3 h-3 text-red-500 animate-pulse" /> para tu jardín.
               </p>

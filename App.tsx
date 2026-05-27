@@ -26,6 +26,7 @@ import PhInfoSection from './components/PhInfoSection';
 import CuriousFactPopup from './components/CuriousFactPopup';
 import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
+import PremiumGate from './components/PremiumGate';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -81,6 +82,23 @@ const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
   const [appState, setAppState] = React.useState<AppState>('splash');
   const [showFactPopup, setShowFactPopup] = React.useState(false);
+  const [isPremiumUnlocked, setIsPremiumUnlocked] = React.useState<boolean>(() => {
+    return !!localStorage.getItem('suelo_urbano_premium_code');
+  });
+
+  const handleUnlock = (code: string, isVip: boolean) => {
+    localStorage.setItem('suelo_urbano_premium_code', code);
+    setIsPremiumUnlocked(true);
+  };
+
+  const handleLockStatusChange = () => {
+    localStorage.removeItem('suelo_urbano_premium_code');
+    setIsPremiumUnlocked(false);
+    const PREMIUM_ROUTES = ['#/mi-jardin', '#/guia-interactiva', '#/doctor-plantas', '#/orquideas'];
+    if (PREMIUM_ROUTES.includes(window.location.hash)) {
+      window.location.hash = '#';
+    }
+  };
 
   // Inicializar contador de prueba gratuita si no existe
   React.useEffect(() => {
@@ -156,7 +174,14 @@ const App: React.FC = () => {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     };
-    return <Header onNavigate={isHome ? scrollTo : undefined} isHomePage={isHome} />;
+    return (
+      <Header 
+        onNavigate={isHome ? scrollTo : undefined} 
+        isHomePage={isHome} 
+        isPremiumUnlocked={isPremiumUnlocked}
+        onLockStatusChange={handleLockStatusChange}
+      />
+    );
   };
 
   switch (route) {
@@ -173,16 +198,32 @@ const App: React.FC = () => {
       pageContent = <WateringGuidePage header={renderHeader()} />;
       break;
     case '#/doctor-plantas':
-      pageContent = <PlantDoctorPage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <PlantDoctorPage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Doctor de Plantas con IA" />
+      );
       break;
     case '#/orquideas':
-      pageContent = <OrquideasPage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <OrquideasPage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Guía Especial de Orquídeas" />
+      );
       break;
     case '#/mi-jardin':
-      pageContent = <MyGardenPage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <MyGardenPage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Mi Jardín Urbano" />
+      );
       break;
     case '#/guia-interactiva':
-      pageContent = <HowToUsePage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <HowToUsePage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Guía Interactiva Avanzada" />
+      );
       break;
     case '#/puntos-de-venta':
       pageContent = <LocationsPage header={renderHeader()} />;
