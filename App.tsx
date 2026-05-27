@@ -94,7 +94,15 @@ const App: React.FC = () => {
   const handleLockStatusChange = () => {
     localStorage.removeItem('suelo_urbano_premium_code');
     setIsPremiumUnlocked(false);
-    const PREMIUM_ROUTES = ['#/mi-jardin', '#/guia-interactiva', '#/doctor-plantas', '#/orquideas'];
+    const PREMIUM_ROUTES = [
+      '#/mi-jardin', 
+      '#/guia-interactiva', 
+      '#/doctor-plantas', 
+      '#/orquideas',
+      '#/utilidades',
+      '#/composicion',
+      '#/guia-riego'
+    ];
     if (PREMIUM_ROUTES.includes(window.location.hash)) {
       window.location.hash = '#';
     }
@@ -189,13 +197,25 @@ const App: React.FC = () => {
       pageContent = <OrderPage header={renderHeader()} />;
       break;
     case '#/utilidades':
-      pageContent = <UtilitiesPage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <UtilitiesPage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Utilidades Avanzadas de Jardinería" />
+      );
       break;
     case '#/composicion':
-      pageContent = <CompositionPage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <CompositionPage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Sección de Composición Detallada" />
+      );
       break;
     case '#/guia-riego':
-      pageContent = <WateringGuidePage header={renderHeader()} />;
+      pageContent = isPremiumUnlocked ? (
+        <WateringGuidePage header={renderHeader()} />
+      ) : (
+        <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Guía de Riego Automatizada" />
+      );
       break;
     case '#/doctor-plantas':
       pageContent = isPremiumUnlocked ? (
@@ -260,7 +280,9 @@ const App: React.FC = () => {
 
         {/* Overlays that are not blurred */}
         {/* Chatbot: Visible en HomePage y cuando el estado es 'home' o 'splash' (bienvenida) */}
-        {isHomePage && (appState === 'home' || appState === 'splash') && <Chatbot />}
+        {isHomePage && (appState === 'home' || appState === 'splash') && (
+          <Chatbot isPremiumUnlocked={isPremiumUnlocked} onUnlock={handleUnlock} />
+        )}
         
         <CuriousFactPopup isVisible={showFactPopup} onClose={() => setShowFactPopup(false)} />
         

@@ -145,7 +145,15 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
             </div>
             <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
               {pageNavLinks.map((link) => {
-                const PREMIUM_HREFS = ['#/mi-jardin', '#/guia-interactiva', '#/doctor-plantas', '#/orquideas'];
+                const PREMIUM_HREFS = [
+                  '#/mi-jardin', 
+                  '#/guia-interactiva', 
+                  '#/doctor-plantas', 
+                  '#/orquideas',
+                  '#/utilidades',
+                  '#/composicion',
+                  '#/guia-riego'
+                ];
                 const isPremiumItem = PREMIUM_HREFS.includes(link.href);
                 return (
                   <a

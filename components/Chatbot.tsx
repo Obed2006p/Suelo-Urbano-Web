@@ -48,9 +48,58 @@ const PROMO_MESSAGES = [
     "¿Dudas con la composta? 🍂"
 ];
 
-const Chatbot: React.FC = () => {
+interface ChatbotProps {
+    isPremiumUnlocked?: boolean;
+    onUnlock?: (code: string, isVip: boolean) => void;
+}
+
+const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [chatbotCode, setChatbotCode] = useState('');
+    const [inlineError, setInlineError] = useState('');
+
+    const handleInlineUnlock = (e: React.FormEvent) => {
+        e.preventDefault();
+        setInlineError('');
+        const cleanCode = chatbotCode.trim().toUpperCase();
+
+        if (!cleanCode) {
+            setInlineError('Escribe tu código.');
+            return;
+        }
+
+        const CUSTOMER_CODES = [
+            'SU-2026',
+            'SU-EMULSION',
+            'SU-BIO',
+            'SU-JARDI',
+            'SU-ORQUI',
+            'SU-PREMIUM',
+            'SU-CLUB',
+            'SUELO2026',
+            'EMULSION'
+        ];
+
+        const VIP_CODES = [
+            'SU-VIP-DEVELOPER',
+            'VIP-SUELO-2026',
+            'VIP-DEVELOPER',
+            'SUVIP',
+            'VIP'
+        ];
+
+        const isVip = VIP_CODES.includes(cleanCode);
+        const isCustomer = CUSTOMER_CODES.includes(cleanCode);
+
+        if (isVip || isCustomer) {
+            if (onUnlock) {
+                onUnlock(cleanCode, isVip);
+            }
+        } else {
+            setInlineError('Código inválido o incorrecto.');
+        }
+    };
 
     // Observar cambios de clase en el body para detectar de forma de proactiva si el menú de navegación está abierto
     useEffect(() => {
@@ -264,7 +313,7 @@ const Chatbot: React.FC = () => {
                         </span>
                         Asistente Virtual IA
                     </div>
-                    <span>{PROMO_MESSAGES[promoIndex]}</span>
+                    <span>{isPremiumUnlocked ? PROMO_MESSAGES[promoIndex] : "🔒 Jardinero IA (Exclusivo Club)"}</span>
                     {/* Triángulo de la burbuja */}
                     <div className="absolute -bottom-1.5 left-3 w-3 h-3 bg-white dark:bg-stone-800 border-b border-r border-green-200 dark:border-green-700 transform rotate-45"></div>
                 </div>
@@ -326,96 +375,152 @@ const Chatbot: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 bg-stone-50 dark:bg-stone-900 space-y-4 scroll-smooth">
-                    {messages.map((msg, index) => (
-                        <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                            {msg.image && (
-                                <div className={`mb-1 max-w-[85%] rounded-2xl overflow-hidden border-2 ${msg.sender === 'user' ? 'border-green-600' : 'border-stone-200'}`}>
-                                    <img src={msg.image} alt="Enviado por usuario" className="w-full h-auto max-h-60 object-cover" />
-                                </div>
-                            )}
-                            {msg.text && (
-                                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                                    msg.sender === 'user' 
-                                        ? 'bg-green-600 text-white rounded-tr-none' 
-                                        : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-tl-none border border-stone-200 dark:border-stone-600'
-                                }`}>
-                                    <div className="whitespace-pre-wrap">{msg.text}</div>
-                                    {msg.action === 'weather' && (
-                                        <button 
-                                            onClick={handleWeatherRequest}
-                                            disabled={isLoading}
-                                            className="mt-3 bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/50 dark:hover:bg-green-800/60 dark:text-green-300 font-bold py-2 px-4 rounded-xl text-xs w-full transition-colors truncate"
-                                        >
-                                            🌤️ Dar Permiso y Obtener Consejo
-                                        </button>
+                {isPremiumUnlocked ? (
+                    <>
+                        {/* Messages Area */}
+                        <div className="flex-1 overflow-y-auto p-4 bg-stone-50 dark:bg-stone-900 space-y-4 scroll-smooth">
+                            {messages.map((msg, index) => (
+                                <div key={index} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                                    {msg.image && (
+                                        <div className={`mb-1 max-w-[85%] rounded-2xl overflow-hidden border-2 ${msg.sender === 'user' ? 'border-green-600' : 'border-stone-200'}`}>
+                                            <img src={msg.image} alt="Enviado por usuario" className="w-full h-auto max-h-60 object-cover" />
+                                        </div>
+                                    )}
+                                    {msg.text && (
+                                        <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                                            msg.sender === 'user' 
+                                                ? 'bg-green-600 text-white rounded-tr-none' 
+                                                : 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-200 rounded-tl-none border border-stone-200 dark:border-stone-600'
+                                        }`}>
+                                            <div className="whitespace-pre-wrap">{msg.text}</div>
+                                            {msg.action === 'weather' && (
+                                                <button 
+                                                    onClick={handleWeatherRequest}
+                                                    disabled={isLoading}
+                                                    className="mt-3 bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/50 dark:hover:bg-green-800/60 dark:text-green-300 font-bold py-2 px-4 rounded-xl text-xs w-full transition-colors truncate"
+                                                >
+                                                    🌤️ Dar Permiso y Obtener Consejo
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    ))}
-                    {isLoading && (
-                        <div className="flex justify-start">
-                            <div className="bg-white dark:bg-stone-700 rounded-2xl rounded-tl-none px-4 py-3 border border-stone-200 dark:border-stone-600">
-                                <div className="flex gap-1 items-center">
-                                    <span className="text-xs text-stone-400 mr-2">Analizando...</span>
-                                    <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce"></div>
-                                    <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                    <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                            ))}
+                            {isLoading && (
+                                <div className="flex justify-start">
+                                    <div className="bg-white dark:bg-stone-700 rounded-2xl rounded-tl-none px-4 py-3 border border-stone-200 dark:border-stone-600">
+                                        <div className="flex gap-1 items-center">
+                                            <span className="text-xs text-stone-400 mr-2">Analizando...</span>
+                                            <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce"></div>
+                                            <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                            <div className="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
 
-                {/* Preview Area (if image selected) */}
-                {previewUrl && (
-                    <div className="px-4 py-2 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between animate-fade-in-up">
-                        <div className="flex items-center gap-3">
-                            <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border border-stone-300" />
-                            <span className="text-xs text-stone-500 dark:text-stone-400 truncate max-w-[150px]">{selectedFile?.name}</span>
+                        {/* Preview Area (if image selected) */}
+                        {previewUrl && (
+                            <div className="px-4 py-2 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between animate-fade-in-up">
+                                <div className="flex items-center gap-3">
+                                    <img src={previewUrl} alt="Preview" className="h-12 w-12 object-cover rounded-lg border border-stone-300" />
+                                    <span className="text-xs text-stone-500 dark:text-stone-400 truncate max-w-[150px]">{selectedFile?.name}</span>
+                                </div>
+                                <button onClick={clearFile} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                    <XIcon className="h-5 w-5" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Input Area */}
+                        <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 shrink-0 safe-area-bottom">
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="text-stone-500 hover:text-green-600 dark:text-stone-400 dark:hover:text-green-400 transition-colors p-2.5 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full active:scale-95"
+                                title="Subir foto de maceta, pH o planta"
+                            >
+                                <CameraIcon className="h-6 w-6" />
+                            </button>
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleFileSelect} 
+                                accept="image/*" 
+                                className="hidden" 
+                            />
+                            
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Escribe o sube una foto..."
+                                className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all border border-transparent focus:border-green-500"
+                            />
+                            <button 
+                                type="submit" 
+                                disabled={isLoading || (!inputValue.trim() && !selectedFile)} 
+                                className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md flex-shrink-0 active:scale-95"
+                            >
+                                <PaperAirplaneIcon className="h-5 w-5 transform -rotate-45 translate-x-0.5" />
+                            </button>
+                        </form>
+                    </>
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-900 dark:to-stone-950 text-center relative overflow-hidden">
+                        <div className="absolute top-10 left-10 w-40 h-40 bg-emerald-500/5 dark:bg-emerald-950/20 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute bottom-10 right-10 w-40 h-40 bg-green-500/5 dark:bg-green-950/20 rounded-full blur-2xl pointer-events-none" />
+                        
+                        <div className="p-4 bg-emerald-100 dark:bg-emerald-950/60 border border-green-200 dark:border-green-800/80 rounded-full text-green-600 dark:text-green-400 mb-4 shadow-md mt-auto">
+                            <span className="text-3xl">🔒</span>
                         </div>
-                        <button onClick={clearFile} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
-                            <XIcon className="h-5 w-5" />
-                        </button>
+
+                        <h4 className="text-lg font-extrabold text-stone-900 dark:text-white mb-2 tracking-tight">
+                            Chatbot del Club Suelo Urbano
+                        </h4>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 mb-6 max-w-xs leading-relaxed">
+                            Este Jardinero Virtual con visión artificial de IA puede diagnosticar tus plantas, leer tiras de pH y analizar tus macetas por foto. Es exclusivo para compradores de la Emulsión Orgánica.
+                        </p>
+
+                        {/* Inline small activation form */}
+                        <div className="w-full max-w-xs bg-white dark:bg-stone-900 p-4 rounded-2xl shadow-md border border-stone-200 dark:border-stone-800/80 mb-auto">
+                            <form onSubmit={handleInlineUnlock} className="space-y-3">
+                                <div>
+                                    <label htmlFor="chatbot-code" className="block text-[10px] uppercase font-extrabold text-stone-400 dark:text-stone-500 tracking-wider text-left mb-1">
+                                        Introduce tu código de Emulsión:
+                                    </label>
+                                    <input
+                                        id="chatbot-code"
+                                        type="text"
+                                        placeholder="Ej: EMULSION o SU-2026"
+                                        value={chatbotCode}
+                                        onChange={(e) => setChatbotCode(e.target.value)}
+                                        className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-850 hover:border-stone-300 dark:hover:border-stone-700/80 rounded-xl py-2.5 px-3 text-center text-sm font-bold tracking-widest uppercase focus:outline-none focus:ring-1 focus:ring-green-900/50 text-stone-900 dark:text-white"
+                                    />
+                                </div>
+                                
+                                {inlineError && (
+                                    <p className="text-red-500 dark:text-red-400 text-[11px] font-bold">
+                                        ⚠️ {inlineError}
+                                    </p>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold py-2.5 px-4 rounded-xl cursor-pointer text-xs shadow transition-all active:scale-98"
+                                >
+                                    Desbloquear Chat y Club
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="text-[10px] text-stone-400 mb-3 leading-relaxed">
+                            ¿Cómo conseguir un código? Te regalamos un código impreso en la etiqueta de tu botella de Emulsión Orgánica de Suelo Urbano.
+                        </div>
                     </div>
                 )}
-
-                {/* Input Area */}
-                <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 flex items-center gap-2 shrink-0 safe-area-bottom">
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-stone-500 hover:text-green-600 dark:text-stone-400 dark:hover:text-green-400 transition-colors p-2.5 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-full active:scale-95"
-                        title="Subir foto de maceta, pH o planta"
-                    >
-                        <CameraIcon className="h-6 w-6" />
-                    </button>
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileSelect} 
-                        accept="image/*" 
-                        className="hidden" 
-                    />
-                    
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Escribe o sube una foto..."
-                        className="flex-1 bg-stone-100 dark:bg-stone-700 text-stone-800 dark:text-white px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all border border-transparent focus:border-green-500"
-                    />
-                    <button 
-                        type="submit" 
-                        disabled={isLoading || (!inputValue.trim() && !selectedFile)} 
-                        className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md flex-shrink-0 active:scale-95"
-                    >
-                        <PaperAirplaneIcon className="h-5 w-5 transform -rotate-45 translate-x-0.5" />
-                    </button>
-                </form>
             </div>
         </>
     );
