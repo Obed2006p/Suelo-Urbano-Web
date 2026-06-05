@@ -126,7 +126,7 @@ const MOCK_DEVICES = [
 
 const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ header }) => {
   const [localData, setLocalData] = useState(getLocalAnalytics());
-  const [useProductionSimulation, setUseProductionSimulation] = useState<boolean>(true);
+  const [useProductionSimulation, setUseProductionSimulation] = useState<boolean>(false);
   const [liveSimulatorBursts, setLiveSimulatorBursts] = useState<number>(0);
   const [simulatedActiveUsers, setSimulatedActiveUsers] = useState<number>(14);
   const [simulatedEvents, setSimulatedEvents] = useState<any[]>([]);

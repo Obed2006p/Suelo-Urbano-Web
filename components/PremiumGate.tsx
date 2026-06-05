@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LockIcon, CheckCircleIcon, SproutIcon, CalendarIcon, HeartbeatIcon, PlayCircleIcon, FlowerIcon } from './icons/Icons';
 
 // Valid codes set (case-insensitive & trimmed)
-const CUSTOMER_CODES = [
+export const CUSTOMER_CODES = [
   'SU-2026',
   'SU-EMULSION',
   'SU-BIO',
@@ -15,7 +15,7 @@ const CUSTOMER_CODES = [
   'EMULSION'
 ];
 
-const VIP_CODES = [
+export const VIP_CODES = [
   'SU-VIP-DEVELOPER',
   'VIP-SUELO-2026',
   'VIP-DEVELOPER',
@@ -27,9 +27,10 @@ interface PremiumGateProps {
   header: React.ReactNode;
   onUnlock: (code: string, isVip: boolean) => void;
   requestedRouteName?: string;
+  requireVip?: boolean;
 }
 
-const PremiumGate: React.FC<PremiumGateProps> = ({ header, onUnlock, requestedRouteName = 'esta sección premium' }) => {
+const PremiumGate: React.FC<PremiumGateProps> = ({ header, onUnlock, requestedRouteName = 'esta sección premium', requireVip = false }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -61,6 +62,10 @@ const PremiumGate: React.FC<PremiumGateProps> = ({ header, onUnlock, requestedRo
           onUnlock(cleanCode, true);
         }, 3000); // Allow success screen animation to play
       } else if (isCustomer) {
+        if (requireVip) {
+          setError('Código de cliente válido, pero esta sección de analítica es exclusiva para Administradores y Programadores VIP de Suelo Urbano.');
+          return;
+        }
         setSuccessState('customer');
         setTimeout(() => {
           onUnlock(cleanCode, false);

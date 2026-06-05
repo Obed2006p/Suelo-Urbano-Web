@@ -26,7 +26,7 @@ import PhInfoSection from './components/PhInfoSection';
 import CuriousFactPopup from './components/CuriousFactPopup';
 import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
-import PremiumGate from './components/PremiumGate';
+import PremiumGate, { VIP_CODES } from './components/PremiumGate';
 import AnalyticsPage from './components/AnalyticsPage';
 import { trackPageView, trackPageTime, trackClick } from './components/analyticsLocalTracker';
 
@@ -292,9 +292,21 @@ const App: React.FC = () => {
       );
       break;
     case '#/panel-analitico':
-    case '#/analytics':
-      pageContent = <AnalyticsPage header={renderHeader()} />;
+    case '#/analytics': {
+      const storedCode = localStorage.getItem('suelo_urbano_premium_code') || '';
+      const isUserVip = VIP_CODES.includes(storedCode.trim().toUpperCase());
+      pageContent = isUserVip ? (
+        <AnalyticsPage header={renderHeader()} />
+      ) : (
+        <PremiumGate 
+          header={renderHeader()} 
+          onUnlock={handleUnlock} 
+          requestedRouteName="Consola Analítica y de Tráfico de Creador" 
+          requireVip={true}
+        />
+      );
       break;
+    }
     case '#/puntos-de-venta':
       pageContent = <LocationsPage header={renderHeader()} />;
       break;
