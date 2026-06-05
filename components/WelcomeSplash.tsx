@@ -119,14 +119,14 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                                 </video>
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
-                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata" poster="https://res.cloudinary.com/dsmzpsool/image/upload/v1780695704/ChatGPT_Image_5_jun_2026_02_14_30_p.m._o6ntue.png">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048277/WhatsApp_Video_2026-05-17_at_1.54.23_PM_rci0wk.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048277/WhatsApp_Video_2026-05-17_at_1.54.24_PM_ddjhoq.mp4" type="video/mp4" />
+                                    <source src="https://res.cloudinary.com/dsmzpsool/video/upload/v1780695430/WhatsApp_Video_2026-06-05_at_2.38.24_PM_mofr2k.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
