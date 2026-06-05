@@ -114,7 +114,7 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048276/WhatsApp_Video_2026-05-17_at_1.54.24_PM_1_asrbrz.mp4" type="video/mp4" />
+                                    <source src="https://res.cloudinary.com/dsmzpsool/video/upload/v1780686022/WhatsApp_Video_2026-06-05_at_12.42.31_PM_ayl9tu.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
                             </div>
