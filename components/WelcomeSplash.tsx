@@ -107,10 +107,12 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                     <div className="animate-fade-in-up order-1 lg:order-2 flex justify-center w-full">
                         <div className="grid grid-cols-2 gap-2 w-full max-w-md lg:max-w-full">
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
-                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
-                                    <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1772852016/WhatsApp_Video_2026-03-06_at_8.31.01_PM_rbnbpl.mp4" type="video/mp4" />
-                                    Tu navegador no soporta el elemento de video.
-                                </video>
+                                <img 
+                                    src="https://res.cloudinary.com/dsmzpsool/image/upload/v1780695704/ChatGPT_Image_5_jun_2026_02_14_30_p.m._o6ntue.png" 
+                                    alt="Suelo Urbano" 
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                />
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
                                 <video className="w-full h-full object-cover" controls playsInline preload="metadata">
@@ -119,7 +121,7 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                                 </video>
                             </div>
                             <div className="aspect-square rounded-xl overflow-hidden border border-white/20 shadow-lg bg-black">
-                                <video className="w-full h-full object-cover" controls playsInline preload="metadata" poster="https://res.cloudinary.com/dsmzpsool/image/upload/v1780695704/ChatGPT_Image_5_jun_2026_02_14_30_p.m._o6ntue.png">
+                                <video className="w-full h-full object-cover" controls playsInline preload="metadata">
                                     <source src="https://res.cloudinary.com/dcm5pug0v/video/upload/v1779048277/WhatsApp_Video_2026-05-17_at_1.54.23_PM_rci0wk.mp4" type="video/mp4" />
                                     Tu navegador no soporta el elemento de video.
                                 </video>
