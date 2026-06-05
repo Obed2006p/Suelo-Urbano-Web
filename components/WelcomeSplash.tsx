@@ -147,7 +147,7 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter }) => {
                                 <HeartbeatIcon className="h-6 w-6 text-lime-400" />
                             </div>
                             <div className="min-w-0">
-                                <p className="font-bold text-sm text-lime-400 truncate">¿Tu planta no mejora?</p>
+                                <p className="font-bold text-sm text-lime-400 truncate">Consultorio de Plantas Suelo Urbano</p>
                                 <p className="text-xs text-white/90 group-hover:text-white truncate">Diagnóstico del ecosistema &rarr;</p>
                             </div>
                         </a>
