@@ -24,6 +24,14 @@ const Footer: React.FC = () => {
           &copy; {new Date().getFullYear()} Alimento para plantas. Todos los derechos reservados.
         </p>
         <p className="text-xs text-green-400 mt-1">Transformando el mañana, un jardín a la vez.</p>
+        <div className="mt-4 pt-4 border-t border-green-800/60 max-w-xs mx-auto">
+          <a 
+            href="#/panel-analitico" 
+            className="text-[11px] text-green-400 hover:text-white transition-colors bg-green-950/45 border border-green-800/40 px-3 py-1.5 rounded-sm inline-flex items-center gap-1.5 hover:border-green-600 font-semibold uppercase tracking-wider"
+          >
+            📊 Consola Analítica y Tráfico
+          </a>
+        </div>
       </div>
     </footer>
   );

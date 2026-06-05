@@ -27,6 +27,8 @@ import CuriousFactPopup from './components/CuriousFactPopup';
 import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
 import PremiumGate from './components/PremiumGate';
+import AnalyticsPage from './components/AnalyticsPage';
+import { trackPageView, trackPageTime, trackClick } from './components/analyticsLocalTracker';
 
 // Declara la función global gtag para que TypeScript la reconozca
 declare global {
@@ -116,11 +118,52 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Referencias para medir permanencia por página
+  const routeStartTimeRef = React.useRef<number>(Date.now());
+  const currentPathRef = React.useRef<string>(getCurrentHash());
+
+  // Registrar clic y eventos en el DOM de forma autonóma
   React.useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const clickableElement = target.closest('button, a, input[type="submit"]');
+      if (clickableElement) {
+        const identifier = clickableElement.id || 
+                           clickableElement.getAttribute('aria-label') || 
+                           clickableElement.textContent?.trim().slice(0, 32) || 
+                           'elemento_interactivo';
+        trackClick(window.location.hash || '#', identifier);
+      }
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    // Trackear la primera visita de sesión
+    trackPageView(getCurrentHash());
+
     const handleHashChange = () => {
       const newRoute = getCurrentHash();
+      
+      // 1. Guardar la permanencia de la sección anterior
+      const previousRoute = currentPathRef.current;
+      const elapsedSeconds = (Date.now() - routeStartTimeRef.current) / 1000;
+      if (elapsedSeconds > 0.5) {
+        trackPageTime(previousRoute, elapsedSeconds);
+      }
+
+      // 2. Cambiar ruta y reiniciar cronómetro
       setRoute(newRoute);
+      currentPathRef.current = newRoute;
+      routeStartTimeRef.current = Date.now();
       window.scrollTo(0, 0);
+
+      // 3. Registrar nueva vista de página en local y en Google Analytics
+      trackPageView(newRoute);
+
       if (typeof window.gtag === 'function') {
         window.gtag('event', 'page_view', {
           page_path: newRoute,
@@ -131,6 +174,9 @@ const App: React.FC = () => {
 
     window.addEventListener('hashchange', handleHashChange);
     return () => {
+      // Registrar permanencia final antes de desmontar
+      const elapsedSeconds = (Date.now() - routeStartTimeRef.current) / 1000;
+      trackPageTime(currentPathRef.current, elapsedSeconds);
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
@@ -244,6 +290,10 @@ const App: React.FC = () => {
       ) : (
         <PremiumGate header={renderHeader()} onUnlock={handleUnlock} requestedRouteName="Guía Interactiva Avanzada" />
       );
+      break;
+    case '#/panel-analitico':
+    case '#/analytics':
+      pageContent = <AnalyticsPage header={renderHeader()} />;
       break;
     case '#/puntos-de-venta':
       pageContent = <LocationsPage header={renderHeader()} />;
