@@ -56,15 +56,59 @@
         "date": {
           "type": "string",
           "description": "Fecha del testimonio."
+        },
+        "price": {
+          "type": "string",
+          "description": "Precio opcional de venta al público para el mural de suelo urbano."
         }
       },
       "required": ["id", "author", "product", "plantType", "headline", "content", "rating", "daysUsed", "image", "likes", "date"]
+    },
+    "MuralSolicitud": {
+      "title": "MuralSolicitud",
+      "description": "Una solicitud enviada por un cliente para vender su planta a través del Mural Suelo Urbano.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "clientContact": {
+          "type": "string"
+        },
+        "plantType": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"]
+        }
+      },
+      "required": ["id", "clientName", "clientContact", "plantType", "description", "price", "image", "date", "status"]
     }
   },
   "firestore": {
     "muro_posts/{postId}": {
       "schema": "MuroPost",
-      "description": "Colección pública de testimonios y resultados de la emulsión Suelo Urbano compartidos por clientes."
+      "description": "Colección pública de plantas en el Mural Suelo Urbano con precios."
+    },
+    "mural_solicitudes/{solicitudeId}": {
+      "schema": "MuralSolicitud",
+      "description": "Solicitudes de venta de plantas enviadas por clientes."
     }
   }
 }

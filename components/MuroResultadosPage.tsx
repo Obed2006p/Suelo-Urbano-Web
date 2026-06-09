@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { resizeImageToBase64 } from '../lib/gardenStorage';
-import { getGardenPlants } from '../lib/gardenStorage';
 import { 
   SproutIcon, 
   HeartIcon, 
@@ -8,7 +7,10 @@ import {
   CheckCircleIcon, 
   LockIcon, 
   LeafIcon,
-  SearchIcon 
+  SearchIcon,
+  SparklesIcon,
+  CameraIcon,
+  XIcon
 } from './icons/Icons';
 
 // Firebase & Cloudinary integrations
@@ -17,6 +19,7 @@ import {
   doc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   increment, 
   onSnapshot, 
   query 
@@ -38,14 +41,34 @@ export interface MuroPost {
   beforeImage?: string; // Optional before image URL/base64
   likes: number;
   date: string;
+  price?: string; // New: price tag
   isPreset?: boolean;
 }
 
-// Initial community postings (empty for real customer entries)
-const PRESET_POSTS: MuroPost[] = [];
+// Client sell request submittor
+export interface MuralSolicitud {
+  id: string;
+  clientName: string;
+  clientContact: string; // WhatsApp, email etc
+  plantType: string;
+  description: string;
+  price: string;
+  image: string; // base64 or URL
+  date: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
 
 const LOCAL_STORAGE_KEY = 'suelo_urbano_muro_posts';
+const LOCAL_SOLICITUDES_KEY = 'suelo_urbano_mural_solicitudes';
 const LIKES_KEY_PREFIX = 'suelo_muro_liked_';
+
+const VIP_CODES = [
+  'SU-VIP-DEVELOPER',
+  'VIP-SUELO-2026',
+  'VIP-DEVELOPER',
+  'SUVIP',
+  'VIP'
+];
 
 interface MuroResultadosPageProps {
   header: React.ReactNode;
@@ -53,13 +76,28 @@ interface MuroResultadosPageProps {
 
 const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
   const [posts, setPosts] = useState<MuroPost[]>([]);
+  const [solicitudes, setSolicitudes] = useState<MuralSolicitud[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [productFilter, setProductFilter] = useState('all');
+  
+  // Access levels and passcode gates
+  const [isVipMode, setIsVipMode] = useState<boolean>(() => {
+    const savedCode = localStorage.getItem('suelo_urbano_premium_code') || '';
+    return VIP_CODES.includes(savedCode.trim().toUpperCase());
+  });
+  const [vipCodeInput, setVipCodeInput] = useState('');
+  const [vipError, setVipError] = useState('');
+  const [showVipTrigger, setShowVipTrigger] = useState(false);
+
+  // General forms toggles
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showSendForm, setShowSendForm] = useState(false); // form for clients to send submissions
+
+  // Image Upload Text Indicators
   const [imageBeforeText, setImageBeforeText] = useState('');
   const [imageAfterText, setImageAfterText] = useState('');
+  const [clientImageText, setClientImageText] = useState('');
   
-  // Form State
+  // VIP/Admin upload form
   const [formData, setFormData] = useState({
     author: '',
     product: 'Suelo Urbano Premium',
@@ -70,54 +108,66 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
     daysUsed: 15,
     image: '',
     beforeImage: '',
-    hasBeforeAfter: false
+    hasBeforeAfter: false,
+    price: '' // New Price field
+  });
+
+  // Client sale request form
+  const [clientForm, setClientForm] = useState({
+    clientName: '',
+    clientContact: '',
+    plantType: '',
+    description: '',
+    price: '',
+    image: '',
   });
   
   const [isCompresing, setIsCompressing] = useState(false);
   const [isCompresingBefore, setIsCompressingBefore] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // Cloudinary uploading progress
+  const [isCompresingClient, setIsCompresingClient] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); 
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
+
+  const [clientFormError, setClientFormError] = useState('');
+  const [clientFormSuccess, setClientFormSuccess] = useState(false);
+  const [lastSubmittedId, setLastSubmittedId] = useState<string | null>(null);
+
   const [likedPosts, setLikedPosts] = useState<{ [key: string]: boolean }>({});
-  
-  // Toggle viewer for before/after posts
   const [visibleHistoryToggle, setVisibleHistoryToggle] = useState<{ [key: string]: 'before' | 'after' }>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const beforeFileInputRef = useRef<HTMLInputElement>(null);
+  const clientFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load posts either from real-time Firebase cloud flow, or from local storage fallback
+  // Synchronize Posts and Solicitudes
   useEffect(() => {
-    let unsubscribe: () => void = () => {};
+    let unsubscribePosts: () => void = () => {};
+    let unsubscribeSolicitudes: () => void = () => {};
 
+    // 1st snapshot: Muro/Mural Posts
     if (isFirebaseActive) {
       try {
         const postsRef = collection(db, 'muro_posts');
-        const q = query(postsRef);
-        
-        unsubscribe = onSnapshot(q, (snapshot) => {
+        unsubscribePosts = onSnapshot(query(postsRef), (snapshot) => {
           const dbPosts: MuroPost[] = [];
           snapshot.forEach((docSnap) => {
             dbPosts.push(docSnap.data() as MuroPost);
           });
           
-          // Sort Firestore posts so that newer posts (higher timestamp / id suffix) appear top
           dbPosts.sort((a, b) => {
-            // Compare dates or fall back to ID
             const dateA = new Date(a.date).getTime() || 0;
             const dateB = new Date(b.date).getTime() || 0;
             if (dateA !== dateB) return dateB - dateA;
             return b.id.localeCompare(a.id);
           });
 
-          // Join Firestore live cloud feed together with our elegant core static presets
-          const merged = [...dbPosts, ...PRESET_POSTS];
-          setPosts(merged);
+          setPosts(dbPosts);
 
-          // Build local responsive image comparisons on-the-fly
+          // Build view togglers
           setVisibleHistoryToggle(prev => {
             const next = { ...prev };
-            merged.forEach(p => {
+            dbPosts.forEach(p => {
               if (p.hasBeforeAfter && next[p.id] === undefined) {
                 next[p.id] = 'after';
               }
@@ -125,10 +175,10 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
             return next;
           });
 
-          // Sync voting triggers from localStorage
+          // Sync votes indexes
           setLikedPosts(prev => {
             const next = { ...prev };
-            merged.forEach(p => {
+            dbPosts.forEach(p => {
               const isLiked = localStorage.getItem(`${LIKES_KEY_PREFIX}${p.id}`) === 'true';
               if (isLiked) {
                 next[p.id] = true;
@@ -137,30 +187,54 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
             return next;
           });
         }, (error) => {
-          console.warn("Firestore onSnapshot error, falling back dynamically:", error);
-          handleFirestoreError(error, OperationType.GET, 'muro_posts');
+          console.warn("Firestore onSnapshot public posts failed, falling back local:", error);
         });
+
+        // 2nd snapshot: Client Solicitudes (Only for review)
+        const solicRef = collection(db, 'mural_solicitudes');
+        unsubscribeSolicitudes = onSnapshot(query(solicRef), (snapshot) => {
+          const dbSolicitudes: MuralSolicitud[] = [];
+          snapshot.forEach((docSnap) => {
+            dbSolicitudes.push(docSnap.data() as MuralSolicitud);
+          });
+          dbSolicitudes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setSolicitudes(dbSolicitudes);
+        }, (err) => {
+          console.warn("Firestore solicitudes fetch failed:", err);
+        });
+
       } catch (err) {
-        console.error("Failed to query live firestore streams:", err);
+        console.error("Failed to query live Firestore catalogs:", err);
       }
     } else {
-      // Local fallback mode
+      // Local fallback mode: Posts
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      let loadedPosts = [...PRESET_POSTS];
+      let loadedPosts: MuroPost[] = [];
       if (saved) {
         try {
-          const parsed = JSON.parse(saved) as MuroPost[];
-          loadedPosts = [...parsed, ...PRESET_POSTS];
+          loadedPosts = JSON.parse(saved) as MuroPost[];
         } catch (e) {
-          console.error("Error reading saved local-only muro posts:", e);
+          console.error("Error reading fallback posts:", e);
         }
       }
       setPosts(loadedPosts);
 
+      // Local fallback mode: Solicitudes
+      const savedSol = localStorage.getItem(LOCAL_SOLICITUDES_KEY);
+      let loadedSol: MuralSolicitud[] = [];
+      if (savedSol) {
+        try {
+          loadedSol = JSON.parse(savedSol) as MuralSolicitud[];
+        } catch (e) {
+          console.error("Error reading fallback requests:", e);
+        }
+      }
+      setSolicitudes(loadedSol);
+
+      // Setup initial visual indexes
       const initialLikes: { [key: string]: boolean } = {};
       loadedPosts.forEach(p => {
-        const isLiked = localStorage.getItem(`${LIKES_KEY_PREFIX}${p.id}`) === 'true';
-        if (isLiked) {
+        if (localStorage.getItem(`${LIKES_KEY_PREFIX}${p.id}`) === 'true') {
           initialLikes[p.id] = true;
         }
       });
@@ -168,20 +242,49 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
 
       const initialToggles: { [key: string]: 'before' | 'after' } = {};
       loadedPosts.forEach(p => {
-        if (p.hasBeforeAfter) {
-          initialToggles[p.id] = 'after';
-        }
+        if (p.hasBeforeAfter) initialToggles[p.id] = 'after';
       });
       setVisibleHistoryToggle(initialToggles);
     }
 
     return () => {
-      unsubscribe();
+      unsubscribePosts();
+      unsubscribeSolicitudes();
     };
   }, []);
 
-  const savePostsToLocal = (newCustomPostsOnly: MuroPost[]) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCustomPostsOnly));
+  // Save fallback triggers
+  const savePostsToLocal = (updatedList: MuroPost[]) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedList));
+  };
+
+  const saveSolicitudesToLocal = (updatedList: MuralSolicitud[]) => {
+    localStorage.setItem(LOCAL_SOLICITUDES_KEY, JSON.stringify(updatedList));
+  };
+
+  // Lock status checkers
+  const handleVipUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    setVipError('');
+    const code = vipCodeInput.trim().toUpperCase();
+    if (!code) {
+      setVipError('Introduce un código.');
+      return;
+    }
+
+    if (VIP_CODES.includes(code)) {
+      localStorage.setItem('suelo_urbano_premium_code', code);
+      setIsVipMode(true);
+      setVipCodeInput('');
+      setShowVipTrigger(false);
+    } else {
+      setVipError('Código inválido. Introduce un código VIP premium (Ej: VIP, SUVIP).');
+    }
+  };
+
+  const handleVipLock = () => {
+    localStorage.removeItem('suelo_urbano_premium_code');
+    setIsVipMode(false);
   };
 
   const handleLike = async (postId: string) => {
@@ -194,179 +297,158 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
       setLikedPosts(prev => ({ ...prev, [postId]: false }));
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p));
       
-      if (isFirebaseActive && !postId.startsWith('preset-')) {
+      if (isFirebaseActive) {
         try {
           const postRef = doc(db, 'muro_posts', postId);
           await updateDoc(postRef, {
             likes: increment(-1)
           });
         } catch (err) {
-          console.error("Firestore unlike synchrony failed:", err);
+          console.error("Database vote cancellation failed:", err);
         }
       } else {
-        const customOnes = posts.filter(p => !p.isPreset).map(p => p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p);
-        savePostsToLocal(customOnes);
+        const localOnly = posts.map(p => p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p);
+        savePostsToLocal(localOnly);
       }
     } else {
       // Like Operation
       localStorage.setItem(itemKey, 'true');
       setLikedPosts(prev => ({ ...prev, [postId]: true }));
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
-
-      if (isFirebaseActive && !postId.startsWith('preset-')) {
+      
+      if (isFirebaseActive) {
         try {
           const postRef = doc(db, 'muro_posts', postId);
           await updateDoc(postRef, {
             likes: increment(1)
           });
         } catch (err) {
-          console.error("Firestore like synchrony failed:", err);
+          console.error("Database voting persistence failed:", err);
         }
       } else {
-        const customOnes = posts.filter(p => !p.isPreset).map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p);
-        savePostsToLocal(customOnes);
+        const localOnly = posts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p);
+        savePostsToLocal(localOnly);
       }
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isBefore = false) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (isBefore) {
-        setIsCompressingBefore(true);
-        try {
-          const compressed = await resizeImageToBase64(file, 450);
-          setFormData(prev => ({ ...prev, beforeImage: compressed }));
-          setImageBeforeText(file.name);
-        } catch (err) {
-          console.error(err);
-          setFormError('No se pudo procesar la foto de antes.');
-        } finally {
-          setIsCompressingBefore(false);
-        }
-      } else {
-        setIsCompressing(true);
-        try {
-          const compressed = await resizeImageToBase64(file, 450);
-          setFormData(prev => ({ ...prev, image: compressed }));
-          setImageAfterText(file.name);
-        } catch (err) {
-          console.error(err);
-          setFormError('No se pudo procesar la foto de resultado.');
-        } finally {
-          setIsCompressing(false);
-        }
+  // Image Compressors
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isBefore: boolean = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (isBefore) {
+      setIsCompressingBefore(true);
+      setImageBeforeText(`Cargando y optimizando...`);
+      try {
+        const base64 = await resizeImageToBase64(file, 800, 800);
+        setFormData(prev => ({ ...prev, beforeImage: base64 }));
+        setImageBeforeText(`Foto cargada (${(base64.length / 1024).toFixed(0)} KB)`);
+      } catch (err) {
+        setImageBeforeText("Error al reducir");
+      } finally {
+        setIsCompressingBefore(false);
+      }
+    } else {
+      setIsCompressing(true);
+      setImageAfterText(`Cargando y optimizando...`);
+      try {
+        const base64 = await resizeImageToBase64(file, 800, 800);
+        setFormData(prev => ({ ...prev, image: base64 }));
+        setImageAfterText(`Foto cargada (${(base64.length / 1024).toFixed(0)} KB)`);
+      } catch (err) {
+        setImageAfterText("Error al reducir");
+      } finally {
+        setIsCompressing(false);
       }
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Client file picker compressor
+  const handleClientFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsCompresingClient(true);
+    setClientImageText(`Procesando foto de planta...`);
+    try {
+      const base64 = await resizeImageToBase64(file, 800, 800);
+      setClientForm(prev => ({ ...prev, image: base64 }));
+      setClientImageText(`Foto de planta optimizada! (${(base64.length / 1024).toFixed(0)} KB)`);
+    } catch (err) {
+      setClientImageText("Error al reducir");
+    } finally {
+      setIsCompresingClient(false);
+    }
+  };
+
+  // VIP Admin Post Publisher Submit
+  const handleVipSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
+    setFormSuccess(false);
 
-    if (!formData.author.trim()) {
-      setFormError('Por favor ingresa tu nombre o apodo.');
-      return;
-    }
-    if (!formData.plantType.trim()) {
-      setFormError('Por favor indica el tipo de planta (ej. Rosal, Helecho).');
-      return;
-    }
-    if (!formData.headline.trim()) {
-      setFormError('Por favor escribe un título llamativo para tu resultado.');
-      return;
-    }
-    if (!formData.content.trim()) {
-      setFormError('Por favor agrega la descripción de tus resultados.');
-      return;
-    }
-    if (!formData.image) {
-      setFormError('Por favor sube una foto del resultado de tu hermosa planta.');
-      return;
-    }
+    // Validation
+    if (!formData.author.trim()) return setFormError('Por favor, indica quién registra o sube la información.');
+    if (!formData.plantType.trim()) return setFormError('Especifica el tipo de planta u orquídea.');
+    if (!formData.headline.trim()) return setFormError('Elige un título descriptivo para la publicación.');
+    if (!formData.content.trim()) return setFormError('Proporciona una descripción detallada para el mural.');
+    if (!formData.image) return setFormError('Debes subir al menos una fotografía de la planta.');
     if (formData.hasBeforeAfter && !formData.beforeImage) {
-      setFormError('Has activado la comparación de "Antes de usar". Sube una foto de antes.');
-      return;
+      return setFormError('Marcaste antes/después pero falta la foto del "antes".');
     }
 
     setIsUploading(true);
-    let finalImageUrl = '';
-    let finalBeforeImageUrl = '';
 
     try {
-      // 1. Upload main showcase image to Cloudinary (will return secure HTTPS URL)
-      if (formData.image.startsWith('data:')) {
-        finalImageUrl = await uploadToCloudinary(formData.image);
-      } else {
-        finalImageUrl = formData.image;
-      }
+      let finalAfterUrl = formData.image;
+      let finalBeforeUrl = formData.beforeImage || '';
 
-      // 2. Upload optionally before image to Cloudinary
-      if (formData.hasBeforeAfter && formData.beforeImage) {
-        if (formData.beforeImage.startsWith('data:')) {
-          finalBeforeImageUrl = await uploadToCloudinary(formData.beforeImage);
-        } else {
-          finalBeforeImageUrl = formData.beforeImage;
-        }
-      }
-    } catch (uploadErr) {
-      console.error("Cloudinary upload failed:", uploadErr);
-      setFormError('Ocurrió un inconveniente al subir tus fotos a Cloudinary. Por favor reintenta.');
-      setIsUploading(false);
-      return;
-    }
-
-    const customId = 'custom-' + Math.random().toString(36).substr(2, 9);
-    const newPost: MuroPost = {
-      id: customId,
-      author: formData.author.trim(),
-      product: formData.product,
-      plantType: formData.plantType.trim(),
-      headline: formData.headline.trim(),
-      content: formData.content.trim(),
-      rating: formData.rating,
-      daysUsed: formData.daysUsed,
-      image: finalImageUrl,
-      hasBeforeAfter: formData.hasBeforeAfter,
-      likes: 0,
-      date: new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
-    };
-
-    if (formData.hasBeforeAfter && finalBeforeImageUrl) {
-      newPost.beforeImage = finalBeforeImageUrl;
-    }
-
-    if (isFirebaseActive) {
-      try {
-        // Safe persist to Firestore
-        await setDoc(doc(db, 'muro_posts', customId), newPost);
-      } catch (firestoreErr: any) {
-        console.error("Firestore persistence error:", firestoreErr);
-        setIsUploading(false);
-        setFormError(`Error al guardar en Firebase: ${firestoreErr.message || firestoreErr}`);
+      // Upload base64 files to Cloudinary for cloud durability
+      if (formData.image.startsWith('data:image')) {
         try {
-          handleFirestoreError(firestoreErr, OperationType.CREATE, `muro_posts/${customId}`);
-        } catch (e) {
-          // Avoid uncaught error breaking UI flow
+          finalAfterUrl = await uploadToCloudinary(formData.image);
+        } catch (_) {
+          console.warn("Unable to store main image in Cloudinary, keeping local data URL.");
         }
-        return;
       }
-    } else {
-      // Offline fallback
-      const currentCustomOnes = posts.filter(p => !p.isPreset);
-      const updatedCustomOnes = [newPost, ...currentCustomOnes];
-      savePostsToLocal(updatedCustomOnes);
-      setPosts([newPost, ...posts]);
-    }
 
-    setIsUploading(false);
-    
-    // Succcess message & Reset Form
-    setFormSuccess(true);
-    setTimeout(() => {
-      setFormSuccess(false);
-      setShowAddForm(false);
-      // Reset
+      if (formData.beforeImage && formData.beforeImage.startsWith('data:image')) {
+        try {
+          finalBeforeUrl = await uploadToCloudinary(formData.beforeImage);
+        } catch (_) {
+          console.warn("Unable to store before image in Cloudinary, keeping local data URL.");
+        }
+      }
+
+      const customPostId = `custom-${Date.now()}`;
+      const newPost: MuroPost = {
+        id: customPostId,
+        author: formData.author,
+        product: formData.product,
+        plantType: formData.plantType,
+        headline: formData.headline,
+        content: formData.content,
+        rating: Number(formData.rating),
+        daysUsed: Number(formData.daysUsed),
+        image: finalAfterUrl,
+        beforeImage: formData.beforeImage ? finalBeforeUrl : undefined,
+        hasBeforeAfter: formData.hasBeforeAfter,
+        likes: 0,
+        date: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
+        price: formData.price.trim() || undefined
+      };
+
+      if (isFirebaseActive) {
+        const docRef = doc(db, 'muro_posts', customPostId);
+        await setDoc(docRef, newPost);
+      } else {
+        const nextList = [newPost, ...posts];
+        setPosts(nextList);
+        savePostsToLocal(nextList);
+      }
+
+      // Reset form on success
       setFormData({
         author: '',
         product: 'Suelo Urbano Premium',
@@ -377,554 +459,978 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
         daysUsed: 15,
         image: '',
         beforeImage: '',
-        hasBeforeAfter: false
+        hasBeforeAfter: false,
+        price: ''
       });
       setImageBeforeText('');
       setImageAfterText('');
-    }, 2000);
-  };
-
-  const toggleHistoryView = (postId: string, mode: 'before' | 'after') => {
-    setVisibleHistoryToggle(prev => ({ ...prev, [postId]: mode }));
-  };
-
-  // Filter posts based on search query and product productFilter
-  const filteredPosts = posts.filter(post => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = 
-      post.author.toLowerCase().includes(query) ||
-      post.plantType.toLowerCase().includes(query) ||
-      post.headline.toLowerCase().includes(query) ||
-      post.content.toLowerCase().includes(query);
       
-    const matchesProduct = productFilter === 'all' || post.product.toLowerCase().includes(productFilter.toLowerCase());
+      setFormSuccess(true);
+      setShowAddForm(false);
+      
+      // Auto-dismiss Success message
+      setTimeout(() => setFormSuccess(false), 5000);
+
+    } catch (err: any) {
+      console.error("Vip catalog publish action failed:", err);
+      setFormError('No se pudo publicar la planta. Inténtalo más tarde.');
+      if (isFirebaseActive) {
+        handleFirestoreError(err, OperationType.CREATE, `muro_posts/new`);
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Client Sale Submitter 
+  const handleClientSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setClientFormError('');
+    setClientFormSuccess(false);
+
+    if (!clientForm.clientName.trim()) return setClientFormError('Por favor, indica tu nombre para que sepamos quién eres.');
+    if (!clientForm.clientContact.trim()) return setClientFormError('Por favor, indica un medio de contacto (ej: WhatsApp o Correo).');
+    if (!clientForm.plantType.trim()) return setClientFormError('Escribe el nombre o tipo de planta que quieres vender.');
+    if (!clientForm.description.trim()) return setClientFormError('Dinos algunos detalles (salud, edad u origen).');
+    if (!clientForm.price.trim()) return setClientFormError('Por favor, escribe el precio sugerido de venta ($).');
+    if (!clientForm.image) return setClientFormError('Por favor, carga al menos una foto real de tu planta.');
+
+    setIsUploading(true);
+
+    try {
+      let uploadedUrl = clientForm.image;
+
+      // Upload base64 image to Cloudinary
+      if (clientForm.image.startsWith('data:image')) {
+        try {
+          uploadedUrl = await uploadToCloudinary(clientForm.image);
+        } catch (_) {
+          console.warn("Saving to cloud fallback direct.");
+        }
+      }
+
+      const submissionId = `solicitud-${Date.now()}`;
+      const newSubmission: MuralSolicitud = {
+        id: submissionId,
+        clientName: clientForm.clientName,
+        clientContact: clientForm.clientContact,
+        plantType: clientForm.plantType,
+        description: clientForm.description,
+        price: clientForm.price,
+        image: uploadedUrl,
+        date: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
+        status: 'pending'
+      };
+
+      if (isFirebaseActive) {
+        const docRef = doc(db, 'mural_solicitudes', submissionId);
+        await setDoc(docRef, newSubmission);
+      } else {
+        const nextList = [newSubmission, ...solicitudes];
+        setSolicitudes(nextList);
+        saveSolicitudesToLocal(nextList);
+      }
+
+      setLastSubmittedId(submissionId);
+      setClientFormSuccess(true);
+      setShowSendForm(false);
+      
+      // Clean form
+      setClientForm({
+        clientName: '',
+        clientContact: '',
+        plantType: '',
+        description: '',
+        price: '',
+        image: '',
+      });
+      setClientImageText('');
+
+    } catch (err: any) {
+      console.error("Client plant sell registration failed:", err);
+      setClientFormError('No pudimos registrar tu planta en este momento, verifica tu conexión.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // VIP Admin review workflow: prefill VIP publishing form with client submission content
+  const handleApproveSolicitud = (sol: MuralSolicitud) => {
+    setFormData({
+      author: sol.clientName + " (Cliente)",
+      product: 'Suelo Urbano Humus / Orgánico',
+      plantType: sol.plantType,
+      headline: `Planta ofrecida por ${sol.clientName}`,
+      content: sol.description + ` | Publicado originalmente por el cliente. Contacto: ${sol.clientContact}`,
+      rating: 5,
+      daysUsed: 10,
+      image: sol.image,
+      beforeImage: '',
+      hasBeforeAfter: false,
+      price: sol.price
+    });
     
-    return matchesSearch && matchesProduct;
+    // Smooth scroll to top and show form
+    setShowAddForm(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+    
+    // Auto fill texts
+    setImageAfterText("Cargado de solicitud elegida");
+  };
+
+  const handleDismissSolicitud = async (solId: string) => {
+    if(!window.confirm("¿Estás seguro de que deseas descartar esta solicitud de cliente?")) return;
+
+    if (isFirebaseActive) {
+      try {
+        const docRef = doc(db, 'mural_solicitudes', solId);
+        await deleteDoc(docRef);
+      } catch (err) {
+        console.error("Could not delete pending request:", err);
+      }
+    } else {
+      const nextList = solicitudes.filter(s => s.id !== solId);
+      setSolicitudes(nextList);
+      saveSolicitudesToLocal(nextList);
+    }
+  };
+
+  // Generate WhatsApp Prefilled click support
+  const getWhatsAppURL = (sol: any) => {
+    const phone = "525652420968"; // Mexico's +52 followed by 5652420968
+    const text = `Hola Suelo Urbano! Quiero vender mi planta mediante su Mural. Mis datos:
+- Nombre: ${sol?.clientName || clientForm.clientName}
+- Contacto: ${sol?.clientContact || clientForm.clientContact}
+- Planta: ${sol?.plantType || clientForm.plantType}
+- Precio Sugerido: ${sol?.price || clientForm.price}
+- Detalles: ${sol?.description || clientForm.description}`;
+    return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
+  };
+
+  // Filter list matching search triggers
+  const filteredPosts = posts.filter(post => {
+    const term = searchQuery.toLowerCase();
+    return (
+      post.plantType.toLowerCase().includes(term) ||
+      post.headline.toLowerCase().includes(term) ||
+      post.author.toLowerCase().includes(term) ||
+      post.content.toLowerCase().includes(term) ||
+      (post.price && post.price.toLowerCase().includes(term))
+    );
   });
 
   return (
-    <div className="min-h-screen bg-stone-900/90 text-stone-100 flex flex-col">
+    <div className="min-h-screen bg-stone-950 text-stone-100 selection:bg-green-700 selection:text-white pb-20">
       {header}
-      
-      {/* Decorative floral background indicators to align with beautiful Swiss/Modern aesthetics */}
-      <div className="absolute top-20 right-10 opacity-5 pointer-events-none w-96 h-96 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-lime-500 via-emerald-600 to-transparent -z-10 animate-pulse duration-10000" />
-      <div className="absolute bottom-10 left-10 opacity-5 pointer-events-none w-80 h-80 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-yellow-500 via-green-600 to-transparent -z-10" />
 
-      <main className="flex-grow container mx-auto px-4 max-w-7xl py-8">
+      {/* Decorative floral backgrounds */}
+      <div className="absolute top-40 left-10 w-96 h-96 bg-emerald-950/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-40 right-10 w-96 h-96 bg-lime-950/15 rounded-full blur-3xl pointer-events-none" />
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 pt-10">
         
-        {/* Upper Title Section */}
-        <section className="text-center mb-10 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-lime-950/50 border border-lime-800/60 rounded-full text-lime-400 text-xs font-semibold mb-3 tracking-wide">
-            <SproutIcon className="w-3.5 h-3.5" />
-            <span>RESULTADOS DE CO-CREADORES</span>
+        {/* Breadcrumb back home link */}
+        <div className="mb-6 pt-2">
+          <a href="#/" className="inline-flex items-center gap-2 text-xs font-extrabold text-stone-400 hover:text-white transition-colors duration-200 uppercase tracking-widest bg-stone-900/60 hover:bg-stone-850/80 p-2.5 px-4 rounded-full border border-stone-800/40">
+            <span>←</span> Volver al inicio colectivo
+          </a>
+        </div>
+
+        {/* Brand Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-12 pb-8 border-b border-stone-850">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-950/50 border border-green-800/40 rounded-full text-green-400 text-xs font-bold uppercase tracking-widest mb-3">
+              <SparklesIcon className="h-3.5 w-3.5" />
+              <span>Plantas, Flores y Ofertas</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-none">
+              Mural Suelo Urbano ✨
+            </h1>
+            <p className="text-stone-400 mt-3 text-sm md:text-base max-w-2xl font-medium">
+              Te presentamos nuestro catálogo interactivo de plantas y especímenes sanados con alimento orgánico. Revisa precios exclusivos y solicita vender tus plantas directamente en este mural de la comunidad.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight mb-4 select-none">
-            Muro de <span className="bg-gradient-to-r from-lime-400 to-emerald-400 bg-clip-text text-transparent">Resultados Suelo Urbano</span>
-          </h1>
-          <p className="text-stone-300 text-sm sm:text-base font-normal leading-relaxed">
-            Explora fotos, testimonios y los asombrosos cambios reales de las plantas de nuestra comunidad utilizando la emulsión de Suelo Urbano.
-          </p>
-        </section>
 
-        {/* Global Statistics Grid */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Testimonios Compartidos', value: '128+', color: 'text-lime-400' },
-            { label: 'Efectividad Promedio', value: '4.9 / 5.0 ★', color: 'text-yellow-300' },
-            { label: 'Plantas Salvadas', value: '98.4%', color: 'text-emerald-400' },
-            { label: 'Comunidad Unida', value: 'Activa', color: 'text-white' }
-          ].map((stat, i) => (
-            <div key={i} className="bg-stone-850/60 p-4 rounded-2xl border border-stone-800 flex flex-col justify-center items-center text-center shadow-lg">
-              <span className="text-[10px] sm:text-xs text-stone-400 uppercase font-semibold tracking-wider mb-1">{stat.label}</span>
-              <span className={`text-xl sm:text-2xl font-black ${stat.color}`}>{stat.value}</span>
-            </div>
-          ))}
-        </section>
-
-        {/* Controls, Filters & Actions Bar */}
-        <section className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-stone-850/80 p-4 rounded-2xl border border-stone-800 shadow-xl mb-8">
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-1">
-            
-            {/* Search Input */}
-            <div className="relative w-full sm:w-72">
-              <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-stone-400">
-                <SearchIcon className="h-4 w-4" />
-              </span>
-              <input 
-                type="text" 
-                placeholder="Buscar planta, producto..." 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 text-stone-100 placeholder-stone-450 pl-10 pr-4 py-2 rounded-xl text-sm transition-all focus:outline-none"
-              />
+          {/* Access status toggler drawer */}
+          <div className="w-full md:w-auto bg-stone-900 border border-stone-830/90 rounded-2xl p-4 shadow-xl">
+            <div className="flex items-center justify-between gap-6 mb-2">
+              <span className="text-[10px] uppercase font-bold text-stone-450 tracking-wider">Modoficación de Acceso</span>
+              {isVipMode ? (
+                <button 
+                  onClick={handleVipLock}
+                  className="text-[10px] bg-red-950 hover:bg-red-900 border border-red-800/60 text-red-300 font-extrabold px-2.5 py-1 rounded-md cursor-pointer transition-colors"
+                >
+                  Salir de VIP
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowVipTrigger(!showVipTrigger)}
+                  className="text-[10px] bg-emerald-950 hover:bg-emerald-900/70 border border-emerald-800/60 text-emerald-300 font-extrabold px-2.5 py-1 rounded-md cursor-pointer transition-colors"
+                >
+                  Cambiar a VIP
+                </button>
+              )}
             </div>
 
-            {/* Product Switch */}
-            <div className="relative w-full sm:w-56">
-              <select 
-                value={productFilter}
-                onChange={e => setProductFilter(e.target.value)}
-                className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 text-stone-100 py-2 px-3 rounded-xl text-sm transition-all focus:outline-none cursor-pointer appearance-none"
-              >
-                <option value="all">Filtro: Todos los productos</option>
-                <option value="Premium">Suelo Urbano Premium</option>
-                <option value="SU-BIO">SU-BIO (Microvida)</option>
-                <option value="SU-ORQUI">SU-ORQUI (Orquídeas)</option>
-                <option value="SU-JARDI">SU-JARDI (Nutrición)</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            {isVipMode ? (
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+                <span className="text-xs font-extrabold text-yellow-300">👑 Modo Administrador VIP Habilitado</span>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-stone-500" />
+                <span className="text-xs font-bold text-stone-300">👤 Acceso: Pantalla Visual Solamente (Cliente)</span>
+              </div>
+            )}
+
+            {/* Inner credential form */}
+            {showVipTrigger && !isVipMode && (
+              <form onSubmit={handleVipUnlock} className="mt-3 pt-3 border-t border-stone-800 flex gap-2">
+                <input 
+                  type="password" 
+                  placeholder="Introduce (VIP)"
+                  value={vipCodeInput}
+                  onChange={(e) => setVipCodeInput(e.target.value)}
+                  className="bg-stone-950 border border-stone-850 focus:border-green-600 rounded-lg px-2 py-1 text-xs text-white max-w-[120px] focus:outline-none uppercase font-bold"
+                />
+                <button type="submit" className="bg-green-700 hover:bg-green-600 text-white font-extrabold text-xs px-3 py-1 rounded-lg cursor-pointer">
+                  Entrar
+                </button>
+              </form>
+            )}
+            {vipError && <p className="text-[10px] text-red-500 font-bold mt-1 max-w-[200px]">{vipError}</p>}
           </div>
+        </div>
 
-          <button 
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="w-full sm:w-auto bg-gradient-to-r from-lime-600 to-emerald-600 hover:from-lime-500 hover:to-emerald-500 text-white font-extrabold py-2.5 px-6 rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md transform hover:-translate-y-0.5 transition-all"
-          >
-            <span className="text-lg">+</span>
-            <span>Subir mi Testimonio & Foto</span>
-          </button>
-        </section>
-
-        {/* Expandable Form: Add post testimonio */}
-        {showAddForm && (
-          <section className="bg-stone-850 border border-lime-600/30 rounded-3xl p-6 mb-8 shadow-2xl relative animate-fade-in-up">
-            <div className="flex justify-between items-center mb-6 border-b border-stone-800 pb-4">
+        {/* ==============================================
+             CLIENT SUBMISSION SUCCESS CORNER
+           ============================================== */}
+        {clientFormSuccess && (
+          <div className="mb-8 p-6 bg-emerald-950/60 border-2 border-emerald-700/80 rounded-3xl relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 p-3">
+              <button onClick={() => setClientFormSuccess(false)} className="text-stone-400 hover:text-white">
+                <XIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex gap-4 items-start max-w-3xl">
+              <div className="p-3 bg-emerald-900 border border-emerald-500 rounded-2xl text-emerald-400 flex-shrink-0 animate-bounce">
+                <CheckCircleIcon className="h-8 w-8" />
+              </div>
               <div>
-                <h3 className="text-xl font-bold text-white leading-tight">Escribe tu historia de éxito Suelo Urbano 🌸</h3>
-                <p className="text-xs text-stone-400 mt-1">Comparte con otros amantes de las plantas los asombrosos cambios de tu jardín.</p>
+                <h3 className="text-xl font-extrabold text-white">¡Muchas gracias, recibimos tu solicitud de venta! 🎉</h3>
+                <p className="text-stone-300 text-sm mt-1 leading-relaxed">
+                  Guardamos la información de tu planta de forma interna. Nuestro equipo de Suelo Urbano la revisará a la brevedad y, tras validarla, la publicará en el muro con tu precio.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <a 
+                    href={getWhatsAppURL(null)} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-extrabold text-xs py-2.5 px-5 rounded-xl block transition-all shadow-md active:scale-95"
+                  >
+                    💬 Enviar detalles por WhatsApp (Acelerar Publicación)
+                  </a>
+                  <button 
+                    onClick={() => setClientFormSuccess(false)}
+                    className="bg-stone-900 hover:bg-stone-850 text-stone-300 font-extrabold text-xs py-2.5 px-5 rounded-xl border border-stone-800"
+                  >
+                    Entendido
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==============================================
+             VIP LOG/CATALOG SUBMISSIONS INBOX REVIEW BOARD
+           ============================================== */}
+        {isVipMode && solicitudes.length > 0 && (
+          <div className="mb-10 bg-gradient-to-br from-yellow-950/20 to-stone-900/40 border border-yellow-800/40 rounded-3xl p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-7 w-7 bg-yellow-900/40 rounded-full flex items-center justify-center text-yellow-500">
+                📬
+              </div>
+              <h2 className="text-xl font-extrabold text-white">
+                Bandeja de Solicitudes de Clientes ({solicitudes.length})
+              </h2>
+              <span className="ml-auto bg-yellow-405/20 text-yellow-400 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-yellow-500/20 uppercase tracking-wider animate-pulse">
+                Acción VIP Requerida
+              </span>
+            </div>
+            <p className="text-stone-400 text-xs mb-6 max-w-3xl leading-relaxed">
+              Las siguientes plantas han sido enviadas por clientes externos para ser vendidas. Haz clic en <span className="font-bold text-yellow-300">"Subir Planta al Mural"</span> para cargar automáticamente toda la información en tu panel de publicación, verificarla y hacerla oficial para todo el público.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {solicitudes.map(sol => (
+                <div key={sol.id} className="bg-stone-950/80 border border-stone-850 rounded-2xl p-4 flex gap-4 shadow-lg transition-all hover:bg-stone-950">
+                  <div className="w-24 h-24 bg-stone-900 rounded-xl overflow-hidden flex-shrink-0 border border-stone-800 relative">
+                    {sol.image ? (
+                      <img src={sol.image} alt={sol.plantType} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-stone-600 text-xs text-center p-1 font-bold">Sin foto</div>
+                    )}
+                    <div className="absolute bottom-1 right-1 bg-yellow-500 text-stone-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded shadow-md">
+                      {sol.price}
+                    </div>
+                  </div>
+                  <div className="flex-grow flex flex-col justify-between min-w-0">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-xs font-extrabold text-white truncate">{sol.plantType}</span>
+                        <span className="text-[9px] text-stone-550 font-mono">{sol.date}</span>
+                      </div>
+                      <p className="text-stone-400 text-[11px] leading-tight line-clamp-2 mb-1 font-medium italic">
+                        &quot; {sol.description} &quot;
+                      </p>
+                      <div className="text-[10px] text-stone-500 leading-none space-y-1">
+                        <p><span className="font-extrabold text-stone-400">Cliente:</span> {sol.clientName}</p>
+                        <p><span className="font-extrabold text-stone-400">Contacto:</span> <span className="text-green-400 underline font-mono select-all">{sol.clientContact}</span></p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3 pt-2 border-t border-stone-900">
+                      <button 
+                        onClick={() => handleApproveSolicitud(sol)}
+                        className="bg-yellow-600 hover:bg-yellow-500 text-stone-950 font-extrabold text-[10px] py-1.5 px-3 rounded-lg transition-colors cursor-pointer flex-grow text-center"
+                      >
+                        ✅ Subir Planta al Mural
+                      </button>
+                      <button 
+                        onClick={() => handleDismissSolicitud(sol.id)}
+                        className="bg-stone-900 hover:bg-stone-850 hover:text-red-400 border border-stone-800 text-stone-500 font-bold text-[10px] py-1.5 px-2 rounded-lg transition-colors cursor-pointer"
+                        title="Descartar solicitud"
+                      >
+                        Descartar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==============================================
+             CLIENT SUBMISSIONS INBOX PREVIEW (EMPTY IN BOX)
+           ============================================== */}
+        {isVipMode && solicitudes.length === 0 && (
+          <div className="mb-10 bg-stone-905 border border-stone-850 rounded-2xl p-4 text-center text-stone-500 text-xs">
+            📬 No hay solicitudes de venta pendientes por parte de clientes en este momento.
+          </div>
+        )}
+
+        {/* ==============================================
+             MAIN ACTION SELECTORS & INTERACTIVE BUTTONS
+           ============================================== */}
+        <div className="bg-stone-900 p-4 rounded-3xl border border-stone-850 shadow-2xl flex flex-col sm:flex-row items-center gap-4 mb-10 justify-between">
+          <div className="relative w-full sm:max-w-md">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-stone-500">
+              <SearchIcon className="h-5 w-5" />
+            </span>
+            <input 
+              type="text" 
+              placeholder="Buscar planta, precio, características..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-stone-950 border border-stone-800 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-2xl py-3 pl-11 pr-4 text-sm font-semibold text-white placeholder-stone-500 transition-colors shadow-inner"
+            />
+          </div>
+
+          <div className="w-full sm:w-auto flex flex-wrap gap-2 justify-end">
+            {/* VIP action only */}
+            {isVipMode ? (
               <button 
-                onClick={() => setShowAddForm(false)} 
-                className="text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-800 transition-colors"
-                aria-label="Cerrar formulario"
+                onClick={() => {
+                  setShowAddForm(!showAddForm);
+                  setShowSendForm(false);
+                }}
+                className={`w-full sm:w-auto font-extrabold text-xs py-3 px-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-md ${
+                  showAddForm 
+                    ? 'bg-red-950 text-red-300 border border-red-800' 
+                    : 'bg-green-700 hover:bg-green-600 text-white hover:shadow-green-950/20 active:scale-97'
+                }`}
               >
-                ✕
+                {showAddForm ? '❌ Cancelar Registro' : '➕ Publicar Nueva Planta'}
+              </button>
+            ) : (
+              // Guest/Visitor action button to sell and send requests
+              <button 
+                onClick={() => {
+                  setShowSendForm(!showSendForm);
+                  setShowAddForm(false);
+                }}
+                className={`w-full sm:w-auto font-extrabold text-xs py-3 px-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-md ${
+                  showSendForm 
+                    ? 'bg-red-950 text-red-300 border border-red-800' 
+                    : 'bg-green-700 hover:bg-green-600 text-white hover:shadow-green-950/20 active:scale-97 flex items-center justify-center gap-1.5'
+                }`}
+              >
+                <span>📩</span>
+                <span>¿Quieres vender tu planta? Envíanos una foto</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ==============================================
+             CLIENT SEND/SALE REQUEST FORM (PUBLIC)
+           ============================================== */}
+        {showSendForm && !isVipMode && (
+          <div className="bg-stone-900 border-2 border-green-800/60 rounded-3xl p-6 md:p-8 mb-12 shadow-2xl relative">
+            <div className="absolute top-4 right-4">
+              <button 
+                onClick={() => setShowSendForm(false)} 
+                className="text-stone-400 hover:text-white p-2 hover:bg-stone-800 rounded-full cursor-pointer transition-colors"
+              >
+                <XIcon className="h-5 w-5" />
               </button>
             </div>
 
-            {formSuccess ? (
-              <div className="py-8 text-center flex flex-col justify-center items-center gap-3">
-                <div className="bg-lime-950 p-4 rounded-full border border-lime-500">
-                  <CheckCircleIcon className="w-10 h-10 text-lime-400" />
-                </div>
-                <h4 className="text-lg font-bold text-white">¡Testimonio publicado con éxito!</h4>
-                <p className="text-xs text-stone-300">Tus resultados están guardados y listos en tu muro comunitario local.</p>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 bg-green-950 border border-green-800 text-green-400 rounded-xl flex items-center justify-center text-lg shadow">
+                🌱
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {formError && (
-                  <div className="bg-red-950/70 border border-red-550/50 p-3 rounded-xl text-xs text-red-350 font-medium">
-                    ⚠️ {formError}
-                  </div>
-                )}
+              <div>
+                <h2 className="text-xl font-extrabold text-white">Vende tu Planta o Solicita Publicar</h2>
+                <p className="text-stone-400 text-xs">Completa los datos de tu espécimen para que el equipo lo suba al Mural Oficial.</p>
+              </div>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Tu Nombre o Apodo</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. Doña Teresa / Don Carlos S." 
-                      value={formData.author}
-                      onChange={e => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                      className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-stone-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Product used */}
-                  <div>
-                    <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Producto Suelo Urbano Usado</label>
-                    <select
-                      value={formData.product}
-                      onChange={e => setFormData(prev => ({ ...prev, product: e.target.value }))}
-                      className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none cursor-pointer"
-                    >
-                      <option value="Suelo Urbano Premium">Suelo Urbano Premium</option>
-                      <option value="SU-BIO (Microvida Activa)">SU-BIO (Microvida Activa)</option>
-                      <option value="SU-ORQUI (Especial Orquídeas)">SU-ORQUI (Especial Orquídeas)</option>
-                      <option value="SU-JARDI (Nutrición General)">SU-JARDI (Nutrición General)</option>
-                      <option value="Suelo Urbano Club Premium">Suelo Urbano Club Premium</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Plant type */}
-                  <div>
-                    <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Tipo de Planta</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. Rosa de Castilla / Helecho Colgante" 
-                      value={formData.plantType}
-                      onChange={e => setFormData(prev => ({ ...prev, plantType: e.target.value }))}
-                      className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-stone-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Days used */}
-                  <div>
-                    <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Días de Uso / Aplicación</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="Ej. 15, 30" 
-                      value={formData.daysUsed}
-                      onChange={e => setFormData(prev => ({ ...prev, daysUsed: parseInt(e.target.value) || 0 }))}
-                      className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-stone-500 focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Rating Hojas */}
-                  <div>
-                    <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Calificación del Resultado</label>
-                    <div className="flex items-center gap-2 mt-2">
-                      {[1, 2, 3, 4, 5].map((count) => (
-                        <button
-                          key={count}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, rating: count }))}
-                          className="focus:outline-none text-2xl transition-transform hover:scale-125"
-                          title={`${count} Hojas de efectividad`}
-                        >
-                          <span className={formData.rating >= count ? "text-lime-400" : "text-stone-700"}>
-                            🍃
-                          </span>
-                        </button>
-                      ))}
-                      <span className="text-[11px] text-stone-400 ml-2 font-bold uppercase">{formData.rating} / 5</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Headline input */}
-                <div>
-                  <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Título del Avance / Resultado Especial</label>
+            <form onSubmit={handleClientSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Name */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Tu Nombre Completo</label>
                   <input 
                     type="text" 
-                    placeholder="Ej. ¡Mi planta revivió y duplicó el tamaño de sus flores en tiempo récord!" 
-                    value={formData.headline}
-                    onChange={e => setFormData(prev => ({ ...prev, headline: e.target.value }))}
-                    className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-stone-500 focus:outline-none"
+                    placeholder="Ej: Sofía Martínez"
+                    value={clientForm.clientName}
+                    onChange={(e) => setClientForm(prev => ({ ...prev, clientName: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
                   />
                 </div>
 
-                {/* Content description */}
-                <div>
-                  <label className="block text-xs text-stone-350 font-bold mb-1.5 uppercase tracking-wide">Tu Historia y Experiencia Completa</label>
-                  <textarea 
-                    rows={4}
-                    placeholder="Cuéntanos: ¿cómo estaba tu planta de salud al inicio?, ¿en cuánto tiempo notaste los brotes nuevos?, ¿por qué recomendarías Suelo Urbano?... ¡Nos emociona leerte!" 
-                    value={formData.content}
-                    onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                    className="w-full bg-stone-900 border border-stone-750 focus:border-lime-500 rounded-xl p-4 text-xs text-white placeholder-stone-500 focus:outline-none resize-none"
-                  />
-                </div>
-
-                {/* Compare toggle switch */}
-                <div className="flex items-center gap-3 py-2 border-t border-b border-stone-800/80 my-4">
+                {/* Contact */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Medio de Contacto (WhatsApp, Celular, Correo)</label>
                   <input 
-                    type="checkbox" 
-                    id="has-before-after" 
-                    checked={formData.hasBeforeAfter}
-                    onChange={e => setFormData(prev => ({ ...prev, hasBeforeAfter: e.target.checked }))}
-                    className="h-4.5 w-4.5 rounded text-lime-500 focus:ring-lime-500 border-stone-750 bg-stone-900 cursor-pointer"
+                    type="text" 
+                    placeholder="Ej: +52 55 1234 5678 o sofia@email.com"
+                    value={clientForm.clientContact}
+                    onChange={(e) => setClientForm(prev => ({ ...prev, clientContact: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
                   />
-                  <label htmlFor="has-before-after" className="text-xs sm:text-sm font-semibold text-stone-200 cursor-pointer select-none">
-                    Comparar "Antes y Después" (Subir 2 Fotos)
-                  </label>
                 </div>
 
-                {/* File upload images section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* Photo "After" - Result (Mandatory) */}
-                  <div className="bg-stone-900/40 p-4 border border-stone-800 rounded-2xl">
-                    <label className="block text-xs text-stone-300 font-extrabold mb-1 uppercase tracking-wide">
-                      📸 Foto Final / Resultado (Obligatoria)
-                    </label>
-                    <p className="text-[10px] text-stone-400 mb-3">Sube la mejor foto del estado sano o floración de tu planta.</p>
-                    
-                    <div className="flex flex-col gap-3">
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={e => handleFileChange(e, false)}
-                        className="hidden"
-                      />
-                      <button
+                {/* Plant name */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Nombre / Especie de Planta</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Orquídea Phalaenopsis Blanca"
+                    value={clientForm.plantType}
+                    onChange={(e) => setClientForm(prev => ({ ...prev, plantType: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+                {/* Suggested price */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Precio Deseado o de Venta ($ MXN)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: $250 o Tratado Directo"
+                    value={clientForm.price}
+                    onChange={(e) => setClientForm(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+              </div>
+
+              {/* Plant description */}
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Historia, Salud o Cuidados de Planta</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Dinos el estado de la planta, edad, cuántos riegos recibe y si ha usado nuestra emulsión..."
+                  value={clientForm.description}
+                  onChange={(e) => setClientForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors resize-none"
+                />
+              </div>
+
+              {/* Plant photo handler */}
+              <div className="space-y-3 bg-stone-950/60 p-4 rounded-2xl border border-stone-850">
+                <span className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Fotografía Real de tu Planta (Evidencia)</span>
+                
+                <div className="flex flex-wrap items-center gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => clientFileInputRef.current?.click()}
+                    disabled={isCompresingClient}
+                    className="bg-stone-900 border border-stone-800 hover:border-stone-700 hover:text-white text-stone-300 rounded-xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
+                  >
+                    <CameraIcon className="h-4.5 w-4.5 text-stone-400" />
+                    <span>Elegir Foto</span>
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={clientFileInputRef}
+                    accept="image/*"
+                    onChange={handleClientFileChange}
+                    className="hidden" 
+                  />
+
+                  {clientForm.image && (
+                    <div className="relative h-16 w-16 bg-stone-900 rounded-lg overflow-hidden border border-stone-800">
+                      <img src={clientForm.image} alt="Vista previa del cliente" className="h-full w-full object-cover" />
+                      <button 
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isCompresing}
-                        className="w-full bg-stone-900 hover:bg-stone-800 text-stone-300 font-semibold py-2.5 px-4 rounded-xl text-xs border border-stone-700 hover:border-lime-500/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        onClick={() => {
+                          setClientForm(prev => ({ ...prev, image: '' }));
+                          setClientImageText('');
+                        }}
+                        className="absolute top-0.5 right-0.5 p-0.5 bg-black/70 hover:bg-black rounded-full text-white"
+                        title="Borrar imagen"
                       >
-                        {isCompresing ? (
-                          <div className="w-4.5 h-4.5 border-2 border-stone-550 border-t-lime-500 rounded-full animate-spin" />
-                        ) : '📁 Seleccionar Imagen'}
+                        <XIcon className="h-3 w-3" />
                       </button>
-                      
-                      {imageAfterText && (
-                        <div className="text-[10px] text-lime-400 font-medium bg-lime-950/40 p-2 rounded-lg border border-lime-850 truncate">
-                          ✓ {imageAfterText} (Comprimido con éxito para caché libre)
-                        </div>
-                      )}
-
-                      {formData.image && (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-stone-750 mt-1 bg-black flex justify-center items-center">
-                          <img src={formData.image} alt="Previsualización de resultado" className="object-contain h-full w-full" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Photo "Before" (Conditional on checked box) */}
-                  {formData.hasBeforeAfter && (
-                    <div className="bg-stone-900/40 p-4 border border-stone-800 rounded-2xl animate-fade-in-up">
-                      <label className="block text-xs text-stone-350 font-extrabold mb-1 uppercase tracking-wide">
-                        🥀 Foto de "Antes de usar" (Obligatoria si marcas comparación)
-                      </label>
-                      <p className="text-[10px] text-stone-400 mb-3">Sube la foto de cómo estaba tu planta marchita antes de Suelo Urbano.</p>
-                      
-                      <div className="flex flex-col gap-3">
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          ref={beforeFileInputRef}
-                          onChange={e => handleFileChange(e, true)}
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => beforeFileInputRef.current?.click()}
-                          disabled={isCompresingBefore}
-                          className="w-full bg-stone-900 hover:bg-stone-800 text-stone-300 font-semibold py-2.5 px-4 rounded-xl text-xs border border-stone-700 hover:border-lime-500/50 flex items-center justify-center gap-2 transition-all cursor-pointer"
-                        >
-                          {isCompresingBefore ? (
-                            <div className="w-4.5 h-4.5 border-2 border-stone-550 border-t-lime-500 rounded-full animate-spin" />
-                          ) : '📁 Seleccionar Imagen "Antes"'}
-                        </button>
-                        
-                        {imageBeforeText && (
-                          <div className="text-[10px] text-yellow-400 font-medium bg-yellow-950/40 p-2 rounded-lg border border-yellow-850 truncate">
-                            ✓ {imageBeforeText} (Comprimido con éxito)
-                          </div>
-                        )}
-
-                        {formData.beforeImage && (
-                          <div className="aspect-video w-full rounded-lg overflow-hidden border border-stone-750 mt-1 bg-black flex justify-center items-center">
-                            <img src={formData.beforeImage} alt="Previsualización de antes" className="object-contain h-full w-full" />
-                          </div>
-                        )}
-                      </div>
                     </div>
                   )}
 
+                  {clientImageText && <span className="text-[11px] font-mono font-bold text-stone-400">{clientImageText}</span>}
                 </div>
+              </div>
 
-                <div className="pt-4 border-t border-stone-800 flex justify-end gap-3.5">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAddForm(false)}
-                    className="bg-transparent hover:bg-stone-800 border border-stone-700 text-stone-300 font-bold py-2 px-5 rounded-xl text-xs cursor-pointer transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    type="submit"
-                    disabled={isCompresing || isCompresingBefore || isUploading}
-                    className="bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-450 hover:to-emerald-450 text-white font-extrabold py-2 px-7 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95 disabled:opacity-40"
-                  >
-                    {isUploading ? (
-                      <>
-                        <div className="w-3.5 h-3.5 border-2 border-stone-200 border-t-lime-400 rounded-full animate-spin mr-1" />
-                        <span>Subiendo a Cloudinary...</span>
-                      </>
-                    ) : (
-                      <span>Publicar mi Resultado</span>
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
+              {clientFormError && <p className="text-xs text-red-400 font-bold">⚠️ {clientFormError}</p>}
+
+              <button 
+                type="submit"
+                disabled={isUploading || isCompresingClient}
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold py-4 px-6 rounded-2xl cursor-pointer shadow-lg hover:shadow-green-950/25 active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Enviando información al Mural...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Enviar Solicitud de Venta de Planta</span>
+                  </>
+                )}
+              </button>
+
+            </form>
+          </div>
         )}
 
-        {/* Community Results Card Stream! Grid Layout */}
+        {/* ==============================================
+             VIP ADM PUBLISH FORM (CREATOR/DEVELOPER CODES)
+           ============================================== */}
+        {showAddForm && isVipMode && (
+          <div className="bg-stone-900 border border-yellow-600/30 rounded-3xl p-6 md:p-8 mb-12 shadow-2xl relative">
+            
+            <div className="absolute top-4 right-4">
+              <button 
+                onClick={() => setShowAddForm(false)} 
+                className="text-stone-400 hover:text-white p-2 hover:bg-stone-800 rounded-full cursor-pointer transition-colors"
+                title="Cerrar Formulario"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 bg-yellow-950 border border-yellow-850/60 text-yellow-400 rounded-xl flex items-center justify-center text-lg shadow-inner">
+                🌿
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-white">
+                  Formulario VIP: Publicar en el Mural
+                </h2>
+                <p className="text-stone-400 text-xs">Añade fichas de tus plantas con fotografía, producto y precio sugerido.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleVipSubmit} className="space-y-6">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Author Name */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Nombre del Autor o Propietario</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Vivero Suelo Urbano o Carlos G."
+                    value={formData.author}
+                    onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+                {/* Brand product associated */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Nutriente Suelo Urbano Usado</label>
+                  <select 
+                    value={formData.product}
+                    onChange={(e) => setFormData(prev => ({ ...prev, product: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-bold transition-colors"
+                  >
+                    <option value="Suelo Urbano Premium">Suelo Urbano Premium (Emulsión Pura)</option>
+                    <option value="Suelo Urbano Humus / Orgánico">Suelo Urbano Humus / Orgánico</option>
+                    <option value="Suelo Urbano Pack Orquídeas">Suelo Urbano Pack Orquídeas</option>
+                    <option value="Nutrición Orgánica Integral">Nutrición Orgánica Integral</option>
+                  </select>
+                </div>
+
+                {/* Plant type */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Tipo de Planta u Orquídea</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Anturio Rojo, Orquídea Vanda"
+                    value={formData.plantType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, plantType: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+                {/* Headline result */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Título de Publicación</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Floración exuberante y hojas gigantes"
+                    value={formData.headline}
+                    onChange={(e) => setFormData(prev => ({ ...prev, headline: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+                {/* NEW: Price tag field */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">
+                    Precio de Venta / Costo sugerido ($ MXN)
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: $180 MXN, $450, o Deja vacío si no está en venta"
+                    value={formData.price}
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
+                {/* Days of applying */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Días de uso de alimento / Edad aproximada</label>
+                  <input 
+                    type="number" 
+                    min={1}
+                    value={formData.daysUsed}
+                    onChange={(e) => setFormData(prev => ({ ...prev, daysUsed: Number(e.target.value) }))}
+                    className="w-full bg-stone-950 border border-stone-850 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-mono font-bold transition-colors"
+                  />
+                </div>
+
+              </div>
+
+              {/* Star Rating picker */}
+              <div className="space-y-2">
+                <span className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Calificación de Salud u Hoja</span>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, rating: num }))}
+                      className={`h-11 w-11 rounded-xl border font-bold text-sm cursor-pointer transition-colors ${
+                        num <= formData.rating 
+                          ? 'bg-green-950 border-green-800 text-yellow-400' 
+                          : 'bg-stone-950 border-stone-850 text-stone-600'
+                      }`}
+                    >
+                      🌱
+                    </button>
+                  ))}
+                  <span className="ml-2 flex items-center font-bold text-xs text-stone-400">({formData.rating} hojitas)</span>
+                </div>
+              </div>
+
+              {/* Content description */}
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Descripción Completa u Observaciones</label>
+                <textarea 
+                  rows={4}
+                  placeholder="Relata el crecimiento foliar, el brillo de hojas o estimación de venta..."
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors resize-none"
+                />
+              </div>
+
+              {/* Before and After toggle switcher */}
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.hasBeforeAfter}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hasBeforeAfter: e.target.checked }))}
+                    className="h-5 w-5 rounded bg-stone-950 border border-stone-800 text-green-600 focus:ring-0 cursor-pointer"
+                  />
+                  <span className="text-xs uppercase tracking-widest font-extrabold text-stone-200">
+                    Incluir comparación visual (Foto de Antes y Después)
+                  </span>
+                </label>
+
+                {/* Double file fields wrapper */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Image 1: Main After */}
+                  <div className="bg-stone-950/40 p-4 border border-stone-850 rounded-2xl space-y-2.5">
+                    <span className="text-[11px] uppercase tracking-wide font-extrabold text-stone-400 block">Fotografía Final (Después)</span>
+                    <div className="flex gap-3 items-center">
+                      <button 
+                        type="button" 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isCompresing}
+                        className="bg-stone-900 border border-stone-800 text-stone-300 px-3 py-2 rounded-lg text-xs font-bold hover:bg-stone-850 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <CameraIcon className="h-4 w-4" />
+                        <span>Elegir Foto</span>
+                      </button>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        accept="image/*" 
+                        onChange={(e) => handleFileChange(e, false)} 
+                        className="hidden" 
+                      />
+                      {formData.image && (
+                        <div className="relative h-12 w-12 rounded overflow-hidden border border-stone-800">
+                          <img src={formData.image} alt="Prev" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      {imageAfterText && <span className="text-[10px] text-stone-450 font-mono italic">{imageAfterText}</span>}
+                    </div>
+                  </div>
+
+                  {/* Image 2: Optional Before */}
+                  {formData.hasBeforeAfter && (
+                    <div className="bg-stone-950/40 p-4 border border-stone-850 rounded-2xl space-y-2.5 animate-fade-in-main">
+                      <span className="text-[11px] uppercase tracking-wide font-extrabold text-stone-400 block">Fotografía Inicial (Antes de Emulsión)</span>
+                      <div className="flex gap-3 items-center">
+                        <button 
+                          type="button" 
+                          onClick={() => beforeFileInputRef.current?.click()}
+                          disabled={isCompresingBefore}
+                          className="bg-stone-900 border border-stone-800 text-stone-300 px-3 py-2 rounded-lg text-xs font-bold hover:bg-stone-850 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <CameraIcon className="h-4 w-4" />
+                          <span>Elegir Foto</span>
+                        </button>
+                        <input 
+                          type="file" 
+                          ref={beforeFileInputRef} 
+                          accept="image/*" 
+                          onChange={(e) => handleFileChange(e, true)} 
+                          className="hidden" 
+                        />
+                        {formData.beforeImage && (
+                          <div className="relative h-12 w-12 rounded overflow-hidden border border-stone-800">
+                            <img src={formData.beforeImage} alt="Prev Before" className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        {imageBeforeText && <span className="text-[10px] text-stone-450 font-mono italic">{imageBeforeText}</span>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              {formError && <p className="text-xs text-red-400 font-bold">⚠️ {formError}</p>}
+
+              <button 
+                type="submit"
+                disabled={isUploading || isCompresing || isCompresingBefore}
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold py-4 px-6 rounded-2xl cursor-pointer shadow-lg hover:shadow-green-950/20 active:scale-98 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Publicando planta en el Mural...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirmar y Publicar en Mural Suelo Urbano</span>
+                  </>
+                )}
+              </button>
+
+            </form>
+          </div>
+        )}
+
+        {/* ==============================================
+             SUCCESS PUBLISH DISPATCH ALERT
+           ============================================== */}
+        {formSuccess && (
+          <div className="mb-8 p-4 bg-lime-950/50 border border-lime-800/60 rounded-2xl text-lime-400 text-center text-xs font-extrabold animate-pulse">
+            ✨ ¡Tu planta ha sido publicada en el Mural con éxito! Todos los clientes ya pueden observarla.
+          </div>
+        )}
+
+        {/* ==============================================
+             CATALOG CARDS VIEW GRID (PUBLIC EXHIBITION)
+           ============================================== */}
         {filteredPosts.length === 0 ? (
-          <div className="bg-stone-850 p-12 text-center rounded-3xl border border-stone-800 shadow-xl max-w-lg mx-auto">
-            <span className="text-4xl">🥀</span>
-            <h4 className="text-lg font-bold text-white mt-4">No se encontraron testimonios</h4>
-            <p className="text-xs text-stone-400 mt-2">Prueba alterando las palabras de tu búsqueda o el filtro de producto.</p>
-            <button 
-              onClick={() => { setSearchQuery(''); setProductFilter('all'); }} 
-              className="mt-4 bg-stone-900 border border-stone-750 text-stone-300 font-bold text-xs py-2 px-4 rounded-xl hover:bg-stone-800 transition-colors cursor-pointer"
-            >
-              Limpiar Filtros
-            </button>
+          <div className="bg-stone-900 border border-stone-850 rounded-3xl p-12 text-center text-stone-500 shadow-xl max-w-2xl mx-auto">
+            <span className="text-3xl">🌿</span>
+            <h3 className="text-white font-extrabold text-sm uppercase tracking-wider mt-4">Mural Vacío o Sin Resultados</h3>
+            <p className="text-xs text-stone-450 mt-1.5 leading-relaxed">
+              No hay plantas publicadas que coincidan con &quot;{searchQuery}&quot;. Intente con otra palabra clave o solicita publicar tu planta para empezar. Let&apos;s build community!
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-            {filteredPosts.map((post) => {
-              const viewerMode = visibleHistoryToggle[post.id] || 'after';
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPosts.map(post => {
               const hasLiked = !!likedPosts[post.id];
+              const isCompareMode = post.hasBeforeAfter && post.beforeImage;
+              const activeToggleView = visibleHistoryToggle[post.id] || 'after';
 
               return (
                 <article 
                   key={post.id} 
-                  className="bg-stone-850/90 border border-stone-800 rounded-3xl shadow-xl flex flex-col h-full overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
+                  id={`muro-post-${post.id}`}
+                  className="bg-stone-905 border border-stone-850/80 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-stone-800 transition-all duration-300 flex flex-col relative group"
                 >
                   
-                  {/* Title / Badge bar */}
-                  <div className="p-4 sm:p-5 flex justify-between items-center bg-stone-900/40 border-b border-stone-800/60">
-                    <div className="min-w-0">
-                      <span className="inline-flex items-center px-2.5 py-0.5 bg-lime-950/40 border border-lime-850/60 rounded-full text-lime-400 text-[10px] font-bold tracking-wide mr-2 uppercase">
-                        {post.plantType}
-                      </span>
-                      <span className="inline-block text-[11px] font-medium text-stone-400 mt-1 sm:mt-0">
-                        {post.date}
-                      </span>
+                  {/* UPPER PRICE BADGE & PRODUCT TYPE ACCENTS */}
+                  {post.price && (
+                    <div className="absolute top-3 left-3 z-30 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-emerald-300/30 uppercase tracking-wide flex items-center gap-1">
+                      <span>🏷️</span>
+                      <span>{post.price}</span>
                     </div>
+                  )}
 
-                    <div className="text-[10.5px] font-bold px-2.5 py-1 bg-stone-900 border border-stone-800/80 rounded-lg text-emerald-400 text-right truncate max-w-[140px] sm:max-w-[200px]">
-                      {post.product}
-                    </div>
-                  </div>
-
-                  {/* Progressive visual display: with Before/After switch option */}
-                  <div className="relative aspect-video bg-black/40 overflow-hidden border-b border-stone-800/80">
-                    
-                    {/* Main Showcase Image depending on before or after selection */}
-                    {post.hasBeforeAfter ? (
-                      <div className="w-full h-full relative">
-                        {viewerMode === 'before' ? (
-                          <img 
-                            src={post.beforeImage} 
-                            alt={`${post.plantType} antes de usar emulsión`} 
-                            className="w-full h-full object-cover transition-all"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <img 
-                            src={post.image} 
-                            alt={`${post.plantType} después de usar emulsión`} 
-                            className="w-full h-full object-cover transition-all"
-                            referrerPolicy="no-referrer"
-                          />
-                        )}
-                        
-                        {/* Selector/Switch labels directly overlaid on top of image with luxury styles */}
-                        <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm border border-stone-800/80 rounded-full py-1 px-1.5 flex gap-1 z-10">
-                          <button
-                            onClick={() => toggleHistoryView(post.id, 'before')}
-                            className={`px-3 py-1 font-bold text-[10px] rounded-full transition-all cursor-pointer ${
-                              viewerMode === 'before' 
-                                ? 'bg-amber-900/80 text-amber-300' 
-                                : 'text-stone-400 hover:text-white'
-                            }`}
-                          >
-                            Antes de usar
-                          </button>
-                          <button
-                            onClick={() => toggleHistoryView(post.id, 'after')}
-                            className={`px-3 py-1 font-bold text-[10px] rounded-full transition-all cursor-pointer ${
-                              viewerMode === 'after' 
-                                ? 'bg-emerald-950 text-emerald-400 border border-green-800/50' 
-                                : 'text-stone-400 hover:text-white'
-                            }`}
-                          >
-                            Con Suelo Urbano
-                          </button>
-                        </div>
-                        
-                        {/* Interactive badge indicating current timeline */}
-                        <div className="absolute right-3 top-3 bg-black/60 text-white backdrop-blur-sm font-black text-[10px] uppercase tracking-wider py-1 px-2.5 rounded-md border border-stone-800">
-                          {viewerMode === 'before' ? '🥀 Estado Inicial' : `🍃 Resultado (${post.daysUsed} días)`}
-                        </div>
-
-                      </div>
-                    ) : (
-                      <div className="w-full h-full relative">
+                  {/* Interactive photo container with optional before/after switch toggle slider */}
+                  <div className="relative h-64 bg-stone-950 overflow-hidden select-none">
+                    {isCompareMode ? (
+                      <>
                         <img 
-                          src={post.image} 
-                          alt={post.headline} 
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
+                          src={activeToggleView === 'after' ? post.image : post.beforeImage} 
+                          alt={post.plantType} 
+                          className="h-full w-full object-cover transition-opacity duration-300"
                         />
-                        <div className="absolute right-3 top-3 bg-black/60 text-emerald-300 backdrop-blur-sm font-black text-[10px] uppercase tracking-wider py-1 px-2.5 rounded-md border border-stone-800">
-                          🍃 {post.daysUsed} Días Aplicando
+                        
+                        {/* Upper left visual active tag */}
+                        <span className="absolute top-3 right-3 z-20 bg-black/75 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-green-300 px-2.5 py-1 rounded-md border border-stone-800">
+                          {activeToggleView === 'after' ? 'Con Emulsión (Después)' : 'Antes'}
+                        </span>
+
+                        {/* Slide switcher triggers button bar at bottom */}
+                        <div className="absolute inset-x-0 bottom-3 z-20 flex justify-center gap-2">
+                          <div className="bg-black/80 backdrop-blur-md p-1.5 rounded-full border border-stone-800 flex gap-1 shadow-lg">
+                            <button
+                              onClick={() => setVisibleHistoryToggle(prev => ({ ...prev, [post.id]: 'before' }))}
+                              className={`text-[9px] uppercase tracking-widest font-black px-3 py-1 rounded-full cursor-pointer transition-all ${
+                                activeToggleView === 'before' 
+                                  ? 'bg-yellow-505 text-stone-950 font-black bg-yellow-400' 
+                                  : 'text-stone-400 hover:text-white'
+                              }`}
+                            >
+                              Antes
+                            </button>
+                            <button
+                              onClick={() => setVisibleHistoryToggle(prev => ({ ...prev, [post.id]: 'after' }))}
+                              className={`text-[9px] uppercase tracking-widest font-black px-3 py-1 rounded-full cursor-pointer transition-all ${
+                                activeToggleView === 'after' 
+                                  ? 'bg-green-505 text-stone-950 font-black bg-green-400' 
+                                  : 'text-stone-400 hover:text-white'
+                              }`}
+                            >
+                              Después
+                            </button>
+                          </div>
                         </div>
-                      </div>
+
+                      </>
+                    ) : (
+                      <img 
+                        src={post.image} 
+                        alt={post.plantType} 
+                        className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                      />
                     )}
                   </div>
 
-                  {/* Body Text & Success Description */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div className="mb-4">
-                      {/* Leaf Indicator Representation */}
-                      <div className="flex items-center gap-1.5 mb-2.5">
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((val) => (
-                            <span 
-                              key={val} 
-                              className={`text-sm ${
-                                post.rating >= val ? "text-lime-400 filter drop-shadow-[0_0_2px_rgba(163,230,53,0.5)]" : "text-stone-700"
-                              }`}
-                            >
-                              🍃
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-stone-450 uppercase font-bold ml-1 tracking-wider">
-                          Eficacia • {post.rating} / 5
+                  {/* Card Content parameters */}
+                  <div className="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                      
+                      {/* Product line label and calendar */}
+                      <div className="flex items-center justify-between text-[10px] font-extrabold text-stone-450 tracking-wider uppercase mb-2">
+                        <span className="text-green-400 flex items-center gap-1">
+                          <SproutIcon className="h-3.5 w-3.5" />
+                          <span>{post.product}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <CalendarIcon className="h-3.5 w-3.5 text-stone-500" />
+                          <span>{post.daysUsed} Días / Edad</span>
                         </span>
                       </div>
 
-                      {/* Headline */}
-                      <h3 className="text-lg font-black text-white leading-tight mb-2 select-text">
-                        "{post.headline}"
+                      {/* Plant title / headline */}
+                      <h3 className="text-lg font-extrabold text-white leading-snug tracking-tight mb-2 line-clamp-1">
+                        {post.headline}
                       </h3>
 
-                      {/* Content */}
-                      <p className="text-stone-300 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-normal text-justify select-text">
+                      {/* Plant description story */}
+                      <p className="text-stone-400 text-xs leading-relaxed line-clamp-4 font-medium mb-4">
                         {post.content}
                       </p>
+
                     </div>
 
-                    {/* Author & Clap likes Interaction container */}
-                    <div className="flex justify-between items-center pt-4 border-t border-stone-800/80 mt-auto bg-stone-900/10">
-                      
-                      {/* Author nickname */}
+                    {/* Lower Author Row & interactive Likes feedback button */}
+                    <div className="pt-4 border-t border-stone-850 flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-stone-800 border border-stone-750 flex items-center justify-center text-xs text-lime-400 font-extrabold select-none">
+                        <div className="w-8 h-8 rounded-full bg-stone-800 border border-stone-750 flex items-center justify-center text-xs text-green-400 font-extrabold select-none">
                           {post.author.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-white leading-none">{post.author}</p>
-                          <p className="text-[10px] text-stone-450 font-semibold tracking-wide uppercase mt-0.5">
-                            🌟 Cliente Certificado
+                          <p className="text-xs font-bold text-white leading-none truncate max-w-[124px]">{post.author}</p>
+                          <p className="text-[10px] text-stone-500 font-semibold tracking-wide uppercase mt-0.5">
+                            🌟 {post.plantType}
                           </p>
                         </div>
                       </div>
 
-                      {/* Action Applaud/Like button */}
+                      {/* Interactive Inspiring/Love heart feedback */}
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border font-bold text-xs transition-all duration-200 cursor-pointer active:scale-95 ${
+                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border font-bold text-xs transition-all duration-200 cursor-pointer active:scale-95 ${
                           hasLiked 
-                            ? 'bg-lime-950 border-lime-800 text-lime-300 shadow-[0_0_12px_rgba(163,230,53,0.15)]' 
-                            : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-white hover:border-stone-700'
+                            ? 'bg-green-950 border-green-850 text-green-300 shadow-[0_0_12px_rgba(22,101,52,0.2)]' 
+                            : 'bg-stone-900 border-stone-800/80 text-stone-400 hover:text-white hover:border-stone-700'
                         }`}
-                        title={hasLiked ? "Ya no me gusta" : "¡Me inspira este resultado!"}
+                        title={hasLiked ? "Ya no me gusta" : "¡Me gusta este espécimen!"}
                       >
-                        <HeartIcon className={`h-4.5 w-4.5 transition-transform duration-300 ${hasLiked ? 'fill-lime-400 text-lime-400 scale-125' : 'text-current'}`} />
+                        <HeartIcon className={`h-4.5 w-4.5 transition-transform duration-300 ${hasLiked ? 'fill-green-400 text-green-400 scale-125' : 'text-current'}`} />
                         <span>{post.likes}</span>
                       </button>
 
                     </div>
 
                   </div>
+
                 </article>
               );
             })}
