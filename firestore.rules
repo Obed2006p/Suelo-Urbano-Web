@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Standard high-performing global helpers
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming(request) { 
+      return request.resource.data; 
+    }
+    
+    function existing(resource) { 
+      return resource.data; 
+    }
+
+    // Helper functions for validating MuroPost entity
+    function isValidMuroPost(data) {
+      return data.keys().hasAll(['id', 'author', 'product', 'plantType', 'headline', 'content', 'rating', 'daysUsed', 'image', 'likes', 'date'])
+        && data.keys().size() <= 13 // includes optional field beforeImage and hasBeforeAfter
+        && data.id is string && data.id.size() <= 128
+        && data.author is string && data.author.size() <= 100
+        && data.product is string && data.product.size() <= 100
+        && data.plantType is string && data.plantType.size() <= 100
+        && data.headline is string && data.headline.size() <= 250
+        && data.content is string && data.content.size() <= 2000
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.daysUsed is int && data.daysUsed >= 1
+        && data.image is string && data.image.size() <= 1000000 // Support base64 or long URLs
+        && data.likes is int && data.likes >= 0
+        && data.date is string && data.date.size() <= 50
+        // Optional Fields
+        && (!data.keys().contains('beforeImage') || (data.beforeImage is string && data.beforeImage.size() <= 1000000))
+        && (!data.keys().contains('hasBeforeAfter') || data.hasBeforeAfter is bool);
+    }
+
+    // Rules for MuroPost collection
+    match /muro_posts/{postId} {
+      // Allow anybody to get posts or list posts
+      allow read: if true;
+      
+      // Allow creation of valid posts
+      allow create: if isValidId(postId) 
+                    && isValidMuroPost(incoming(request))
+                    && incoming(request).id == postId
+                    && incoming(request).likes == 0; // Fresh posts must start with 0 likes
+      
+      // Tiered update: Visitors/Clients can only update (increment/decrement) the 'likes' field
+      allow update: if isValidId(postId)
+                    && isValidMuroPost(incoming(request))
+                    && incoming(request).id == existing(resource).id
+                    && incoming(request).author == existing(resource).author
+                    && incoming(request).product == existing(resource).product
+                    && incoming(request).plantType == existing(resource).plantType
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+    }
+  }
+}

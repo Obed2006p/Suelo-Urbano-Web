@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "MuroPost": {
+      "title": "MuroPost",
+      "description": "Un testimonio o resultado compartido por un co-creador de Suelo Urbano con foto de su planta.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador único del post."
+        },
+        "author": {
+          "type": "string",
+          "description": "Nombre o apodo del co-creador."
+        },
+        "product": {
+          "type": "string",
+          "description": "Producto de Suelo Urbano utilizado."
+        },
+        "plantType": {
+          "type": "string",
+          "description": "Tipo de planta tratada."
+        },
+        "headline": {
+          "type": "string",
+          "description": "Título o encabezado breve del resultado."
+        },
+        "content": {
+          "type": "string",
+          "description": "Historia y descripción detallada de la experiencia."
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Calificación de efectividad (1 a 5 hojas)."
+        },
+        "daysUsed": {
+          "type": "integer",
+          "description": "Días de uso de la emulsión antes de ver el resultado."
+        },
+        "image": {
+          "type": "string",
+          "description": "URL de la imagen del resultado alojada en Cloudinary."
+        },
+        "hasBeforeAfter": {
+          "type": "boolean",
+          "description": "Indica si el post incluye comparación antes/después."
+        },
+        "beforeImage": {
+          "type": "string",
+          "description": "URL opcional de la imagen antes del tratamiento alojada en Cloudinary."
+        },
+        "likes": {
+          "type": "integer",
+          "description": "Número de personas a las que les inspiró este resultado."
+        },
+        "date": {
+          "type": "string",
+          "description": "Fecha del testimonio."
+        }
+      },
+      "required": ["id", "author", "product", "plantType", "headline", "content", "rating", "daysUsed", "image", "likes", "date"]
+    }
+  },
+  "firestore": {
+    "muro_posts/{postId}": {
+      "schema": "MuroPost",
+      "description": "Colección pública de testimonios y resultados de la emulsión Suelo Urbano compartidos por clientes."
+    }
+  }
+}

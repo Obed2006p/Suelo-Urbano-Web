@@ -28,6 +28,7 @@ import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
 import PremiumGate, { VIP_CODES } from './components/PremiumGate';
 import AnalyticsPage from './components/AnalyticsPage';
+import MuroResultadosPage from './components/MuroResultadosPage';
 import { trackPageView, trackPageTime, trackClick } from './components/analyticsLocalTracker';
 
 // Declara la función global gtag para que TypeScript la reconozca
@@ -307,6 +308,9 @@ const App: React.FC = () => {
       );
       break;
     }
+    case '#/muro-resultados':
+      pageContent = <MuroResultadosPage header={renderHeader()} />;
+      break;
     case '#/puntos-de-venta':
       pageContent = <LocationsPage header={renderHeader()} />;
       break;
