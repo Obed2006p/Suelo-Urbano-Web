@@ -328,18 +328,28 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
       daysUsed: formData.daysUsed,
       image: finalImageUrl,
       hasBeforeAfter: formData.hasBeforeAfter,
-      beforeImage: formData.hasBeforeAfter ? finalBeforeImageUrl : undefined,
       likes: 0,
       date: new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
     };
+
+    if (formData.hasBeforeAfter && finalBeforeImageUrl) {
+      newPost.beforeImage = finalBeforeImageUrl;
+    }
 
     if (isFirebaseActive) {
       try {
         // Safe persist to Firestore
         await setDoc(doc(db, 'muro_posts', customId), newPost);
-      } catch (firestoreErr) {
+      } catch (firestoreErr: any) {
         console.error("Firestore persistence error:", firestoreErr);
-        handleFirestoreError(firestoreErr, OperationType.CREATE, `muro_posts/${customId}`);
+        setIsUploading(false);
+        setFormError(`Error al guardar en Firebase: ${firestoreErr.message || firestoreErr}`);
+        try {
+          handleFirestoreError(firestoreErr, OperationType.CREATE, `muro_posts/${customId}`);
+        } catch (e) {
+          // Avoid uncaught error breaking UI flow
+        }
+        return;
       }
     } else {
       // Offline fallback
