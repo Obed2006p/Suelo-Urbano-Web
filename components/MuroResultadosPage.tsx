@@ -43,6 +43,7 @@ export interface MuroPost {
   date: string;
   price?: string; // New: price tag
   isPreset?: boolean;
+  contact?: string; // Optional seller contact details (visible to VIP only)
 }
 
 // Client sell request submittor
@@ -109,7 +110,8 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
     image: '',
     beforeImage: '',
     hasBeforeAfter: false,
-    price: '' // New Price field
+    price: '', // New Price field
+    contact: '' // Secret seller contact info (VIP only)
   });
 
   // Client sale request form
@@ -436,7 +438,8 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
         hasBeforeAfter: formData.hasBeforeAfter,
         likes: 0,
         date: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
-        price: formData.price.trim() || undefined
+        price: formData.price.trim() || undefined,
+        contact: formData.contact.trim() || undefined
       };
 
       if (isFirebaseActive) {
@@ -460,7 +463,8 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
         image: '',
         beforeImage: '',
         hasBeforeAfter: false,
-        price: ''
+        price: '',
+        contact: ''
       });
       setImageBeforeText('');
       setImageAfterText('');
@@ -557,17 +561,18 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
   // VIP Admin review workflow: prefill VIP publishing form with client submission content
   const handleApproveSolicitud = (sol: MuralSolicitud) => {
     setFormData({
-      author: sol.clientName + " (Cliente)",
+      author: sol.clientName,
       product: 'Suelo Urbano Humus / Orgánico',
       plantType: sol.plantType,
       headline: `Planta ofrecida por ${sol.clientName}`,
-      content: sol.description + ` | Publicado originalmente por el cliente. Contacto: ${sol.clientContact}`,
+      content: sol.description,
       rating: 5,
       daysUsed: 10,
       image: sol.image,
       beforeImage: '',
       hasBeforeAfter: false,
-      price: sol.price
+      price: sol.price,
+      contact: sol.clientContact
     });
     
     // Smooth scroll to top and show form
@@ -639,68 +644,72 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
         {/* Brand Header */}
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-12 pb-8 border-b border-stone-850">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-950/50 border border-green-800/40 rounded-full text-green-400 text-xs font-bold uppercase tracking-widest mb-3">
+            <div 
+              className="inline-flex items-center gap-2 px-3 py-1 bg-green-950/50 border border-green-800/40 rounded-full text-green-400 text-xs font-bold uppercase tracking-widest mb-3 cursor-default select-none"
+              onDoubleClick={() => setShowVipTrigger(prev => !prev)}
+              title="Mural de plantas y ofertas"
+            >
               <SparklesIcon className="h-3.5 w-3.5" />
               <span>Plantas, Flores y Ofertas</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-none">
-              Mural Suelo Urbano ✨
-            </h1>
+            
+            <div className="flex items-center gap-3">
+              <h1 
+                className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-none cursor-default select-none"
+                onDoubleClick={() => setShowVipTrigger(prev => !prev)}
+              >
+                Mural Suelo Urbano ✨
+              </h1>
+              
+              {/* Crown indicator visible only if developer/VIP is active. Doubles as log-out. */}
+              {isVipMode && (
+                <button
+                  onClick={() => {
+                    if (window.confirm("¿Deseas salir del modo administrador VIP?")) {
+                      handleVipLock();
+                    }
+                  }}
+                  className="p-1 px-2.5 bg-yellow-950/80 hover:bg-red-950/80 text-yellow-400 hover:text-red-300 border border-yellow-800/40 hover:border-red-800/40 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer animate-pulse"
+                  title="👑 Administrador Activo - Haz clic para salir"
+                >
+                  👑 Admin
+                </button>
+              )}
+            </div>
+
             <p className="text-stone-400 mt-3 text-sm md:text-base max-w-2xl font-medium">
               Te presentamos nuestro catálogo interactivo de plantas y especímenes sanados con alimento orgánico. Revisa precios exclusivos y solicita vender tus plantas directamente en este mural de la comunidad.
             </p>
           </div>
 
-          {/* Access status toggler drawer */}
-          <div className="w-full md:w-auto bg-stone-900 border border-stone-830/90 rounded-2xl p-4 shadow-xl">
-            <div className="flex items-center justify-between gap-6 mb-2">
-              <span className="text-[10px] uppercase font-bold text-stone-450 tracking-wider">Modoficación de Acceso</span>
-              {isVipMode ? (
+          {/* Secure invisible Gate: Only pops up if they double-click the header/badge */}
+          {showVipTrigger && !isVipMode && (
+            <div className="w-full md:w-auto bg-stone-900 border border-stone-800 rounded-2xl p-4 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-250">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <span className="text-[10px] uppercase font-bold text-yellow-400 tracking-wider">Acceso de Administrador</span>
                 <button 
-                  onClick={handleVipLock}
-                  className="text-[10px] bg-red-950 hover:bg-red-900 border border-red-800/60 text-red-300 font-extrabold px-2.5 py-1 rounded-md cursor-pointer transition-colors"
+                  onClick={() => setShowVipTrigger(false)} 
+                  className="text-stone-500 hover:text-white text-xs font-bold"
                 >
-                  Salir de VIP
+                  ✕
                 </button>
-              ) : (
-                <button 
-                  onClick={() => setShowVipTrigger(!showVipTrigger)}
-                  className="text-[10px] bg-emerald-950 hover:bg-emerald-900/70 border border-emerald-800/60 text-emerald-300 font-extrabold px-2.5 py-1 rounded-md cursor-pointer transition-colors"
-                >
-                  Cambiar a VIP
-                </button>
-              )}
-            </div>
-
-            {isVipMode ? (
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
-                <span className="text-xs font-extrabold text-yellow-300">👑 Modo Administrador VIP Habilitado</span>
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-stone-500" />
-                <span className="text-xs font-bold text-stone-300">👤 Acceso: Pantalla Visual Solamente (Cliente)</span>
-              </div>
-            )}
-
-            {/* Inner credential form */}
-            {showVipTrigger && !isVipMode && (
-              <form onSubmit={handleVipUnlock} className="mt-3 pt-3 border-t border-stone-800 flex gap-2">
+              <form onSubmit={handleVipUnlock} className="flex gap-2">
                 <input 
                   type="password" 
-                  placeholder="Introduce (VIP)"
+                  placeholder="Código VIP"
                   value={vipCodeInput}
                   onChange={(e) => setVipCodeInput(e.target.value)}
-                  className="bg-stone-950 border border-stone-850 focus:border-green-600 rounded-lg px-2 py-1 text-xs text-white max-w-[120px] focus:outline-none uppercase font-bold"
+                  className="bg-stone-950 border border-stone-850 focus:border-green-600 rounded-lg px-2 py-1.5 text-xs text-white max-w-[120px] focus:outline-none uppercase font-bold"
+                  autoFocus
                 />
-                <button type="submit" className="bg-green-700 hover:bg-green-600 text-white font-extrabold text-xs px-3 py-1 rounded-lg cursor-pointer">
+                <button type="submit" className="bg-green-700 hover:bg-green-600 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg cursor-pointer">
                   Entrar
                 </button>
               </form>
-            )}
-            {vipError && <p className="text-[10px] text-red-500 font-bold mt-1 max-w-[200px]">{vipError}</p>}
-          </div>
+              {vipError && <p className="text-[10px] text-red-500 font-bold mt-1.5 max-w-[200px]">{vipError}</p>}
+            </div>
+          )}
         </div>
 
         {/* ==============================================
@@ -1127,6 +1136,20 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
                   />
                 </div>
 
+                {/* Secure seller contact field (VIP Only) */}
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">
+                    Contacto del Vendedor (Sólo visible para Administradores/VIP)
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: +52 56 5242 0968 o WhatsApp"
+                    value={formData.contact}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contact: e.target.value }))}
+                    className="w-full bg-stone-950 border border-stone-850 hover:border-stone-750 focus:border-green-600 focus:outline-none rounded-xl p-3.5 text-sm text-stone-100 font-semibold transition-colors"
+                  />
+                </div>
+
                 {/* Days of applying */}
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-wider font-extrabold text-stone-300 block">Días de uso de alimento / Edad aproximada</label>
@@ -1393,9 +1416,30 @@ const MuroResultadosPage: React.FC<MuroResultadosPageProps> = ({ header }) => {
                       </h3>
 
                       {/* Plant description story */}
-                      <p className="text-stone-400 text-xs leading-relaxed line-clamp-4 font-medium mb-4">
+                      <p className="text-stone-400 text-xs leading-relaxed line-clamp-4 font-medium mb-3">
                         {post.content}
                       </p>
+
+                      {/* Contact metadata secure visualization */}
+                      {post.contact && (
+                        <div className="mt-2.5 p-3 rounded-xl bg-stone-950/60 border border-stone-850/80 flex flex-col gap-1">
+                          {isVipMode ? (
+                            <>
+                              <span className="text-[9px] uppercase tracking-wider font-extrabold text-yellow-400 flex items-center gap-1">
+                                👑 Contacto de Vendedor (Solo VIP):
+                              </span>
+                              <span className="text-xs font-bold text-green-400 select-all font-mono">
+                                {post.contact}
+                              </span>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-[10px] text-stone-500 font-extrabold uppercase tracking-wider">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Intermediario: Suelo Urbano Tu Hogar</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                     </div>
 
