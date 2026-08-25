@@ -206,26 +206,26 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter, onOpenChatbot })
                         <a 
                             href="#/doctor-plantas"
                             onClick={handleGoToDoctor}
-                            className="group flex flex-col justify-between p-4 md:p-5 rounded-3xl bg-gradient-to-br from-stone-900/90 via-stone-900/80 to-emerald-950/40 backdrop-blur-xl border border-emerald-500/30 hover:border-emerald-400 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(16,185,129,0.12)] hover:shadow-[0_15px_35px_rgba(16,185,129,0.25)] text-left"
+                            className="group flex flex-col justify-between p-4 md:p-5 rounded-3xl bg-gradient-to-br from-stone-900/95 via-stone-900/85 to-sky-950/50 backdrop-blur-xl border border-sky-400/50 hover:border-sky-300 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(56,189,248,0.2)] hover:shadow-[0_15px_35px_rgba(56,189,248,0.38)] text-left"
                             aria-label="Ir al Doctor de Plantas"
                         >
                             <div className="flex items-start justify-between gap-3 mb-2">
-                                <div className="p-2.5 md:p-3 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 group-hover:scale-110 transition-transform">
+                                <div className="p-2.5 md:p-3 rounded-2xl bg-sky-500/20 border border-sky-400/50 text-sky-400 group-hover:scale-110 transition-transform">
                                     <HeartbeatIcon className="h-6 w-6" />
                                 </div>
-                                <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-emerald-900/60 border border-emerald-600/40 text-emerald-300">
+                                <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-sky-950/80 border border-sky-400/60 text-sky-300 shadow-sm">
                                     IA Diagnóstico
                                 </span>
                             </div>
                             <div>
-                                <h3 className="font-extrabold text-base md:text-lg text-emerald-300 group-hover:text-emerald-200">
+                                <h3 className="font-extrabold text-base md:text-lg text-sky-300 group-hover:text-sky-200">
                                     Consultorio de Plantas Suelo Urbano
                                 </h3>
                                 <p className="text-xs md:text-sm text-stone-300 mt-1 font-medium leading-relaxed">
                                     Analiza síntomas, hojas marchitas, plagas o carencias minerales con diagnóstico inteligente.
                                 </p>
                             </div>
-                            <div className="mt-2.5 flex items-center text-xs font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">
+                            <div className="mt-2.5 flex items-center text-xs font-bold text-sky-400 group-hover:text-sky-300 group-hover:translate-x-1 transition-all">
                                 <span>Diagnosticar mi planta ahora &rarr;</span>
                             </div>
                         </a>
