@@ -124,56 +124,38 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter, onOpenChatbot })
                 {/* Main Dynamic Content Layout - 2 Balanced Power Columns */}
                 <div className="flex-grow w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch my-auto">
                     
-                    {/* Left Column: 5 Core Plant Needs (7 Cols on Desktop) */}
-                    <div className="lg:col-span-7 animate-fade-in-left flex flex-col justify-center">
-                        <div className="bg-stone-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden group">
-                            {/* Ambient Light Accent */}
-                            <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                            
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="p-2.5 rounded-2xl bg-lime-500/20 border border-lime-400/30 text-lime-400">
-                                    <SproutIcon className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl md:text-2xl font-black text-white tracking-wide">
-                                        Cosas que necesita tu planta para estar bien
-                                    </h2>
-                                    <p className="text-xs md:text-sm text-lime-300 font-semibold">
-                                        Los 5 fundamentos esenciales del suelo vivo
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3.5">
-                                {plantNeeds.map((need, idx) => (
-                                    <div 
-                                        key={idx}
-                                        className="flex items-start gap-3.5 p-3 rounded-2xl bg-stone-950/60 border border-stone-800/80 hover:border-lime-500/40 hover:bg-stone-950/90 transition-all duration-300 transform hover:-translate-x-1"
-                                    >
-                                        <div className="p-2 rounded-xl bg-stone-900 border border-stone-800 flex-shrink-0 mt-0.5">
-                                            {need.icon}
-                                        </div>
-                                        <div className="flex-grow min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <strong className="text-sm md:text-base text-lime-200 font-bold">
-                                                    {need.title}
-                                                </strong>
-                                                <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                            </div>
-                                            <p className="text-xs md:text-sm text-stone-300 leading-snug mt-0.5 font-medium">
-                                                {need.desc}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column: Interactive Ecosystem Hub & Knowledge (5 Cols on Desktop) */}
-                    <div className="lg:col-span-5 animate-fade-in-right flex flex-col justify-between gap-3 md:gap-4">
+                    {/* Left Column: Interactive Ecosystem Hub & Knowledge (5 Cols on Desktop) */}
+                    <div className="lg:col-span-5 animate-fade-in-left flex flex-col justify-between gap-3 md:gap-4">
                         
-                        {/* Interactive Card 1: Chatbot Virtual Gardener */}
+                        {/* Interactive Card 1: Plant Doctor */}
+                        <a 
+                            href="#/doctor-plantas"
+                            onClick={handleGoToDoctor}
+                            className="group flex flex-col justify-between p-4 md:p-5 rounded-3xl bg-gradient-to-br from-stone-900/95 via-stone-900/85 to-sky-950/50 backdrop-blur-xl border border-sky-400/50 hover:border-sky-300 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(56,189,248,0.2)] hover:shadow-[0_15px_35px_rgba(56,189,248,0.38)] text-left"
+                            aria-label="Ir al Doctor de Plantas"
+                        >
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                                <div className="p-2.5 md:p-3 rounded-2xl bg-sky-500/20 border border-sky-400/50 text-sky-400 group-hover:scale-110 transition-transform">
+                                    <HeartbeatIcon className="h-6 w-6" />
+                                </div>
+                                <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-sky-950/80 border border-sky-400/60 text-sky-300 shadow-sm">
+                                    IA Diagnóstico
+                                </span>
+                            </div>
+                            <div>
+                                <h3 className="font-extrabold text-base md:text-lg text-sky-300 group-hover:text-sky-200">
+                                    Consultorio de Plantas Suelo Urbano
+                                </h3>
+                                <p className="text-xs md:text-sm text-stone-300 mt-1 font-medium leading-relaxed">
+                                    Analiza síntomas, hojas marchitas, plagas o carencias minerales con diagnóstico inteligente.
+                                </p>
+                            </div>
+                            <div className="mt-2.5 flex items-center text-xs font-bold text-sky-400 group-hover:text-sky-300 group-hover:translate-x-1 transition-all">
+                                <span>Diagnosticar mi planta ahora &rarr;</span>
+                            </div>
+                        </a>
+
+                        {/* Interactive Card 2: Chatbot Virtual Gardener */}
                         <button 
                             type="button"
                             onClick={handleChatbotClick}
@@ -201,34 +183,6 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter, onOpenChatbot })
                                 <span>Abrir conversación con el Jardinero IA &rarr;</span>
                             </div>
                         </button>
-
-                        {/* Interactive Card 2: Plant Doctor */}
-                        <a 
-                            href="#/doctor-plantas"
-                            onClick={handleGoToDoctor}
-                            className="group flex flex-col justify-between p-4 md:p-5 rounded-3xl bg-gradient-to-br from-stone-900/95 via-stone-900/85 to-sky-950/50 backdrop-blur-xl border border-sky-400/50 hover:border-sky-300 transition-all duration-300 transform hover:-translate-y-1 shadow-[0_10px_25px_rgba(56,189,248,0.2)] hover:shadow-[0_15px_35px_rgba(56,189,248,0.38)] text-left"
-                            aria-label="Ir al Doctor de Plantas"
-                        >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                                <div className="p-2.5 md:p-3 rounded-2xl bg-sky-500/20 border border-sky-400/50 text-sky-400 group-hover:scale-110 transition-transform">
-                                    <HeartbeatIcon className="h-6 w-6" />
-                                </div>
-                                <span className="text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-full bg-sky-950/80 border border-sky-400/60 text-sky-300 shadow-sm">
-                                    IA Diagnóstico
-                                </span>
-                            </div>
-                            <div>
-                                <h3 className="font-extrabold text-base md:text-lg text-sky-300 group-hover:text-sky-200">
-                                    Consultorio de Plantas Suelo Urbano
-                                </h3>
-                                <p className="text-xs md:text-sm text-stone-300 mt-1 font-medium leading-relaxed">
-                                    Analiza síntomas, hojas marchitas, plagas o carencias minerales con diagnóstico inteligente.
-                                </p>
-                            </div>
-                            <div className="mt-2.5 flex items-center text-xs font-bold text-sky-400 group-hover:text-sky-300 group-hover:translate-x-1 transition-all">
-                                <span>Diagnosticar mi planta ahora &rarr;</span>
-                            </div>
-                        </a>
 
                         {/* Interactive Card 3: What is Suelo Urbano */}
                         <a 
@@ -259,6 +213,52 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter, onOpenChatbot })
                             </div>
                         </a>
 
+                    </div>
+
+                    {/* Right Column: 5 Core Plant Needs (7 Cols on Desktop) */}
+                    <div className="lg:col-span-7 animate-fade-in-right flex flex-col justify-center">
+                        <div className="bg-stone-900/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                            {/* Ambient Light Accent */}
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                            
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="p-2.5 rounded-2xl bg-lime-500/20 border border-lime-400/30 text-lime-400">
+                                    <SproutIcon className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl md:text-2xl font-black text-white tracking-wide">
+                                        Cosas que necesita tu planta para estar bien
+                                    </h2>
+                                    <p className="text-xs md:text-sm text-lime-300 font-semibold">
+                                        Los 5 fundamentos esenciales del suelo vivo
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3.5">
+                                {plantNeeds.map((need, idx) => (
+                                    <div 
+                                        key={idx}
+                                        className="flex items-start gap-3.5 p-3 rounded-2xl bg-stone-950/60 border border-stone-800/80 hover:border-lime-500/40 hover:bg-stone-950/90 transition-all duration-300 transform hover:translate-x-1"
+                                    >
+                                        <div className="p-2 rounded-xl bg-stone-900 border border-stone-800 flex-shrink-0 mt-0.5">
+                                            {need.icon}
+                                        </div>
+                                        <div className="flex-grow min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <strong className="text-sm md:text-base text-lime-200 font-bold">
+                                                    {need.title}
+                                                </strong>
+                                                <CheckCircleIcon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                                            </div>
+                                            <p className="text-xs md:text-sm text-stone-300 leading-snug mt-0.5 font-medium">
+                                                {need.desc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 

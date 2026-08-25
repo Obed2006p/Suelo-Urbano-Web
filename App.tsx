@@ -346,8 +346,8 @@ const App: React.FC = () => {
         )}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
 
-        {/* Chatbot: Visible en HomePage o cuando el estado es 'splash' (bienvenida) */}
-        {(isHomePage || appState === 'splash') && (
+        {/* Chatbot: Solo visible cuando se está dentro de la app (appState === 'home' e isHomePage) */}
+        {appState === 'home' && isHomePage && (
           <Chatbot isPremiumUnlocked={isPremiumUnlocked} onUnlock={handleUnlock} />
         )}
       </div>
