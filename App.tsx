@@ -13,7 +13,6 @@ import CompositionPage from './components/CompositionPage';
 import WateringGuidePage from './components/WateringGuidePage';
 import PlantDoctorPage from './components/PlantDoctorPage';
 import HowToUsePage from './components/HowToUsePage';
-import LocationsPage from './components/LocationsPage';
 import DonationPage from './components/DonationPage';
 import FallingLeaves from './components/FallingLeaves';
 import WelcomeSplash from './components/WelcomeSplash';
@@ -28,7 +27,6 @@ import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
 import PremiumGate, { VIP_CODES } from './components/PremiumGate';
 import AnalyticsPage from './components/AnalyticsPage';
-import MuroResultadosPage from './components/MuroResultadosPage';
 import { trackPageView, trackPageTime, trackClick } from './components/analyticsLocalTracker';
 
 // Declara la función global gtag para que TypeScript la reconozca
@@ -308,12 +306,6 @@ const App: React.FC = () => {
       );
       break;
     }
-    case '#/muro-resultados':
-      pageContent = <MuroResultadosPage header={renderHeader()} />;
-      break;
-    case '#/puntos-de-venta':
-      pageContent = <LocationsPage header={renderHeader()} />;
-      break;
     case '#/donar':
       pageContent = <DonationPage header={renderHeader()} />;
       break;
@@ -344,16 +336,20 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        {/* Overlays that are not blurred */}
-        {/* Chatbot: Visible en HomePage y cuando el estado es 'home' o 'splash' (bienvenida) */}
-        {isHomePage && (appState === 'home' || appState === 'splash') && (
-          <Chatbot isPremiumUnlocked={isPremiumUnlocked} onUnlock={handleUnlock} />
-        )}
-        
         <CuriousFactPopup isVisible={showFactPopup} onClose={() => setShowFactPopup(false)} />
         
-        {appState === 'splash' && <WelcomeSplash onEnter={handleEnterSplash} />}
+        {appState === 'splash' && (
+          <WelcomeSplash 
+            onEnter={handleEnterSplash} 
+            onOpenChatbot={() => window.dispatchEvent(new CustomEvent('open-suelo-chatbot'))}
+          />
+        )}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
+
+        {/* Chatbot: Visible en HomePage o cuando el estado es 'splash' (bienvenida) */}
+        {(isHomePage || appState === 'splash') && (
+          <Chatbot isPremiumUnlocked={isPremiumUnlocked} onUnlock={handleUnlock} />
+        )}
       </div>
   );
 };

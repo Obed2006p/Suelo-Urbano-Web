@@ -534,7 +534,17 @@ const PlantDoctorSection: React.FC = () => {
                 health: diagnosis.estadoGeneral,
                 diagnosis: diagnosis.diagnosticoBreve,
                 actionPlan: diagnosis.tratamiento,
-                beforeImage: base64Img
+                beforeImage: base64Img,
+                problemasDetectados: diagnosis.problemasDetectados,
+                causasPosibles: diagnosis.causasPosibles,
+                planRecuperacion: diagnosis.planRecuperacion,
+                sustratoRecomendado: diagnosis.sustratoRecomendado,
+                luzYRiego: diagnosis.luzYRiego,
+                prevencion: diagnosis.prevencion,
+                seguimiento: diagnosis.seguimiento,
+                productosRecomendados: diagnosis.productosRecomendados,
+                resultadosEsperados: diagnosis.resultadosEsperados,
+                status: diagnosis.estadoGeneral?.toLowerCase().includes('crítico') ? 'critico' : 'en_tratamiento'
             });
             if (success) {
                 setSaveSuccess(true);

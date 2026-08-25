@@ -1,3 +1,9 @@
+export interface GardenPlantNote {
+    id: string;
+    date: number;
+    text: string;
+}
+
 export interface GardenPlant {
     id: string;
     date: number; // timestamp
@@ -7,6 +13,23 @@ export interface GardenPlant {
     actionPlan: { paso: string; detalle: string }[];
     beforeImage: string; // base64
     afterImage?: string; // base64
+    
+    // Diagnóstico clínico completo
+    problemasDetectados?: string[];
+    causasPosibles?: string[];
+    planRecuperacion?: string[];
+    sustratoRecomendado?: string;
+    luzYRiego?: string;
+    prevencion?: string[];
+    seguimiento?: string;
+    productosRecomendados?: { nombre: string; motivo: string }[];
+    resultadosEsperados?: string[];
+    
+    // Seguimiento y Bitácora Interactiva
+    status?: 'critico' | 'en_tratamiento' | 'recuperada';
+    completedSteps?: number[];
+    notes?: GardenPlantNote[];
+    lastWateredDate?: number;
 }
 
 // Helper para redimensionar imagen antes de guardar (evitar llenar localStorage)
@@ -45,7 +68,10 @@ export const saveToGarden = (plant: Omit<GardenPlant, 'id' | 'date'>) => {
     const newPlant: GardenPlant = {
         ...plant,
         id: Math.random().toString(36).substr(2, 9),
-        date: Date.now()
+        date: Date.now(),
+        status: plant.status || (plant.health?.toLowerCase().includes('crítico') ? 'critico' : 'en_tratamiento'),
+        completedSteps: plant.completedSteps || [],
+        notes: plant.notes || []
     };
     plants.unshift(newPlant);
     try {
@@ -69,7 +95,65 @@ export const getGardenPlants = (): GardenPlant[] => {
 
 export const updateAfterImage = (id: string, afterImageBase64: string) => {
     const plants = getGardenPlants();
-    const updated = plants.map(p => p.id === id ? { ...p, afterImage: afterImageBase64 } : p);
+    const updated = plants.map(p => p.id === id ? { 
+        ...p, 
+        afterImage: afterImageBase64,
+        status: 'recuperada' as const 
+    } : p);
+    localStorage.setItem('my_urban_garden', JSON.stringify(updated));
+};
+
+export const updatePlantStatus = (id: string, status: 'critico' | 'en_tratamiento' | 'recuperada') => {
+    const plants = getGardenPlants();
+    const updated = plants.map(p => p.id === id ? { ...p, status } : p);
+    localStorage.setItem('my_urban_garden', JSON.stringify(updated));
+};
+
+export const togglePlantStep = (id: string, stepIndex: number) => {
+    const plants = getGardenPlants();
+    const updated = plants.map(p => {
+        if (p.id !== id) return p;
+        const current = p.completedSteps || [];
+        const exists = current.includes(stepIndex);
+        const nextSteps = exists ? current.filter(s => s !== stepIndex) : [...current, stepIndex];
+        return { ...p, completedSteps: nextSteps };
+    });
+    localStorage.setItem('my_urban_garden', JSON.stringify(updated));
+};
+
+export const addPlantNote = (id: string, noteText: string) => {
+    if (!noteText.trim()) return;
+    const plants = getGardenPlants();
+    const newNote: GardenPlantNote = {
+        id: Math.random().toString(36).substr(2, 7),
+        date: Date.now(),
+        text: noteText.trim()
+    };
+    const updated = plants.map(p => {
+        if (p.id !== id) return p;
+        return {
+            ...p,
+            notes: [newNote, ...(p.notes || [])]
+        };
+    });
+    localStorage.setItem('my_urban_garden', JSON.stringify(updated));
+};
+
+export const deletePlantNote = (id: string, noteId: string) => {
+    const plants = getGardenPlants();
+    const updated = plants.map(p => {
+        if (p.id !== id) return p;
+        return {
+            ...p,
+            notes: (p.notes || []).filter(n => n.id !== noteId)
+        };
+    });
+    localStorage.setItem('my_urban_garden', JSON.stringify(updated));
+};
+
+export const recordWatering = (id: string) => {
+    const plants = getGardenPlants();
+    const updated = plants.map(p => p.id === id ? { ...p, lastWateredDate: Date.now() } : p);
     localStorage.setItem('my_urban_garden', JSON.stringify(updated));
 };
 
@@ -78,3 +162,4 @@ export const deleteFromGarden = (id: string) => {
     const updated = plants.filter(p => p.id !== id);
     localStorage.setItem('my_urban_garden', JSON.stringify(updated));
 };
+

@@ -109,13 +109,16 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
             setIsMenuOpen(document.body.classList.contains('nav-menu-open'));
         });
 
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['class'],
-        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        const handleOpenExternal = () => {
+            setIsOpen(true);
+        };
+        window.addEventListener('open-suelo-chatbot', handleOpenExternal);
 
         return () => {
             observer.disconnect();
+            window.removeEventListener('open-suelo-chatbot', handleOpenExternal);
         };
     }, []);
 
@@ -301,7 +304,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
         <>
             {/* Chat Toggle Button & Promo Bubble - BOTTOM LEFT */}
             <div 
-                style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 210 }} 
+                style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 350 }} 
                 className={`flex flex-col items-start gap-2 pointer-events-auto transition-all duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : (isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100')}`}
             >
                 {/* Promo Bubble Rotativa */}
@@ -345,7 +348,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
 
             {/* Chat Window - Fullscreen on Mobile, Widget on Desktop */}
             <div 
-                style={{ zIndex: isMenuOpen ? 20 : 220 }}
+                style={{ zIndex: isMenuOpen ? 20 : 360 }}
                 className={`fixed bg-white dark:bg-stone-800 shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden transition-all duration-300 flex flex-col
                     ${isOpen ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-90'}
                     ${/* Mobile Styles: Fullscreen */ ''}
