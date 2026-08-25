@@ -506,16 +506,50 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
 14. Resultados esperados: Mejoras.
 15. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
             
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: { parts: [imagePart, { text: prompt }] },
-                config: { responseMimeType: "application/json", responseSchema: unifiedSchema }
-            });
+            let lastError: any = null;
+            let diagnosisData: any = null;
+            
+            // Lista de modelos resilientes en caso de alta demanda (503 / 429)
+            const modelsToTry = ['gemini-3.7-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+            
+            for (const modelName of modelsToTry) {
+                try {
+                    const response = await ai.models.generateContent({
+                        model: modelName,
+                        contents: { parts: [imagePart, { text: prompt }] },
+                        config: { responseMimeType: "application/json", responseSchema: unifiedSchema }
+                    });
 
-            setDiagnosis(JSON.parse(response.text));
+                    if (response.text) {
+                        diagnosisData = JSON.parse(response.text);
+                        break; // Éxito, salir del bucle
+                    }
+                } catch (err: any) {
+                    console.warn(`Intento con modelo ${modelName} falló:`, err);
+                    lastError = err;
+                    // Si el error es de alta demanda o temporal, probar el siguiente modelo
+                    await new Promise(r => setTimeout(r, 600));
+                }
+            }
+
+            if (diagnosisData) {
+                setDiagnosis(diagnosisData);
+            } else {
+                throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
+            }
         } catch (err: any) {
             console.error(err);
-            setError(err.message === "API_KEY no está configurada." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error: ${err.message || 'Inténtalo de nuevo.'}`);
+            const errStr = typeof err === 'string' ? err : err.message || JSON.stringify(err);
+            
+            if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE")) {
+                setError("Los servidores de IA están experimentando una alta demanda momentánea. Tus datos están a salvo; por favor haz clic en 'Reintentar Diagnóstico' para procesar tu planta.");
+            } else if (errStr.includes("429") || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
+                setError("Se ha alcanzado el límite temporal de consultas. Espera unos segundos y pulsa 'Reintentar Diagnóstico'.");
+            } else if (errStr.includes("API_KEY")) {
+                setError("La clave de API no está configurada correctamente. Revisa la configuración.");
+            } else {
+                setError("Ocurrió un inconveniente temporal al procesar la imagen. Puedes presionar 'Reintentar Diagnóstico' para volver a intentarlo.");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -739,9 +773,35 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
         }
         if (error) {
             return (
-                <div className="text-red-600 bg-red-100 border border-red-300 rounded-lg p-4 w-full">
-                    <h3 className="font-bold mb-2">¡Ups! Algo salió mal</h3>
-                    <p>{error}</p>
+                <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-2xl p-6 w-full text-center space-y-4 shadow-sm animate-fade-in">
+                    <div className="w-12 h-12 mx-auto rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400">
+                        <QuestionMarkCircleIcon className="w-7 h-7" />
+                    </div>
+                    <div>
+                        <h3 className="font-extrabold text-lg text-red-800 dark:text-red-300 mb-1">
+                            Aviso del Consultorio Botánico
+                        </h3>
+                        <p className="text-sm text-red-700 dark:text-red-200/90 leading-relaxed font-medium">
+                            {error}
+                        </p>
+                    </div>
+                    {imageFile && (
+                        <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+                            <button
+                                onClick={runDiagnosis}
+                                disabled={isLoading}
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                                🔄 Reintentar Diagnóstico
+                            </button>
+                            <button
+                                onClick={reset}
+                                className="px-5 py-2.5 bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 font-bold rounded-xl transition-all text-sm cursor-pointer"
+                            >
+                                Cambiar Foto
+                            </button>
+                        </div>
+                    )}
                 </div>
             );
         }

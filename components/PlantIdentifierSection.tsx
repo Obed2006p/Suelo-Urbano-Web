@@ -101,21 +101,44 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
                 },
             };
 
-            const response: GenerateContentResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: { parts: [imagePart, { text: "Identifica la planta en la imagen. Proporciona su nombre, cuidados básicos y una recomendación para usar la emulsión 'Suelo Urbano' con ella." }] },
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema
-                }
-            });
-            
-            const parsedResult = JSON.parse(response.text);
-            setResult(parsedResult);
+            let lastError: any = null;
+            let parsedResult: any = null;
+            const modelsToTry = ['gemini-3.7-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
 
+            for (const modelName of modelsToTry) {
+                try {
+                    const response: GenerateContentResponse = await ai.models.generateContent({
+                        model: modelName,
+                        contents: { parts: [imagePart, { text: "Identifica la planta en la imagen. Proporciona su nombre, cuidados básicos y una recomendación para usar la emulsión 'Suelo Urbano' con ella." }] },
+                        config: {
+                            responseMimeType: "application/json",
+                            responseSchema: schema
+                        }
+                    });
+                    
+                    if (response.text) {
+                        parsedResult = JSON.parse(response.text);
+                        break;
+                    }
+                } catch (err) {
+                    lastError = err;
+                    await new Promise(r => setTimeout(r, 600));
+                }
+            }
+
+            if (parsedResult) {
+                setResult(parsedResult);
+            } else {
+                throw lastError || new Error("No se pudo identificar la planta.");
+            }
         } catch (err: any) {
             console.error(err);
-            setError(err.message === "API_KEY no está configurada en las variables de entorno." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error al identificar la planta: ${err.message || 'Inténtalo de nuevo.'}`);
+            const errStr = typeof err === 'string' ? err : err.message || JSON.stringify(err);
+            if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE")) {
+                setError("El servicio de IA está con alta demanda temporal. Por favor pulsa 'Identificar Planta' de nuevo para reintentar.");
+            } else {
+                setError(err.message === "API_KEY no está configurada en las variables de entorno." ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Hubo un error al identificar la planta. Inténtalo de nuevo en unos segundos.`);
+            }
         } finally {
             setIsLoading(false);
         }

@@ -202,9 +202,21 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
                 if (!apiKey) throw new Error("API_KEY no configurada");
                 
                 const ai = new GoogleGenAI({ apiKey: apiKey });
-                const result = await ai.models.generateContent({ model: "gemini-3-flash-preview", contents: prompt });
+                let resultText = "¡No olvides hidratarlas hoy!";
+                const models = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+                for (const m of models) {
+                    try {
+                        const result = await ai.models.generateContent({ model: m, contents: prompt });
+                        if (result.text) {
+                            resultText = result.text;
+                            break;
+                        }
+                    } catch (e) {
+                        console.warn(`Weather advice failed on model ${m}:`, e);
+                    }
+                }
                 
-                setMessages(prev => [...prev, { text: result.text || "¡No olvides hidratarlas hoy!", sender: 'bot' }]);
+                setMessages(prev => [...prev, { text: resultText, sender: 'bot' }]);
 
             } catch (err) {
                 setMessages(prev => [...prev, { text: "No pude obtener el clima o generar el consejo en este momento. Intenta más tarde.", sender: 'bot' }]);
@@ -256,41 +268,41 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
             
             const ai = new GoogleGenAI({ apiKey: apiKey });
             
-            // Construir el historial para el modelo
-            // Nota: Usamos ai.chats.create para la nueva versión del SDK
-            const chat = ai.chats.create({
-                model: "gemini-3-flash-preview",
-                config: {
-                    systemInstruction: SYSTEM_INSTRUCTION,
-                },
-                history: messages
-                    .filter(msg => msg.text && msg.text.trim() !== '') // Filtrar mensajes vacíos (solo imagen) del historial de texto
-                    .map(msg => ({
-                        role: msg.sender === 'user' ? 'user' : 'model',
-                        parts: [{ text: msg.text }] 
-                    }))
-            });
+            let botResponse: string | null = null;
+            let lastChatError: any = null;
+            const chatModels = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
 
-            // Preparar el mensaje actual
-            let messageParts: any[] = [];
-            if (currentFile) {
-                const imagePart = await fileToGenerativePart(currentFile);
-                messageParts.push(imagePart);
-            }
-            if (userText) {
-                messageParts.push({ text: userText });
-            }
-            if (messageParts.length === 0 && currentFile) {
-                 messageParts.push({ text: "Analiza esta imagen." });
-            }
+            for (const modelName of chatModels) {
+                try {
+                    const chat = ai.chats.create({
+                        model: modelName,
+                        config: {
+                            systemInstruction: SYSTEM_INSTRUCTION,
+                        },
+                        history: messages
+                            .filter(msg => msg.text && msg.text.trim() !== '')
+                            .map(msg => ({
+                                role: msg.sender === 'user' ? 'user' : 'model',
+                                parts: [{ text: msg.text }] 
+                            }))
+                    });
 
-            const result = await chat.sendMessage({ message: messageParts });
-            const botResponse = result.text;
+                    const result = await chat.sendMessage({ message: messageParts });
+                    if (result.text) {
+                        botResponse = result.text;
+                        break;
+                    }
+                } catch (e) {
+                    lastChatError = e;
+                    console.warn(`Chat attempt with ${modelName} failed:`, e);
+                    await new Promise(r => setTimeout(r, 500));
+                }
+            }
 
             if (botResponse) {
                 setMessages(prev => [...prev, { text: botResponse, sender: 'bot' }]);
             } else {
-                throw new Error("Respuesta vacía");
+                throw lastChatError || new Error("No se pudo obtener respuesta del chatbot.");
             }
 
         } catch (error: any) {
