@@ -38,11 +38,16 @@ const WelcomeSplash: React.FC<WelcomeSplashProps> = ({ onEnter, onOpenChatbot })
 
     const handleChatbotClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (onOpenChatbot) {
-            onOpenChatbot();
-        } else {
-            window.dispatchEvent(new CustomEvent('open-suelo-chatbot'));
-        }
+        if (isExiting) return;
+        window.location.hash = '#/mi-jardin';
+        handleEnterClick();
+        setTimeout(() => {
+            if (onOpenChatbot) {
+                onOpenChatbot();
+            } else {
+                window.dispatchEvent(new CustomEvent('open-suelo-chatbot'));
+            }
+        }, 1100);
     };
 
     const plantNeeds = [

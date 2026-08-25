@@ -20,6 +20,11 @@ export interface GardenPlant {
     planRecuperacion?: string[];
     sustratoRecomendado?: string;
     luzYRiego?: string;
+    riegoYSustrato?: {
+        clasificacionEspecie: string;
+        descripcionClasificacion: string;
+        puntos: { numero: number; titulo: string; detalle: string; tipo: 'agua' | 'sustrato' }[];
+    };
     prevencion?: string[];
     seguimiento?: string;
     productosRecomendados?: { nombre: string; motivo: string }[];

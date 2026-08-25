@@ -346,8 +346,8 @@ const App: React.FC = () => {
         )}
         {appState === 'video' && <VideoIntro onComplete={handleVideoComplete} />}
 
-        {/* Chatbot: Solo visible cuando se está dentro de la app (appState === 'home' e isHomePage) */}
-        {appState === 'home' && isHomePage && (
+        {/* Chatbot: Visible únicamente en la sección "Mi Jardín Urbano" */}
+        {appState === 'home' && route === '#/mi-jardin' && (
           <Chatbot isPremiumUnlocked={isPremiumUnlocked} onUnlock={handleUnlock} />
         )}
       </div>

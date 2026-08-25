@@ -42,10 +42,11 @@ TONO:
 Amable, experto, usa emojis (🌿, 🏺, 🧪). Sé breve y directo.`;
 
 const PROMO_MESSAGES = [
-    "¿Ocupas saber la lectura del PH? 🧪",
-    "¿Diagnóstico de tu maceta? 🏺",
-    "Sube una foto de tu planta 📸",
-    "¿Dudas con la composta? 🍂"
+    "¿Dudas con tu plan de plantas? 🌿",
+    "¿Cuándo regar o fertilizar? 💧",
+    "¿Lectura de pH o drenaje? 🧪",
+    "Sube foto de tu maceta u hojas 📸",
+    "¿Dudas con la composta o dosis? 🍂"
 ];
 
 interface ChatbotProps {
@@ -123,7 +124,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
     }, []);
 
     const [messages, setMessages] = useState<Message[]>([
-        { text: "¡Hola! 🌿 Soy tu Jardinero Virtual con visión artificial. Puedo leer tus tiras de pH, revisar el drenaje de tus macetas o diagnosticar tus plantas por foto. ¡Inténtalo!", sender: 'bot' },
+        { text: "¡Hola! 🌿 Soy tu Jardinero Virtual en Mi Jardín Urbano. Puedo resolver dudas sobre tus plantas registradas, tiempos de recuperación, dosis de emulsión, tiras de pH o revisar fotos de tus macetas. ¿En qué te ayudo hoy?", sender: 'bot' },
         { text: "¿Te gustaría un consejo hiper-personalizado para tus plantas basado en el clima exacto de tu ciudad hoy? 🌤️", sender: 'bot', action: 'weather' }
     ]);
     const [inputValue, setInputValue] = useState('');

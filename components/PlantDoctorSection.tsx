@@ -16,10 +16,21 @@ interface PlantDiagnosis {
     planRecuperacion: string[];
     sustratoRecomendado: string;
     luzYRiego: string;
+    riegoYSustrato?: {
+        clasificacionEspecie: 'TOLERANTE' | 'SENSIBLE';
+        descripcionClasificacion: string;
+        puntos: {
+            numero: number;
+            titulo: string;
+            detalle: string;
+            tipo: 'agua' | 'sustrato';
+        }[];
+    };
     prevencion: string[];
     seguimiento: string;
     productosRecomendados: { nombre: string; motivo: string }[];
     imagenesReferencia: { terminoBusquedaWikipedia: string; descripcionEspanol: string }[];
+    resultadosEsperados: string[];
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -185,6 +196,84 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
             </div>
         </div>
 
+        {/* Sección: Regla de Diagnóstico Condicional: Riego y Sustrato */}
+        {diagnosis.riegoYSustrato && (
+            <div className="bg-gradient-to-br from-cyan-950/20 via-stone-900/10 to-emerald-950/20 border border-cyan-500/40 dark:border-cyan-500/30 p-5 rounded-2xl shadow-md space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyan-500/20 pb-3">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 flex-shrink-0">
+                            <HumidityIcon className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h4 className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
+                                Regla de Riego, Agua y Sustrato
+                            </h4>
+                            <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                                Tolerancia al agua de la llave, oxigenación y drenaje radicular
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        {diagnosis.riegoYSustrato.clasificacionEspecie === 'SENSIBLE' ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm">
+                                ⚠️ Especie Sensible al Agua de la Llave
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/40 shadow-sm">
+                                ✅ Especie Tolerante al Agua de la Llave
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white/80 dark:bg-stone-800/80 p-3.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+                    <span className="font-bold text-stone-900 dark:text-white block mb-0.5">Clasificación de la Especie:</span>
+                    {diagnosis.riegoYSustrato.descripcionClasificacion}
+                </div>
+
+                <div className="space-y-3">
+                    {diagnosis.riegoYSustrato.puntos.map((punto, idx) => {
+                        const isWaterPoint = punto.tipo === 'agua';
+                        return (
+                            <div 
+                                key={idx}
+                                className={`p-4 rounded-xl border flex items-start gap-3.5 transition-all shadow-sm ${
+                                    isWaterPoint 
+                                        ? 'bg-cyan-50/80 dark:bg-cyan-950/25 border-cyan-200 dark:border-cyan-800/50' 
+                                        : 'bg-emerald-50/80 dark:bg-emerald-950/25 border-emerald-200 dark:border-emerald-800/50'
+                                }`}
+                            >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 mt-0.5 shadow-sm ${
+                                    isWaterPoint
+                                        ? 'bg-cyan-600 text-white'
+                                        : 'bg-emerald-600 text-white'
+                                }`}>
+                                    {punto.numero}
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <h5 className="text-sm font-extrabold text-stone-900 dark:text-white">
+                                            {punto.titulo}
+                                        </h5>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                            isWaterPoint 
+                                                ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' 
+                                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
+                                        }`}>
+                                            {isWaterPoint ? 'Calidad del Agua' : 'Oxígeno y Sustrato'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed font-medium">
+                                        {punto.detalle}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        )}
+
         {/* Sustrato y Productos */}
         <div className="bg-white border text-center border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
             <h4 className="font-bold text-gray-900 mb-2 dark:text-white uppercase tracking-widest text-sm text-center border-b pb-2 dark:border-gray-700">Recomendación Oficial Suelo Urbano</h4>
@@ -314,6 +403,35 @@ const PlantDoctorSection: React.FC = () => {
                     planRecuperacion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Medidas a mediano plazo (ej: 'Mejorar ventilación', 'Revisar humedad')." },
                     sustratoRecomendado: { type: Type.STRING, description: "Nombre del sustrato de 'Suelo Urbano Tu Hogar'." },
                     luzYRiego: { type: Type.STRING, description: "Recomendaciones específicas de luz y riego." },
+                    riegoYSustrato: {
+                        type: Type.OBJECT,
+                        properties: {
+                            clasificacionEspecie: { 
+                                type: Type.STRING, 
+                                description: "Clasificación estricta: 'TOLERANTE' o 'SENSIBLE'." 
+                            },
+                            descripcionClasificacion: {
+                                type: Type.STRING,
+                                description: "Explicación breve de por qué esta especie pertenece a este grupo (tolerante o sensible al agua de la llave)."
+                            },
+                            puntos: {
+                                type: Type.ARRAY,
+                                items: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        numero: { type: Type.INTEGER, description: "Número del punto." },
+                                        titulo: { type: Type.STRING, description: "Título del punto." },
+                                        detalle: { type: Type.STRING, description: "Explicación detallada del punto." },
+                                        tipo: { type: Type.STRING, description: "'agua' o 'sustrato'." }
+                                    },
+                                    required: ["numero", "titulo", "detalle", "tipo"]
+                                },
+                                description: "Puntos aplicables según la regla condicional: si es TOLERANTE incluye solo puntos 4 y 5. Si es SENSIBLE o con daño por sales incluye los 5 puntos."
+                            }
+                        },
+                        required: ["clasificacionEspecie", "descripcionClasificacion", "puntos"],
+                        description: "Apartado obligatorio de regla condicional de riego, agua y sustrato."
+                    },
                     prevencion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Consejos clave en viñetas para evitar que el problema vuelva." },
                     seguimiento: { type: Type.STRING, description: "Qué esperar en los próximos días/semanas." },
                     productosRecomendados: {
@@ -344,12 +462,12 @@ const PlantDoctorSection: React.FC = () => {
                 },
                 required: [
                     "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "problemasDetectados", "causasPosibles", 
-                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "prevencion", 
+                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "riegoYSustrato", "prevencion", 
                     "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados"
                 ]
             };
             
-            const prompt = `Actúa como un 'Doctor de Plantas' experto. Tu tarea es analizar la imagen y proporcionar un diagnóstico completo en un solo paso, siguiendo esta estructura exacta:
+            const prompt = `Actúa como un 'Doctor de Plantas' experto de Suelo Urbano Tu Hogar. Tu tarea es analizar la imagen y proporcionar un diagnóstico completo en un solo paso, siguiendo esta estructura exacta:
 1. Nombre de la planta.
 2. Estado general (ej: Atención moderada).
 3. Diagnóstico breve: el problema principal.
@@ -359,11 +477,34 @@ const PlantDoctorSection: React.FC = () => {
 7. Plan de recuperación: Acciones de soporte.
 8. Sustrato recomendado: Debe ser 'Suelo Urbano Tu Hogar' o variantes.
 9. Luz y riego: Ajustes necesarios.
-10. Prevención: Cómo evitar que regrese.
-11. Seguimiento: Qué esperar ver pronto.
-12. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
-13. Resultados esperados: Mejoras.
-14. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
+10. Regla de Riego y Sustrato (OBLIGATORIO): Aplica estrictamente la siguiente regla condicional:
+
+[REGLA DE DIAGNÓSTICO CONDICIONAL: RIEGO Y SUSTRATO]
+
+PASO 1: IDENTIFICACIÓN DE LA ESPECIE
+Al procesar la foto, identifica la especie de la planta y clasifícala en una de estas dos categorías:
+- TOLERANTE AL AGUA DE LA LLAVE: (Ej. Teléfono/Poto, Sansevieria/Espada de San Jorge, Palo de Brasil, Cuna de Moisés/Espatifilo, Mala Madre/Cinta, Monsteras maduras, Suculentas comunes).
+- SENSIBLE AL AGUA DE LA LLAVE: (Ej. Calateas, Orquídeas, Anturios, Helechos, Plantas Carnívoras, Marantas, Ficus Lyrata).
+
+PASO 2: APLICACIÓN FILTRO DE AGUA (PUNTOS 1 AL 3)
+- SI LA PLANTA ES TOLERANTE: Omite por completo los puntos sobre el cloro, la cal y el truco del reposo. No menciones nada sobre evitar el agua de la llave.
+- SI LA PLANTA ES SENSIBLE O TIENE DAÑO VISIBLE POR SALES: Incluye obligatoriamente los Puntos 1, 2 y 3.
+
+PASO 3: APLICACIÓN REGLA DE SUSTRATO Y AIRE (PUNTOS 4 Y 5)
+Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya que todas sufren por falta de oxígeno y tierra compacta.
+
+[ESTRUCTURA DE LOS 5 PUNTOS (CUANDO APLIQUE TODO)]
+1. EVITAR AGUA DE LA LLAVE DIRECTA (Solo para plantas sensibles).
+2. DAÑO POR CLORO Y CAL (Solo para plantas sensibles): Explica cómo el cloro y sales queman bordes y bloquean raíces.
+3. EL TRUCO DEL REPOSO (Solo para plantas sensibles): Dejar reposar el agua 24-48 horas en recipiente abierto para evaporar cloro o usar agua filtrada/lluvia.
+4. PELIGRO DEL EXCESO DE AGUA (ASFIXIA RADICULAR): Explica que el riego excesivo expulsa el aire de la tierra. Sin oxígeno, las raíces se asfixian, bloqueando la absorción de aire, agua y nutrientes. (Aplica para todas).
+5. RECOMENDACIÓN DE TEPOJAL: Recomienda mezclar el sustrato con tepojal para mejorar la estructura, crear canales de aire y asegurar un buen drenaje. (Aplica para todas).
+
+11. Prevención: Cómo evitar que regrese.
+12. Seguimiento: Qué esperar ver pronto.
+13. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
+14. Resultados esperados: Mejoras.
+15. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
             
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
@@ -485,6 +626,24 @@ const PlantDoctorSection: React.FC = () => {
         addWrappedText(diagnosis.luzYRiego, 11);
         y += 5;
 
+        // --- Regla Condicional de Riego y Sustrato ---
+        if (diagnosis.riegoYSustrato) {
+            if (y > 220) { doc.addPage(); y = 20; }
+            addWrappedText("Regla de Diagnóstico: Riego y Sustrato", 14, true);
+            const esSensible = diagnosis.riegoYSustrato.clasificacionEspecie === 'SENSIBLE';
+            addWrappedText(`Clasificación: ${esSensible ? 'Sensible al Agua de la Llave (Cloro/Sales)' : 'Tolerante al Agua de la Llave'}`, 11, true);
+            addWrappedText(diagnosis.riegoYSustrato.descripcionClasificacion, 11);
+            y += 2;
+            
+            diagnosis.riegoYSustrato.puntos.forEach((p) => {
+                if (y > 260) { doc.addPage(); y = 20; }
+                addWrappedText(`Punto ${p.numero}: ${p.titulo}`, 11, true);
+                addWrappedText(p.detalle, 10);
+                y += 2;
+            });
+            y += 4;
+        }
+
         // --- Prevent and Follow up ---
         if (y > 230) { doc.addPage(); y = 20; }
         addWrappedText("Plan de Recuperación:", 12, true);
@@ -540,6 +699,7 @@ const PlantDoctorSection: React.FC = () => {
                 planRecuperacion: diagnosis.planRecuperacion,
                 sustratoRecomendado: diagnosis.sustratoRecomendado,
                 luzYRiego: diagnosis.luzYRiego,
+                riegoYSustrato: diagnosis.riegoYSustrato,
                 prevencion: diagnosis.prevencion,
                 seguimiento: diagnosis.seguimiento,
                 productosRecomendados: diagnosis.productosRecomendados,

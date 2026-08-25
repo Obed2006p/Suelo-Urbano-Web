@@ -28,7 +28,9 @@ import {
     WaterDropIcon,
     XIcon,
     SproutIcon,
-    WormIcon
+    WormIcon,
+    RobotIcon,
+    ChatBubbleIcon
 } from './icons/Icons';
 
 const TrashIcon = ({ className }: { className?: string }) => (
@@ -379,6 +381,56 @@ const PlantRecordModal: React.FC<PlantModalProps> = ({ plant, onClose, onUpdate 
                                     </p>
                                 </div>
                             </div>
+
+                            {/* Regla de Riego, Agua y Sustrato si está guardada */}
+                            {plant.riegoYSustrato && (
+                                <div className="bg-gradient-to-br from-cyan-950/20 via-stone-900/10 to-emerald-950/20 p-4 sm:p-5 rounded-2xl border border-cyan-500/30 space-y-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <HumidityIcon className="w-5 h-5 text-cyan-500" />
+                                            <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white">
+                                                Regla de Riego, Agua y Sustrato
+                                            </h4>
+                                        </div>
+                                        <div>
+                                            {plant.riegoYSustrato.clasificacionEspecie === 'SENSIBLE' ? (
+                                                <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40">
+                                                    ⚠️ Sensible al Agua de la Llave
+                                                </span>
+                                            ) : (
+                                                <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/40">
+                                                    ✅ Tolerante al Agua de la Llave
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-medium">
+                                        {plant.riegoYSustrato.descripcionClasificacion}
+                                    </p>
+                                    <div className="space-y-2 pt-1">
+                                        {plant.riegoYSustrato.puntos.map((punto, idx) => (
+                                            <div 
+                                                key={idx}
+                                                className={`p-3 rounded-xl border text-xs sm:text-sm flex items-start gap-2.5 ${
+                                                    punto.tipo === 'agua' 
+                                                        ? 'bg-cyan-50/70 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800/40' 
+                                                        : 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40'
+                                                }`}
+                                            >
+                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[11px] text-white flex-shrink-0 mt-0.5 ${
+                                                    punto.tipo === 'agua' ? 'bg-cyan-600' : 'bg-emerald-600'
+                                                }`}>
+                                                    {punto.numero}
+                                                </span>
+                                                <div>
+                                                    <strong className="block text-stone-900 dark:text-white font-bold">{punto.titulo}</strong>
+                                                    <span className="text-stone-600 dark:text-stone-300">{punto.detalle}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                         </div>
                     )}
@@ -873,6 +925,30 @@ const MyGardenPage: React.FC<MyGardenPageProps> = ({ header }) => {
                             </div>
                         </div>
                     )}
+
+                    {/* Quick Consultation Banner for Jardinero IA */}
+                    <div className="bg-gradient-to-r from-emerald-900/90 via-stone-900 to-green-950/90 p-4 sm:p-5 rounded-3xl border border-emerald-500/30 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg animate-fade-in-up">
+                        <div className="flex items-center gap-3.5 text-left">
+                            <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex-shrink-0">
+                                <RobotIcon className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h2 className="font-extrabold text-sm sm:text-base text-emerald-300">
+                                    ¿Dudas con el tratamiento o riego de tu jardín?
+                                </h2>
+                                <p className="text-xs sm:text-sm text-stone-300 font-medium">
+                                    Consulta a nuestro Jardinero IA: resuelve dudas de dosis, sustrato, plagas y fotos en tiempo real.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => window.dispatchEvent(new CustomEvent('open-suelo-chatbot'))}
+                            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 flex-shrink-0"
+                        >
+                            <ChatBubbleIcon className="w-4 h-4" />
+                            <span>Preguntar al Jardinero IA</span>
+                        </button>
+                    </div>
 
                     {/* Search & Filter Controls */}
                     {totalCount > 0 && (
