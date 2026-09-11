@@ -14,7 +14,7 @@ interface CuriousFactPopupProps {
     onClose: () => void;
 }
 
-const VIDEO_URL = "https://res.cloudinary.com/dsmzpsool/video/upload/v1789095234/WhatsApp_Video_2026-09-10_at_7.19.27_PM_johlgx.mp4";
+const VIDEO_URL = "https://res.cloudinary.com/dsmzpsool/video/upload/v1789147050/WhatsApp_Video_2026-09-11_at_9.52.26_AM_tfmqei.mp4";
 
 const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose }) => {
     const [animateOut, setAnimateOut] = useState(false);

@@ -12,11 +12,7 @@ const PlantDoctorPage: React.FC<PlantDoctorPageProps> = ({ header }) => {
     <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
       {header}
       <main className="flex-grow">
-        <section className="py-16 md:py-24">
-            <div className="container mx-auto px-6">
-                <PlantDoctorSection />
-            </div>
-        </section>
+        <PlantDoctorSection />
       </main>
       <Footer />
     </div>

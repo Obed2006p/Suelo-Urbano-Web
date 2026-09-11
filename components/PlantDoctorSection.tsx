@@ -4,6 +4,7 @@ import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { saveToGarden, resizeImageToBase64 } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon } from './icons/Icons';
+import DoctorAdBanner from './DoctorAdBanner';
 
 // --- Interfaces para los datos de la IA ---
 interface PlantDiagnosis {
@@ -534,10 +535,6 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
 
             if (diagnosisData) {
                 setDiagnosis(diagnosisData);
-                // Mostrar el spot de video publicitario de Suelo Urbano al completar un diagnóstico
-                setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('open-spot-video'));
-                }, 1000);
             } else {
                 throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
             }
@@ -860,9 +857,12 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
     };
 
     return (
-        <section className="py-16 md:py-24">
+        <section className="py-8 md:py-14">
             <div className="container mx-auto px-6">
-                <div className="text-center mb-12">
+                {/* Sección Fija de Anuncio Publicitario Suelo Urbano - En la parte superior */}
+                <DoctorAdBanner />
+
+                <div className="text-center mb-10 pt-4 border-t border-gray-200 dark:border-gray-800">
                     <h2 className="text-3xl md:text-4xl font-bold text-green-900 mb-4 dark:text-gray-100">Doctor de Plantas con IA</h2>
                     <p className="max-w-3xl mx-auto text-gray-700 dark:text-gray-300">
                         ¿Tu planta se ve triste? Sube una foto y nuestra IA te dará un diagnóstico y un plan de acción para recuperarla.
