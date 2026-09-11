@@ -180,22 +180,35 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Lógica del temporizador para Datos Curiosos
+  // Lógica del temporizador para el Spot de Video Publicitario (Prueba Piloto)
   React.useEffect(() => {
     let intervalId: number;
+    let initialTimeoutId: number;
 
     if (appState === 'home') {
-        // Configurar el intervalo para que se ejecute cada 2 minutos (120,000 ms)
-        // Se puede ajustar a 30000 (30 seg) para pruebas rápidas
+        // En la prueba piloto: mostrar tras 7 segundos de navegar en la app para visualizarlo de inmediato
+        initialTimeoutId = window.setTimeout(() => {
+            setShowFactPopup(true);
+        }, 7000);
+
+        // Y mantenerse en rotación cada 2.5 minutos si no está visible
         intervalId = window.setInterval(() => {
-            // Solo mostrar si no hay otro modal intrusivo abierto (por ahora asumimos que no)
-            // y si el popup no está ya visible
             setShowFactPopup(prev => !prev ? true : prev);
-        }, 120000); 
+        }, 150000); 
     }
 
+    const handleOpenSpot = () => {
+        setShowFactPopup(false);
+        setTimeout(() => {
+            setShowFactPopup(true);
+        }, 50);
+    };
+    window.addEventListener('open-spot-video', handleOpenSpot);
+
     return () => {
+        if (initialTimeoutId) clearTimeout(initialTimeoutId);
         if (intervalId) clearInterval(intervalId);
+        window.removeEventListener('open-spot-video', handleOpenSpot);
     };
   }, [appState]);
 

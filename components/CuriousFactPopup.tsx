@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import { LeafIcon, XIcon, BookOpenIcon, SproutIcon, HeartbeatIcon } from './icons/Icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { XIcon, SproutIcon } from './icons/Icons';
 
 export interface Fact {
     id: number;
@@ -10,148 +9,210 @@ export interface Fact {
     image: string;
 }
 
-const facts: Fact[] = [
-    {
-        id: 1,
-        title: "Luz adecuada",
-        summary: "Energía para fortalecer raíces.",
-        details: "Cada planta necesita diferente cantidad de luz. No es lo mismo una planta de interior que una de exterior. La luz correcta ayuda a que la planta tenga energía para fortalecer sus raíces.",
-        image: "https://images.unsplash.com/photo-1545241047-6083a3684587?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 2,
-        title: "Riego correcto",
-        summary: "El equilibrio es la clave.",
-        details: "Ni exceso ni escasez. Demasiada agua puede ahogar la raíz. Muy poca agua la debilita. El equilibrio es fundamental para mantener la salud radicular.",
-        image: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 3,
-        title: "Sustrato equilibrado",
-        summary: "Alimentar y dejar respirar.",
-        details: "Una mezcla adecuada de tierra, humus y material que permita aireación. El suelo debe alimentar, pero también dejar respirar a las raíces.",
-        image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 4,
-        title: "Maceta con buen drenaje",
-        summary: "Evita que la raíz se pudra.",
-        details: "Siempre usa macetas con orificios en la parte inferior. Si el agua no puede salir, se estanca y la raíz se puede pudrir rápidamente.",
-        image: "https://images.unsplash.com/photo-1598512752271-33f913a5af13?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 5,
-        title: "Espacio para crecer",
-        summary: "La raíz necesita expandirse.",
-        details: "Si la maceta es muy pequeña, las raíces se enredan y el crecimiento se detiene. La raíz necesita espacio suficiente para expandirse y buscar nutrientes.",
-        image: "https://images.unsplash.com/photo-1591035904573-0979cb73729e?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 6,
-        title: "¿Mejoran tus raíces?",
-        summary: "Resultados reales que puedes ver.",
-        details: "Signos de mejora: La planta crece constante, hojas firmes y verdes, no se marchita fácil, se recupera rápido tras el riego, raíces blancas al trasplantar y mejor agarre en la maceta.",
-        image: "https://images.unsplash.com/photo-1599598425947-32009226de0d?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-        id: 7,
-        title: "La regla de oro",
-        summary: "Lo que no se ve importa.",
-        details: "“Lo que no se ve es lo que más importa. Una raíz fuerte hace una planta fuerte.”",
-        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop"
-    }
-];
-
 interface CuriousFactPopupProps {
     isVisible: boolean;
     onClose: () => void;
 }
 
-const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose }) => {
-    const [currentFact, setCurrentFact] = useState<Fact | null>(null);
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [animateOut, setAnimateOut] = useState(false);
+const VIDEO_URL = "https://res.cloudinary.com/dsmzpsool/video/upload/v1789095234/WhatsApp_Video_2026-09-10_at_7.19.27_PM_johlgx.mp4";
 
-    // Seleccionar un dato aleatorio cuando se hace visible
+const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose }) => {
+    const [animateOut, setAnimateOut] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [hasError, setHasError] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     useEffect(() => {
         if (isVisible) {
-            const randomFact = facts[Math.floor(Math.random() * facts.length)];
-            setCurrentFact(randomFact);
-            setIsExpanded(false);
             setAnimateOut(false);
+            setHasError(false);
+            if (videoRef.current) {
+                videoRef.current.currentTime = 0;
+                const playPromise = videoRef.current.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => setIsPlaying(true))
+                        .catch(err => {
+                            console.warn("Autoplay bloqueado por el navegador:", err);
+                            setIsPlaying(false);
+                        });
+                }
+            }
+        } else {
+            if (videoRef.current) {
+                videoRef.current.pause();
+            }
         }
     }, [isVisible]);
 
     const handleClose = () => {
         setAnimateOut(true);
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
         setTimeout(() => {
             onClose();
-        }, 500); // Tiempo para la animación de salida
+        }, 400);
     };
 
-    if (!isVisible || !currentFact) return null;
+    const togglePlay = () => {
+        if (!videoRef.current) return;
+        if (videoRef.current.paused) {
+            videoRef.current.play();
+            setIsPlaying(true);
+        } else {
+            videoRef.current.pause();
+            setIsPlaying(false);
+        }
+    };
+
+    const toggleMute = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!videoRef.current) return;
+        const nextMuted = !isMuted;
+        videoRef.current.muted = nextMuted;
+        setIsMuted(nextMuted);
+    };
+
+    const handleGoToOrder = () => {
+        handleClose();
+        window.location.hash = '#/pedido';
+    };
+
+    if (!isVisible) return null;
 
     return (
-        <div className={`fixed bottom-4 right-4 z-[160] w-[90%] max-w-sm md:max-w-md transition-all duration-500 transform ${animateOut ? 'translate-y-20 opacity-0' : 'translate-y-0 opacity-100'}`}>
-            <div className="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 overflow-hidden flex flex-col">
+        <div 
+            id="spot-video-popup"
+            className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[160] w-[calc(100%-2rem)] max-w-[340px] sm:max-w-[360px] transition-all duration-400 transform ${
+                animateOut ? 'translate-y-16 opacity-0 scale-95' : 'translate-y-0 opacity-100 scale-100'
+            }`}
+        >
+            <div className="bg-stone-900/95 text-white rounded-3xl shadow-2xl border border-emerald-500/30 overflow-hidden flex flex-col backdrop-blur-md">
                 
-                {/* Header Image & Close Button */}
-                <div className="relative h-32 w-full flex-shrink-0">
-                    <img 
-                        src={currentFact.image} 
-                        alt={currentFact.title} 
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                    
+                {/* Header bar */}
+                <div className="px-4 py-3 bg-gradient-to-r from-emerald-950 via-stone-900 to-stone-900 flex items-center justify-between border-b border-emerald-500/20">
+                    <div className="flex items-center gap-2">
+                        <span className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            <SproutIcon className="w-3.5 h-3.5" />
+                        </span>
+                        <div>
+                            <span className="text-xs font-black tracking-wide text-emerald-300 uppercase block">
+                                Suelo Urbano Tu Hogar
+                            </span>
+                            <span className="text-[10px] text-stone-400 font-medium leading-none block">
+                                Spot Publicitario · Prueba Piloto
+                            </span>
+                        </div>
+                    </div>
+
                     <button 
                         onClick={handleClose}
-                        className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 transition-colors backdrop-blur-sm"
-                        aria-label="Cerrar recomendación"
+                        className="text-stone-400 hover:text-white bg-stone-800/80 hover:bg-stone-700/80 p-1.5 rounded-full transition-colors cursor-pointer"
+                        title="Cerrar video"
+                        aria-label="Cerrar video"
                     >
-                        <XIcon className="h-5 w-5" />
+                        <XIcon className="w-4 h-4" />
+                    </button>
+                </div>
+
+                {/* Video Container */}
+                <div className="relative w-full bg-black aspect-[9/14] max-h-[380px] overflow-hidden flex items-center justify-center group">
+                    <video
+                        ref={videoRef}
+                        src={VIDEO_URL}
+                        className="w-full h-full object-contain cursor-pointer"
+                        playsInline
+                        loop
+                        muted={isMuted}
+                        autoPlay
+                        onClick={togglePlay}
+                        onError={() => setHasError(true)}
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                    />
+
+                    {/* Fallback if error */}
+                    {hasError && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-stone-900 text-stone-300 text-xs">
+                            <p className="font-bold text-emerald-400 mb-1">Cargando video...</p>
+                            <p>Si tarda en reproducir, puedes presionar el botón de abajo para ver nuestros productos.</p>
+                        </div>
+                    )}
+
+                    {/* Floating Audio Toggle Button */}
+                    <button
+                        onClick={toggleMute}
+                        className="absolute bottom-3 left-3 bg-black/65 hover:bg-black/85 text-white text-xs px-2.5 py-1.5 rounded-full backdrop-blur-md border border-white/20 flex items-center gap-1.5 shadow-lg transition-transform active:scale-90 cursor-pointer"
+                        title={isMuted ? "Activar sonido" : "Silenciar"}
+                    >
+                        {isMuted ? (
+                            <>
+                                <svg className="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                </svg>
+                                <span className="font-bold text-[11px] text-stone-100">Activar audio</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-3.5 h-3.5 text-emerald-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                </svg>
+                                <span className="font-bold text-[11px] text-emerald-300">Con audio</span>
+                            </>
+                        )}
                     </button>
 
-                    <div className="absolute bottom-3 left-4 flex items-center gap-2">
-                        <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
-                            <SproutIcon className="h-3 w-3" /> Recomendación
+                    {/* Play/Pause Overlay indicator when paused */}
+                    {!isPlaying && !hasError && (
+                        <div 
+                            onClick={togglePlay}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center shadow-lg transform transition-transform hover:scale-110">
+                                <svg className="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Call to Action */}
+                <div className="p-3.5 bg-stone-900 border-t border-stone-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <p className="text-xs text-stone-300 font-semibold leading-tight">
+                            Nutrición 100% Orgánica para tus Raíces
+                        </p>
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                            Hecho en México
                         </span>
                     </div>
-                </div>
 
-                {/* Content */}
-                <div className="p-5 flex flex-col">
-                    <h3 className="font-bold text-lg text-stone-800 dark:text-stone-100 leading-tight mb-2">
-                        {currentFact.title}
-                    </h3>
-                    
-                    <div className={`text-sm text-stone-600 dark:text-stone-300 transition-all duration-500 overflow-hidden ${isExpanded ? 'max-h-60' : 'max-h-20'}`}>
-                        <p className="font-medium mb-2">{currentFact.summary}</p>
-                        <p className={`text-stone-500 dark:text-stone-400 text-justify mt-2 pt-2 border-t border-stone-100 dark:border-stone-700 ${isExpanded ? 'opacity-100' : 'opacity-0 hidden'}`}>
-                            {currentFact.details}
-                        </p>
-                    </div>
-
-                    {/* Footer / Action */}
-                    <div className="mt-4 pt-3 flex justify-between items-center border-t border-stone-100 dark:border-stone-700">
-                        <button 
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-green-700 dark:text-green-400 font-bold text-sm hover:underline flex items-center gap-1 transition-colors"
+                    <div className="flex items-center gap-2 pt-1">
+                        <button
+                            onClick={handleGoToOrder}
+                            className="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
-                            {isExpanded ? 'Leer menos' : 'Leer más'}
-                            <BookOpenIcon className="h-4 w-4" />
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <span>Hacer Pedido</span>
                         </button>
                         
-                        {isExpanded && (
-                            <span className="text-[10px] text-stone-400 italic">Suelo Urbano Tu Hogar</span>
-                        )}
+                        <button
+                            onClick={handleClose}
+                            className="py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs rounded-xl transition-all cursor-pointer"
+                        >
+                            Cerrar
+                        </button>
                     </div>
                 </div>
-                
-                {/* Progress bar indication (optional visual flair) */}
-                <div className="h-1 w-full bg-stone-100 dark:bg-stone-700">
-                    <div className="h-full bg-green-500 w-full animate-[width_2s_ease-out]"></div>
-                </div>
+
+                {/* Bottom accent line */}
+                <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-green-400 to-lime-500"></div>
             </div>
         </div>
     );

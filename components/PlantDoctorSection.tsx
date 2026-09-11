@@ -534,6 +534,10 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
 
             if (diagnosisData) {
                 setDiagnosis(diagnosisData);
+                // Mostrar el spot de video publicitario de Suelo Urbano al completar un diagnóstico
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('open-spot-video'));
+                }, 1000);
             } else {
                 throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
             }
