@@ -14,7 +14,7 @@ interface CuriousFactPopupProps {
     onClose: () => void;
 }
 
-const VIDEO_URL = "https://res.cloudinary.com/dsmzpsool/video/upload/v1789147050/WhatsApp_Video_2026-09-11_at_9.52.26_AM_tfmqei.mp4";
+const VIDEO_URL = "https://res.cloudinary.com/dsmzpsool/video/upload/v1789095234/WhatsApp_Video_2026-09-10_at_7.19.27_PM_johlgx.mp4";
 
 const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose }) => {
     const [animateOut, setAnimateOut] = useState(false);
@@ -181,30 +181,21 @@ const CuriousFactPopup: React.FC<CuriousFactPopupProps> = ({ isVisible, onClose 
                 </div>
 
                 {/* Footer Call to Action */}
-                <div className="p-3.5 bg-stone-900 border-t border-stone-800 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <p className="text-xs text-stone-300 font-semibold leading-tight">
-                            Nutrición 100% Orgánica para tus Raíces
-                        </p>
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                            Hecho en México
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-1">
+                <div className="p-3 bg-stone-900 border-t border-stone-800">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={handleGoToOrder}
-                            className="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="flex-1 py-2.5 px-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <span>Hacer Pedido</span>
+                            <span>Hacer cotización</span>
                         </button>
                         
                         <button
                             onClick={handleClose}
-                            className="py-2 px-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs rounded-xl transition-all cursor-pointer"
+                            className="py-2.5 px-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs rounded-xl transition-all cursor-pointer"
                         >
                             Cerrar
                         </button>
