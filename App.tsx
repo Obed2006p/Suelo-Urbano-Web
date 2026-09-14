@@ -22,7 +22,6 @@ import Chatbot from './components/Chatbot';
 import CompostInfoSection from './components/CompostInfoSection';
 import PlantCareGuideSection from './components/PlantCareGuideSection';
 import PhInfoSection from './components/PhInfoSection';
-import CuriousFactPopup from './components/CuriousFactPopup';
 import MyGardenPage from './components/MyGardenPage';
 import OrquideasPage from './components/OrquideasPage';
 import PremiumGate, { VIP_CODES } from './components/PremiumGate';
@@ -82,7 +81,6 @@ type AppState = 'splash' | 'video' | 'home';
 const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
   const [appState, setAppState] = React.useState<AppState>('splash');
-  const [showFactPopup, setShowFactPopup] = React.useState(false);
   const [isPremiumUnlocked, setIsPremiumUnlocked] = React.useState<boolean>(() => {
     return !!localStorage.getItem('suelo_urbano_premium_code');
   });
@@ -179,38 +177,6 @@ const App: React.FC = () => {
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
-
-  // Lógica del temporizador para el Spot de Video Publicitario (Prueba Piloto)
-  React.useEffect(() => {
-    let intervalId: number;
-    let initialTimeoutId: number;
-
-    if (appState === 'home') {
-        // En la prueba piloto: mostrar tras 7 segundos de navegar en la app para visualizarlo de inmediato
-        initialTimeoutId = window.setTimeout(() => {
-            setShowFactPopup(true);
-        }, 7000);
-
-        // Y mantenerse en rotación cada 2.5 minutos si no está visible
-        intervalId = window.setInterval(() => {
-            setShowFactPopup(prev => !prev ? true : prev);
-        }, 150000); 
-    }
-
-    const handleOpenSpot = () => {
-        setShowFactPopup(false);
-        setTimeout(() => {
-            setShowFactPopup(true);
-        }, 50);
-    };
-    window.addEventListener('open-spot-video', handleOpenSpot);
-
-    return () => {
-        if (initialTimeoutId) clearTimeout(initialTimeoutId);
-        if (intervalId) clearInterval(intervalId);
-        window.removeEventListener('open-spot-video', handleOpenSpot);
-    };
-  }, [appState]);
 
   const handleEnterSplash = () => {
     const hasSeenVideo = localStorage.getItem('hasSeenIntroVideo');
@@ -348,8 +314,6 @@ const App: React.FC = () => {
                 {pageContent}
             </div>
         </div>
-
-        <CuriousFactPopup isVisible={showFactPopup} onClose={() => setShowFactPopup(false)} />
         
         {appState === 'splash' && (
           <WelcomeSplash 

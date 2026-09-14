@@ -2,8 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
-import { saveToGarden, resizeImageToBase64 } from '../lib/gardenStorage';
-import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon } from './icons/Icons';
+import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux } from '../lib/gardenStorage';
+import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
 import DoctorAdBanner from './DoctorAdBanner';
 
 // --- Interfaces para los datos de la IA ---
@@ -17,6 +17,7 @@ interface PlantDiagnosis {
     planRecuperacion: string[];
     sustratoRecomendado: string;
     luzYRiego: string;
+    requerimientoLuzLux?: RequerimientoLuzLux;
     riegoYSustrato?: {
         clasificacionEspecie: 'TOLERANTE' | 'SENSIBLE';
         descripcionClasificacion: string;
@@ -107,7 +108,9 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
     );
 };
 
-const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => (
+const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => {
+    const luzInfo = ensureRequerimientoLuz(diagnosis);
+    return (
     <div className="animate-fade-in-up w-full text-left space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -182,16 +185,58 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
                 {diagnosis.planRecuperacion.map((plan, idx) => <li key={idx}>{plan}</li>)}
             </ul>
         </div>
-        
+
         {/* Luz, Riego y Prevención */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="bg-white border border-gray-200 p-4 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><HumidityIcon className="h-5 w-5"/>Luz y Riego</h4>
+            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <div className="flex items-center justify-between gap-2 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2.5">
+                    <h4 className="font-bold text-green-800 flex items-center gap-2 dark:text-green-300 text-base">
+                        <HumidityIcon className="h-5 w-5 text-green-600 dark:text-green-400"/>
+                        Luz y Riego
+                    </h4>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/40">
+                        ☀️ {luzInfo.rangoLux}
+                    </span>
+                </div>
+
+                {/* Diagnóstico de Lux integrado */}
+                <div className="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-emerald-500/5 border border-amber-500/25 rounded-xl p-3.5 mb-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                            <SunIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            Diagnóstico de Lux requerido:
+                        </span>
+                        <span className="font-bold text-stone-700 dark:text-stone-300 bg-white/80 dark:bg-stone-800 px-2 py-0.5 rounded border border-stone-200 dark:border-stone-700 text-[11px]">
+                            {luzInfo.nivelLuz}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div className="bg-white/70 dark:bg-stone-800/70 p-2 rounded-lg border border-amber-200/50 dark:border-stone-700">
+                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[11px]">⏱️ Horas diarias:</span>
+                            <span className="text-stone-700 dark:text-stone-300 font-medium">{luzInfo.horasRecomendadas}</span>
+                        </div>
+                        <div className="bg-white/70 dark:bg-stone-800/70 p-2 rounded-lg border border-amber-200/50 dark:border-stone-700">
+                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[11px]">📍 Ubicación recomendada:</span>
+                            <span className="text-stone-700 dark:text-stone-300 font-medium">{luzInfo.descripcionUbicacion}</span>
+                        </div>
+                    </div>
+
+                    <div className="text-[11px] text-stone-600 dark:text-stone-300 bg-amber-50/70 dark:bg-amber-950/20 p-2 rounded-lg border border-amber-200/60 dark:border-amber-800/30">
+                        <strong className="text-amber-900 dark:text-amber-300 font-bold">📱 Medición con celular: </strong>
+                        {luzInfo.consejoMedicion}
+                    </div>
+                </div>
+
                 <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200">{diagnosis.luzYRiego}</p>
             </div>
-             <div className="bg-white border border-gray-200 p-4 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 dark:text-green-300"><CheckCircleIcon className="h-5 w-5"/>Prevención</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-800 dark:text-gray-200">
+
+            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-3 dark:text-green-300 text-base border-b border-gray-100 dark:border-gray-700 pb-2.5">
+                    <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400"/>
+                    Prevención
+                </h4>
+                <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-800 dark:text-gray-200">
                     {diagnosis.prevencion.map((p, idx) => <li key={idx}>{p}</li>)}
                 </ul>
             </div>
@@ -318,7 +363,8 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
             <p className="text-xs text-gray-500 mt-4 text-center">Estas imágenes son buscadas en enciclopedias (o generadas por IA como respaldo) para servir como referencia visual de la plaga o el estado ideal de tu planta.</p>
         </div>
     </div>
-);
+    );
+};
 
 const PlantDoctorSection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -404,6 +450,18 @@ const PlantDoctorSection: React.FC = () => {
                     planRecuperacion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Medidas a mediano plazo (ej: 'Mejorar ventilación', 'Revisar humedad')." },
                     sustratoRecomendado: { type: Type.STRING, description: "Nombre del sustrato de 'Suelo Urbano Tu Hogar'." },
                     luzYRiego: { type: Type.STRING, description: "Recomendaciones específicas de luz y riego." },
+                    requerimientoLuzLux: {
+                        type: Type.OBJECT,
+                        properties: {
+                            nivelLuz: { type: Type.STRING, description: "Categoría botánica de luz (ej: 'Luz indirecta brillante', 'Sol directo / Plena luz', 'Semisombra o sombra luminosa')." },
+                            rangoLux: { type: Type.STRING, description: "Rango específico indispensable medido en LUX (ej: '2,500 - 4,500 Lux', '800 - 1,500 Lux', '10,000+ Lux'). DEBE contener el valor numérico y la palabra Lux." },
+                            horasRecomendadas: { type: Type.STRING, description: "Horas sugeridas de luz al día (ej: '6 a 8 horas diarias')." },
+                            descripcionUbicacion: { type: Type.STRING, description: "Ubicación ideal en casa o jardín (ej: 'A 1 metro de ventana este/sur con cortina delgada')." },
+                            consejoMedicion: { type: Type.STRING, description: "Consejo práctico para medir con un luxómetro o aplicación móvil de lux a la altura de las hojas." }
+                        },
+                        required: ["nivelLuz", "rangoLux", "horasRecomendadas", "descripcionUbicacion", "consejoMedicion"],
+                        description: "Requerimientos lumínicos técnicos y rango exacto en LUX para esta especie."
+                    },
                     riegoYSustrato: {
                         type: Type.OBJECT,
                         properties: {
@@ -463,7 +521,7 @@ const PlantDoctorSection: React.FC = () => {
                 },
                 required: [
                     "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "problemasDetectados", "causasPosibles", 
-                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "riegoYSustrato", "prevencion", 
+                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "prevencion", 
                     "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados"
                 ]
             };
@@ -477,8 +535,14 @@ const PlantDoctorSection: React.FC = () => {
 6. Tratamiento y control de plagas: Plan de acción paso a paso. (Si hay plagas, indícalo. Si no, cómo solucionar el problema actual).
 7. Plan de recuperación: Acciones de soporte.
 8. Sustrato recomendado: Debe ser 'Suelo Urbano Tu Hogar' o variantes.
-9. Luz y riego: Ajustes necesarios.
-10. Regla de Riego y Sustrato (OBLIGATORIO): Aplica estrictamente la siguiente regla condicional:
+9. Luz y riego (luzYRiego): Ajustes necesarios de riego y humedad para la planta.
+10. Diagnóstico Técnico de LUX (requerimientoLuzLux - OBLIGATORIO):
+    - nivelLuz: Categoría botánica de luz (ej: 'Luz indirecta brillante', 'Sol directo', 'Sombra luminosa').
+    - rangoLux: Rango exacto de intensidad en LUX indispensable para fotosíntesis saludable (ej: '2,500 - 4,500 Lux', '800 - 1,500 Lux', '10,000+ Lux').
+    - horasRecomendadas: Fotoperiodo sugerido en horas al día (ej: '6 a 8 horas diarias').
+    - descripcionUbicacion: Ubicación ideal recomendada en el hogar o jardín para captar los luxes adecuados sin quemarse.
+    - consejoMedicion: Consejo práctico para medir los luxes con un luxómetro o una app gratuita de celular (como Photone o Lux Meter).
+11. Regla de Riego y Sustrato (riegoYSustrato - OBLIGATORIO): Aplica estrictamente la siguiente regla condicional:
 
 [REGLA DE DIAGNÓSTICO CONDICIONAL: RIEGO Y SUSTRATO]
 
@@ -501,17 +565,17 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
 4. PELIGRO DEL EXCESO DE AGUA (ASFIXIA RADICULAR): Explica que el riego excesivo expulsa el aire de la tierra. Sin oxígeno, las raíces se asfixian, bloqueando la absorción de aire, agua y nutrientes. (Aplica para todas).
 5. RECOMENDACIÓN DE TEPOJAL: Recomienda mezclar el sustrato con tepojal para mejorar la estructura, crear canales de aire y asegurar un buen drenaje. (Aplica para todas).
 
-11. Prevención: Cómo evitar que regrese.
-12. Seguimiento: Qué esperar ver pronto.
-13. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
-14. Resultados esperados: Mejoras.
-15. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
+12. Prevención: Cómo evitar que regrese.
+13. Seguimiento: Qué esperar ver pronto.
+14. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
+15. Resultados esperados: Mejoras.
+16. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
             
             let lastError: any = null;
             let diagnosisData: any = null;
             
             // Lista de modelos resilientes en caso de alta demanda (503 / 429)
-            const modelsToTry = ['gemini-3.7-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+            const modelsToTry = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
             
             for (const modelName of modelsToTry) {
                 try {
@@ -523,6 +587,8 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
 
                     if (response.text) {
                         diagnosisData = JSON.parse(response.text);
+                        // Asegurar diagnóstico de Lux botánico normalizado
+                        diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
                         break; // Éxito, salir del bucle
                     }
                 } catch (err: any) {
@@ -534,6 +600,8 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             }
 
             if (diagnosisData) {
+                // Garantizar requerimientoLuzLux
+                diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
                 setDiagnosis(diagnosisData);
             } else {
                 throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
@@ -659,7 +727,15 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
         if (y > 230) { doc.addPage(); y = 20; }
         addWrappedText("Luz y Riego recomendado:", 12, true);
         addWrappedText(diagnosis.luzYRiego, 11);
-        y += 5;
+        y += 3;
+
+        const pdfLux = ensureRequerimientoLuz(diagnosis);
+        if (y > 240) { doc.addPage(); y = 20; }
+        addWrappedText(`Requerimiento de Iluminación: ${pdfLux.rangoLux} (${pdfLux.nivelLuz})`, 11, true);
+        addWrappedText(`Horas de luz: ${pdfLux.horasRecomendadas}. Ubicación: ${pdfLux.descripcionUbicacion}`, 10);
+        addWrappedText(`Consejo para medir Lux: ${pdfLux.consejoMedicion}`, 10);
+        y += 3;
+        y += 2;
 
         // --- Regla Condicional de Riego y Sustrato ---
         if (diagnosis.riegoYSustrato) {
@@ -734,6 +810,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 planRecuperacion: diagnosis.planRecuperacion,
                 sustratoRecomendado: diagnosis.sustratoRecomendado,
                 luzYRiego: diagnosis.luzYRiego,
+                requerimientoLuzLux: diagnosis.requerimientoLuzLux,
                 riegoYSustrato: diagnosis.riegoYSustrato,
                 prevencion: diagnosis.prevencion,
                 seguimiento: diagnosis.seguimiento,

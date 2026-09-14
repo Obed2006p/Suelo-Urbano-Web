@@ -10,7 +10,8 @@ import {
     deletePlantNote,
     recordWatering,
     GardenPlant, 
-    resizeImageToBase64 
+    resizeImageToBase64,
+    ensureRequerimientoLuz
 } from '../lib/gardenStorage';
 import { 
     HeartIcon, 
@@ -30,7 +31,8 @@ import {
     SproutIcon,
     WormIcon,
     RobotIcon,
-    ChatBubbleIcon
+    ChatBubbleIcon,
+    SunIcon
 } from './icons/Icons';
 
 const TrashIcon = ({ className }: { className?: string }) => (
@@ -149,6 +151,15 @@ const PlantRecordModal: React.FC<PlantModalProps> = ({ plant, onClose, onUpdate 
             if (y > 230) { doc.addPage(); y = 20; }
             addWrappedText("Seguimiento y Pronóstico:", 12, true);
             addWrappedText(plant.seguimiento, 10);
+            y += 4;
+        }
+
+        if (plant.requerimientoLuzLux) {
+            if (y > 230) { doc.addPage(); y = 20; }
+            addWrappedText("Requerimiento Lumínico y Luxes:", 12, true);
+            addWrappedText(`• Nivel: ${plant.requerimientoLuzLux.nivelLuz} | Rango: ${plant.requerimientoLuzLux.rangoLux}`, 10);
+            addWrappedText(`• Fotoperiodo: ${plant.requerimientoLuzLux.horasRecomendadas} | Ubicación: ${plant.requerimientoLuzLux.descripcionUbicacion}`, 10);
+            addWrappedText(`• Medición con celular: ${plant.requerimientoLuzLux.consejoMedicion}`, 10);
             y += 4;
         }
 
@@ -357,12 +368,50 @@ const PlantRecordModal: React.FC<PlantModalProps> = ({ plant, onClose, onUpdate 
                             </div>
 
                             {/* Luz, Riego & Sustrato */}
+                            {(() => {
+                                const plantLux = plant.requerimientoLuzLux || ensureRequerimientoLuz(plant);
+                                return (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-stone-50 dark:bg-stone-800 p-4 rounded-2xl border border-stone-200 dark:border-stone-700">
-                                    <h4 className="font-bold text-stone-800 dark:text-stone-200 text-sm mb-2 flex items-center gap-2">
-                                        <HumidityIcon className="w-4 h-4 text-cyan-500" />
-                                        Luz y Riego Recomendado
-                                    </h4>
+                                    <div className="flex items-center justify-between gap-2 mb-2.5 border-b border-stone-200/80 dark:border-stone-700 pb-2">
+                                        <h4 className="font-bold text-stone-800 dark:text-stone-200 text-sm flex items-center gap-2">
+                                            <HumidityIcon className="w-4 h-4 text-cyan-500" />
+                                            Luz y Riego Recomendado
+                                        </h4>
+                                        <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/35">
+                                            ☀️ {plantLux.rangoLux}
+                                        </span>
+                                    </div>
+
+                                    {/* Diagnóstico de Lux integrado */}
+                                    <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/5 p-3 rounded-xl border border-amber-500/25 mb-3 space-y-2 text-xs">
+                                        <div className="flex items-center justify-between gap-1.5">
+                                            <span className="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1">
+                                                <SunIcon className="w-3.5 h-3.5 text-amber-500" />
+                                                Requerimiento de Lux:
+                                            </span>
+                                            <span className="font-bold text-stone-700 dark:text-stone-300 text-[11px] bg-white/80 dark:bg-stone-900 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700">
+                                                {plantLux.nivelLuz}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-1 text-stone-600 dark:text-stone-300">
+                                            <div>
+                                                <strong className="text-amber-800 dark:text-amber-400">⏱️ Horas: </strong>
+                                                {plantLux.horasRecomendadas}
+                                            </div>
+                                            <div>
+                                                <strong className="text-amber-800 dark:text-amber-400">📍 Ubicación: </strong>
+                                                {plantLux.descripcionUbicacion}
+                                            </div>
+                                        </div>
+
+                                        <div className="text-[11px] text-stone-600 dark:text-stone-300 bg-amber-50/80 dark:bg-amber-950/30 p-2 rounded-lg border border-amber-200/60 dark:border-amber-800/40">
+                                            <strong className="text-amber-900 dark:text-amber-300">📱 Medición Lux: </strong>
+                                            {plantLux.consejoMedicion}
+                                        </div>
+                                    </div>
+
                                     <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
                                         {plant.luzYRiego || "Luz indirecta brillante y riego moderado cuando la capa superior del sustrato esté seca al tacto."}
                                     </p>
@@ -381,6 +430,8 @@ const PlantRecordModal: React.FC<PlantModalProps> = ({ plant, onClose, onUpdate 
                                     </p>
                                 </div>
                             </div>
+                                );
+                            })()}
 
                             {/* Regla de Riego, Agua y Sustrato si está guardada */}
                             {plant.riegoYSustrato && (

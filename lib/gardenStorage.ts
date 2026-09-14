@@ -4,6 +4,14 @@ export interface GardenPlantNote {
     text: string;
 }
 
+export interface RequerimientoLuzLux {
+    nivelLuz: string;
+    rangoLux: string;
+    horasRecomendadas: string;
+    descripcionUbicacion: string;
+    consejoMedicion: string;
+}
+
 export interface GardenPlant {
     id: string;
     date: number; // timestamp
@@ -20,6 +28,7 @@ export interface GardenPlant {
     planRecuperacion?: string[];
     sustratoRecomendado?: string;
     luzYRiego?: string;
+    requerimientoLuzLux?: RequerimientoLuzLux;
     riegoYSustrato?: {
         clasificacionEspecie: string;
         descripcionClasificacion: string;
@@ -167,4 +176,61 @@ export const deleteFromGarden = (id: string) => {
     const updated = plants.filter(p => p.id !== id);
     localStorage.setItem('my_urban_garden', JSON.stringify(updated));
 };
+
+/**
+ * Normaliza y asegura que siempre existan datos precisos de Lux para cualquier planta
+ */
+export const ensureRequerimientoLuz = (data: any): RequerimientoLuzLux => {
+    const raw = data?.requerimientoLuzLux || data?.luzLux || data?.lux || data?.requerimientoLuz;
+    
+    if (raw && typeof raw === 'object' && raw.rangoLux && raw.rangoLux.trim() !== '') {
+        const rango = raw.rangoLux.toLowerCase().includes('lux') ? raw.rangoLux : `${raw.rangoLux} Lux`;
+        return {
+            nivelLuz: raw.nivelLuz || "Luz indirecta brillante",
+            rangoLux: rango,
+            horasRecomendadas: raw.horasRecomendadas || "6 a 8 horas diarias",
+            descripcionUbicacion: raw.descripcionUbicacion || "Cerca de ventana luminosa con luz filtrada",
+            consejoMedicion: raw.consejoMedicion || "Descarga en tu celular una app gratuita como 'Photone' o 'Lux Meter' y mide colocando el sensor a la altura de las hojas."
+        };
+    }
+
+    const textToScan = `${data?.name || data?.nombrePlanta || ''} ${data?.luzYRiego || ''} ${data?.diagnosticoBreve || data?.diagnosis || ''}`.toLowerCase();
+    
+    // Buscar si el texto menciona luxes numéricos
+    const match = textToScan.match(/(\d[\d,.]*\s*(?:-|a)\s*\d[\d,.]*\s*lux|\d[\d,.]*\+?\s*lux)/i);
+    let rangoLux = match ? match[0].toUpperCase() : "";
+    let nivelLuz = "Luz indirecta brillante";
+    let horas = "6 a 8 horas diarias";
+    let ubicacion = "A 1 o 2 metros de una ventana bien iluminada con cortina ligera";
+    const consejo = "Descarga en tu celular la app gratuita 'Lux Meter' o 'Photone' y coloca la cámara frontal a la altura de las hojas para verificar la intensidad.";
+
+    if (/suculenta|cactus|crasul|echeveria|aloe|sansevieria|lengua de suegra|agave|bougainvillea|romero|lavanda|cítrico|limon|naranjo/i.test(textToScan)) {
+        if (!rangoLux) rangoLux = "10,000 - 25,000+ Lux";
+        nivelLuz = "Sol directo / Plena luz";
+        horas = "6 a 10 horas de luz solar directa";
+        ubicacion = "Junto a ventanal orientado al sur/oeste o en exterior soleado";
+    } else if (/calatea|calathea|maranta|helecho|orqu[ií]dea|anturio|aglaonema|espatifilo|cuna de mois[eé]s|fitonia|violeta/i.test(textToScan)) {
+        if (!rangoLux) rangoLux = "1,500 - 3,500 Lux";
+        nivelLuz = "Luz tamizada / Sombra luminosa";
+        horas = "6 a 8 horas de luz suave";
+        ubicacion = "Espacio bien iluminado pero protegido 100% de rayos directos del sol";
+    } else if (/monstera|poto|telefono|ficus|pothos|filodendro|dracaena|palo de brasil|zamioculca|zz|singonio/i.test(textToScan)) {
+        if (!rangoLux) rangoLux = "2,500 - 5,000 Lux";
+        nivelLuz = "Luz indirecta brillante";
+        horas = "8 a 10 horas de luz indirecta";
+        ubicacion = "Cerca de ventana amplia con luz reflejada o cortina translúcida";
+    } else {
+        if (!rangoLux) rangoLux = "2,500 - 4,500 Lux";
+        nivelLuz = "Luz indirecta moderada a brillante";
+    }
+
+    return {
+        nivelLuz,
+        rangoLux,
+        horasRecomendadas: horas,
+        descripcionUbicacion: ubicacion,
+        consejoMedicion: consejo
+    };
+};
+
 
