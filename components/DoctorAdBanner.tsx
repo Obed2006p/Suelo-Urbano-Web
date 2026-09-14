@@ -4,7 +4,9 @@ import { SproutIcon } from './icons/Icons';
 
 export interface AdSlide {
     id: string;
+    icon?: string;
     tabLabel: string;
+    shortLabel: string;
     badge: string;
     title: string;
     subtitle: string;
@@ -17,7 +19,9 @@ export interface AdSlide {
 export const AD_SLIDES: AdSlide[] = [
     {
         id: 'caminadora',
+        icon: '🏃',
         tabLabel: 'Caminadora Seminueva',
+        shortLabel: 'Caminadora',
         badge: '⚡ Oportunidad Destacada',
         title: 'Caminadora Seminueva',
         subtitle: 'Muy poco uso · Lista para entrega inmediata',
@@ -28,7 +32,9 @@ export const AD_SLIDES: AdSlide[] = [
     },
     {
         id: 'suelo-urbano',
-        tabLabel: 'Spot Suelo Urbano',
+        icon: '🌱',
+        tabLabel: 'Fórmula Botánica',
+        shortLabel: 'Fórmula',
         badge: '🌱 Nutrición Botánica Oficial',
         title: 'Suelo Urbano Tu Hogar',
         subtitle: 'Fórmula orgánica biológica para revivir tus plantas',
@@ -47,6 +53,7 @@ const DoctorAdBanner: React.FC = () => {
 
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const mobileVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+    const prevIndexRef = useRef(currentIndex);
 
     // Touch swipe gestures for mobile
     const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -54,13 +61,19 @@ const DoctorAdBanner: React.FC = () => {
 
     const currentSlide = AD_SLIDES[currentIndex];
 
-    // Control playback when changing slides
+    // Control playback when changing slides or auto-advancing
     useEffect(() => {
+        const indexChanged = prevIndexRef.current !== currentIndex;
+        prevIndexRef.current = currentIndex;
+
         AD_SLIDES.forEach((_, idx) => {
             // Desktop video
             const vid = videoRefs.current[idx];
             if (vid) {
                 if (idx === currentIndex) {
+                    if (indexChanged) {
+                        vid.currentTime = 0;
+                    }
                     vid.muted = isMuted;
                     const playPromise = vid.play();
                     if (playPromise !== undefined) {
@@ -80,6 +93,9 @@ const DoctorAdBanner: React.FC = () => {
             const mobVid = mobileVideoRefs.current[idx];
             if (mobVid) {
                 if (idx === currentIndex) {
+                    if (indexChanged) {
+                        mobVid.currentTime = 0;
+                    }
                     mobVid.muted = isMuted;
                     const playPromise = mobVid.play();
                     if (playPromise !== undefined) {
@@ -132,6 +148,13 @@ const DoctorAdBanner: React.FC = () => {
         setCurrentIndex((prev) => (prev === AD_SLIDES.length - 1 ? 0 : prev + 1));
     };
 
+    // Auto-avance al finalizar la reproducción de un video
+    const handleVideoEnded = (idx: number) => {
+        if (idx === currentIndex) {
+            goToNext();
+        }
+    };
+
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchStartX(e.targetTouches[0].clientX);
     };
@@ -182,14 +205,14 @@ const DoctorAdBanner: React.FC = () => {
                         <div className="flex items-center gap-1.5 min-w-0">
                             <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30 flex-shrink-0">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Spot {currentIndex + 1}/2
+                                Spot {currentIndex + 1}/{AD_SLIDES.length}
                             </span>
                             <span className="text-[11px] font-extrabold text-stone-100 truncate">
                                 {currentSlide.title}
                             </span>
                         </div>
 
-                        {/* Tabs directos entre Caminadora y Suelo */}
+                        {/* Tabs directos entre los 2 anuncios */}
                         <div className="flex items-center bg-stone-900 border border-stone-800 p-0.5 rounded-lg text-[10px] flex-shrink-0">
                             {AD_SLIDES.map((slide, idx) => (
                                 <button
@@ -201,8 +224,8 @@ const DoctorAdBanner: React.FC = () => {
                                             : 'text-stone-400 hover:text-stone-200'
                                     }`}
                                 >
-                                    <span>{idx === 0 ? '🏃' : '🌱'}</span>
-                                    <span className="ml-1">{idx === 0 ? 'Caminadora' : 'Suelo'}</span>
+                                    <span>{slide.icon || '🎬'}</span>
+                                    <span className="ml-1">{slide.shortLabel}</span>
                                 </button>
                             ))}
                         </div>
@@ -229,10 +252,10 @@ const DoctorAdBanner: React.FC = () => {
                                     src={slide.videoUrl}
                                     className="w-full h-full object-cover cursor-pointer"
                                     playsInline
-                                    loop
                                     muted={isMuted}
                                     autoPlay
                                     onClick={togglePlay}
+                                    onEnded={() => handleVideoEnded(idx)}
                                     onError={() => setVideoErrors(prev => ({ ...prev, [idx]: true }))}
                                     onPlay={() => {
                                         if (idx === currentIndex) setIsPlaying(true);
@@ -342,8 +365,8 @@ const DoctorAdBanner: React.FC = () => {
                         </span>
                     </div>
 
-                    {/* Tabs de selección directa entre los 2 videos */}
-                    <div className="flex items-center bg-stone-900/90 border border-stone-800 p-1 rounded-xl shadow-inner text-xs">
+                    {/* Tabs de selección directa entre los videos */}
+                    <div className="flex items-center bg-stone-900/90 border border-stone-800 p-1 rounded-xl shadow-inner text-xs overflow-x-auto max-w-full">
                         {AD_SLIDES.map((slide, idx) => (
                             <button
                                 key={slide.id}
@@ -354,7 +377,7 @@ const DoctorAdBanner: React.FC = () => {
                                         : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60'
                                 }`}
                             >
-                                <span>{idx === 0 ? '🏃' : '🌱'}</span>
+                                <span>{slide.icon || '🎬'}</span>
                                 <span className="hidden xs:inline sm:inline">{slide.tabLabel}</span>
                                 <span className="xs:hidden sm:hidden">{idx + 1}</span>
                             </button>
@@ -398,7 +421,7 @@ const DoctorAdBanner: React.FC = () => {
                         {/* Escenario Central del Video: Formato Reel estilizado */}
                         <div className="relative w-full max-w-[340px] sm:max-w-[370px] md:max-w-[390px] aspect-[9/15] rounded-3xl overflow-hidden bg-black shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-emerald-500/40 group">
                             
-                            {/* Renderizado de los 2 videos (conservando estado para transiciones rápidas) */}
+                            {/* Renderizado de los videos (conservando estado para transiciones rápidas) */}
                             {AD_SLIDES.map((slide, idx) => (
                                 <div
                                     key={slide.id}
@@ -413,10 +436,10 @@ const DoctorAdBanner: React.FC = () => {
                                         src={slide.videoUrl}
                                         className="w-full h-full object-cover cursor-pointer"
                                         playsInline
-                                        loop
                                         muted={isMuted}
                                         autoPlay
                                         onClick={togglePlay}
+                                        onEnded={() => handleVideoEnded(idx)}
                                         onError={() => setVideoErrors(prev => ({ ...prev, [idx]: true }))}
                                         onPlay={() => {
                                             if (idx === currentIndex) setIsPlaying(true);
