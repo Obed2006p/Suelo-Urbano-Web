@@ -119,7 +119,7 @@ const DiagnosisLoadingAd: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto rounded-2xl overflow-hidden bg-stone-900 border border-emerald-500/30 text-white shadow-xl">
+        <div className="w-full max-w-[280px] sm:max-w-md mx-auto rounded-2xl overflow-hidden bg-stone-900 border border-emerald-500/30 text-white shadow-xl">
             {/* Header del anuncio */}
             <div className="bg-stone-950 px-3.5 py-2 flex items-center justify-between border-b border-stone-800">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-400">

@@ -47,7 +47,6 @@ const DoctorAdBanner: React.FC = () => {
 
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const mobileVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-    const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
     // Touch swipe gestures for mobile
     const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -77,10 +76,10 @@ const DoctorAdBanner: React.FC = () => {
                 }
             }
 
-            // Mobile video
+            // Mobile video - Reproduce directamente desde que carga la página
             const mobVid = mobileVideoRefs.current[idx];
             if (mobVid) {
-                if (idx === currentIndex && isMobileExpanded) {
+                if (idx === currentIndex) {
                     mobVid.muted = isMuted;
                     const playPromise = mobVid.play();
                     if (playPromise !== undefined) {
@@ -96,7 +95,7 @@ const DoctorAdBanner: React.FC = () => {
                 }
             }
         });
-    }, [currentIndex, isMobileExpanded]);
+    }, [currentIndex, isMuted]);
 
     // Sync mute changes
     const toggleMute = () => {
@@ -171,257 +170,159 @@ const DoctorAdBanner: React.FC = () => {
     };
 
     return (
-        <div id="seccion-anuncio-suelo-urbano" className="mb-6 md:mb-10 w-full">
+        <div id="seccion-anuncio-suelo-urbano" className="mb-3 md:mb-10 w-full">
             {/* ============================================================
                 VISTA PARA DISPOSITIVOS MÓVILES (md:hidden)
-                Compacta, sin estorbar, con opción desplegable y atajo directo
+                Anuncio en video visible directamente con dimensiones compactas
                ============================================================ */}
             <div className="block md:hidden">
-                {!isMobileExpanded ? (
-                    /* Banner ultra-compacto cuando está plegado en celular */
-                    <div className="rounded-2xl bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white shadow-md border border-emerald-500/30 p-3 flex flex-col gap-2.5">
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm flex-shrink-0">
-                                    {currentIndex === 0 ? '🏃' : '🌱'}
-                                </span>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
-                                            Spots en Video ({currentIndex + 1}/2)
-                                        </span>
-                                        {currentSlide.priceTag && (
-                                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 border border-emerald-500/30">
-                                                {currentSlide.priceTag}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs font-bold text-stone-100 truncate">
-                                        {currentSlide.title}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                                <button
-                                    onClick={() => setIsMobileExpanded(true)}
-                                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold text-xs flex items-center gap-1 shadow-md shadow-emerald-950/40 active:scale-95 transition-all cursor-pointer"
-                                    aria-label="Ver spot publicitario"
-                                >
-                                    <span>🎬 Ver spot</span>
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                            </div>
+                <div className="rounded-2xl bg-gradient-to-b from-stone-900 via-stone-950 to-black text-white shadow-xl border border-emerald-500/25 p-2.5 xs:p-3 flex flex-col items-center">
+                    {/* Header superior: Indicador de spot y selectores rápidos */}
+                    <div className="w-full flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30 flex-shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Spot {currentIndex + 1}/2
+                            </span>
+                            <span className="text-[11px] font-extrabold text-stone-100 truncate">
+                                {currentSlide.title}
+                            </span>
                         </div>
 
-                        {/* Barra inferior de navegación rápida y atajo directo a Doctor */}
-                        <div className="flex items-center justify-between pt-2 border-t border-stone-800 text-[11px]">
-                            {/* Selector rápido entre los 2 spots */}
-                            <div className="flex items-center gap-1">
-                                {AD_SLIDES.map((slide, idx) => (
-                                    <button
-                                        key={slide.id}
-                                        onClick={() => {
-                                            setCurrentIndex(idx);
-                                            setIsMobileExpanded(true);
-                                        }}
-                                        className={`px-2 py-0.5 rounded-md font-bold transition-all text-[11px] flex items-center gap-1 cursor-pointer ${
-                                            currentIndex === idx 
-                                                ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' 
-                                                : 'text-stone-400 hover:text-stone-200'
-                                        }`}
-                                    >
-                                        <span>{idx === 0 ? '🏃 Caminadora' : '🌱 Suelo'}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={scrollToDoctor}
-                                className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-0.5 cursor-pointer active:scale-95"
-                            >
-                                <span>Diagnosticar</span>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    /* Banner desplegado optimizado para móvil (con botón de minimizar y salto directo) */
-                    <div className="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-950 to-black text-white shadow-xl border border-emerald-500/25 p-3.5 flex flex-col items-center animate-fade-in">
-                        {/* Header móvil con tabs y botón de minimizar */}
-                        <div className="w-full flex items-center justify-between gap-2 mb-3">
-                            <div className="flex items-center bg-stone-900 border border-stone-800 p-1 rounded-xl text-xs">
-                                {AD_SLIDES.map((slide, idx) => (
-                                    <button
-                                        key={slide.id}
-                                        onClick={() => setCurrentIndex(idx)}
-                                        className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer ${
-                                            currentIndex === idx
-                                                ? 'bg-emerald-600 text-white shadow'
-                                                : 'text-stone-400 hover:text-stone-200'
-                                        }`}
-                                    >
-                                        <span>{idx === 0 ? '🏃' : '🌱'}</span>
-                                        <span>{idx === 0 ? 'Caminadora' : 'Suelo Urbano'}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Botón Minimizar */}
-                            <button
-                                onClick={() => setIsMobileExpanded(false)}
-                                className="px-2.5 py-1 rounded-xl bg-stone-800/90 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold border border-stone-700 flex items-center gap-1 active:scale-95 cursor-pointer"
-                                title="Minimizar anuncio"
-                            >
-                                <span>Ocultar</span>
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        {/* Reproductor de video adaptado a pantalla móvil */}
-                        <div 
-                            className="relative w-full max-w-[280px] xs:max-w-[300px] aspect-[9/13.5] rounded-2xl overflow-hidden bg-black shadow-2xl border border-emerald-500/40 group"
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
-                            onTouchEnd={handleTouchEnd}
-                        >
+                        {/* Tabs directos entre Caminadora y Suelo */}
+                        <div className="flex items-center bg-stone-900 border border-stone-800 p-0.5 rounded-lg text-[10px] flex-shrink-0">
                             {AD_SLIDES.map((slide, idx) => (
-                                <div
+                                <button
                                     key={slide.id}
-                                    className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
-                                        currentIndex === idx ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                                    onClick={() => setCurrentIndex(idx)}
+                                    className={`px-2 py-0.5 rounded font-bold transition-all cursor-pointer ${
+                                        currentIndex === idx
+                                            ? 'bg-emerald-600 text-white shadow'
+                                            : 'text-stone-400 hover:text-stone-200'
                                     }`}
                                 >
-                                    <video
-                                        ref={(el) => {
-                                            mobileVideoRefs.current[idx] = el;
-                                        }}
-                                        src={slide.videoUrl}
-                                        className="w-full h-full object-cover cursor-pointer"
-                                        playsInline
-                                        loop
-                                        muted={isMuted}
-                                        autoPlay
-                                        onClick={togglePlay}
-                                        onError={() => setVideoErrors(prev => ({ ...prev, [idx]: true }))}
-                                        onPlay={() => {
-                                            if (idx === currentIndex) setIsPlaying(true);
-                                        }}
-                                        onPause={() => {
-                                            if (idx === currentIndex) setIsPlaying(false);
-                                        }}
-                                    />
-                                </div>
+                                    <span>{idx === 0 ? '🏃' : '🌱'}</span>
+                                    <span className="ml-1">{idx === 0 ? 'Caminadora' : 'Suelo'}</span>
+                                </button>
                             ))}
+                        </div>
+                    </div>
 
-                            {/* Controles flotantes superiores */}
-                            <div className="absolute top-2.5 inset-x-2.5 z-20 flex items-center justify-between pointer-events-auto">
-                                <span className="bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/15 text-[10px] font-bold text-emerald-300">
-                                    {currentSlide.badge}
-                                </span>
-
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleMute();
+                    {/* Contenedor de Video en formato compacto con altura reducida */}
+                    <div 
+                        className="relative w-full max-w-[270px] xs:max-w-[290px] h-[165px] xs:h-[180px] rounded-xl overflow-hidden bg-black shadow-lg border border-emerald-500/30 group"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        {AD_SLIDES.map((slide, idx) => (
+                            <div
+                                key={slide.id}
+                                className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
+                                    currentIndex === idx ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                                }`}
+                            >
+                                <video
+                                    ref={(el) => {
+                                        mobileVideoRefs.current[idx] = el;
                                     }}
-                                    className="bg-black/75 hover:bg-black/90 text-white text-[10px] px-2.5 py-1 rounded-full backdrop-blur-md border border-white/20 flex items-center gap-1 active:scale-95 cursor-pointer"
-                                >
-                                    {isMuted ? '🔇 Audio' : '🔊 Con sonido'}
-                                </button>
+                                    src={slide.videoUrl}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    playsInline
+                                    loop
+                                    muted={isMuted}
+                                    autoPlay
+                                    onClick={togglePlay}
+                                    onError={() => setVideoErrors(prev => ({ ...prev, [idx]: true }))}
+                                    onPlay={() => {
+                                        if (idx === currentIndex) setIsPlaying(true);
+                                    }}
+                                    onPause={() => {
+                                        if (idx === currentIndex) setIsPlaying(false);
+                                    }}
+                                />
                             </div>
+                        ))}
 
-                            {/* Controles flotantes inferiores */}
-                            <div className="absolute bottom-0 inset-x-0 z-20 p-3 bg-gradient-to-t from-black via-black/85 to-transparent pt-8 flex flex-col gap-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="min-w-0 pr-2">
-                                        <h4 className="font-bold text-white text-xs leading-tight truncate drop-shadow">
-                                            {currentSlide.title}
-                                        </h4>
-                                        <p className="text-[10px] text-stone-300 truncate drop-shadow">
-                                            {currentSlide.subtitle}
-                                        </p>
-                                    </div>
-                                    {currentSlide.priceTag && (
-                                        <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-emerald-500 text-stone-950 flex-shrink-0">
-                                            {currentSlide.priceTag}
-                                        </span>
-                                    )}
-                                </div>
+                        {/* Badge de Categoría y Botón de Sonido */}
+                        <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between pointer-events-auto">
+                            <span className="bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/15 text-[9px] font-black text-emerald-300 shadow">
+                                {currentSlide.badge}
+                            </span>
 
-                                <button
-                                    onClick={() => handleCotizacionClick(currentSlide)}
-                                    className="w-full py-2 px-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400 text-stone-950 font-black text-xs rounded-xl shadow active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                                >
-                                    <svg className="w-4 h-4 text-stone-950" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
-                                    </svg>
-                                    <span>Hacer cotización</span>
-                                </button>
-                            </div>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMute();
+                                }}
+                                className="bg-black/80 hover:bg-black/95 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20 flex items-center gap-1 active:scale-95 cursor-pointer shadow"
+                            >
+                                {isMuted ? '🔇 Audio' : '🔊 Con sonido'}
+                            </button>
                         </div>
 
-                        {/* Flechas de navegación e indicadores para móvil */}
-                        <div className="flex items-center justify-between w-full max-w-[280px] xs:max-w-[300px] mt-2.5 px-1">
+                        {/* Etiqueta de Precio */}
+                        {currentSlide.priceTag && (
+                            <span className="absolute bottom-2 left-2 z-20 text-[10px] font-black px-2 py-0.5 rounded bg-emerald-500 text-stone-950 shadow">
+                                {currentSlide.priceTag}
+                            </span>
+                        )}
+
+                        {/* Play overlay cuando está pausado */}
+                        {!isPlaying && !videoErrors[currentIndex] && (
+                            <div 
+                                onClick={togglePlay}
+                                className="absolute inset-0 z-15 bg-black/40 backdrop-blur-[1px] flex items-center justify-center cursor-pointer"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-emerald-500/90 text-white flex items-center justify-center shadow-lg">
+                                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Barra inferior compacta: Flechas, Subtítulo y Botón Cotizar */}
+                    <div className="w-full mt-2 flex items-center justify-between gap-2 pt-1.5 border-t border-stone-800/80">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                             <button
                                 onClick={goToPrev}
-                                className="p-1.5 rounded-lg bg-stone-900 border border-stone-800 text-stone-300 hover:text-white active:scale-95 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                                aria-label="Spot anterior"
+                                className="p-1 rounded-lg bg-stone-900 border border-stone-800 text-stone-300 hover:text-white active:scale-95 cursor-pointer"
                             >
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
-                                <span>Ant.</span>
                             </button>
-
-                            <div className="flex items-center gap-1.5">
-                                {AD_SLIDES.map((slide, idx) => (
-                                    <button
-                                        key={slide.id}
-                                        onClick={() => setCurrentIndex(idx)}
-                                        className={`transition-all duration-300 rounded-full cursor-pointer ${
-                                            currentIndex === idx ? 'w-5 h-1.5 bg-emerald-400' : 'w-1.5 h-1.5 bg-stone-700'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-
                             <button
                                 onClick={goToNext}
-                                className="p-1.5 rounded-lg bg-stone-900 border border-stone-800 text-stone-300 hover:text-white active:scale-95 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                                aria-label="Siguiente spot"
+                                className="p-1 rounded-lg bg-stone-900 border border-stone-800 text-stone-300 hover:text-white active:scale-95 cursor-pointer"
                             >
-                                <span>Sig.</span>
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
                         </div>
 
-                        {/* Botón para saltar directamente al Doctor de Plantas */}
-                        <div className="mt-3 flex items-center justify-between w-full border-t border-stone-800 pt-2 text-[11px]">
-                            <button
-                                onClick={() => setIsMobileExpanded(false)}
-                                className="text-stone-400 hover:text-stone-200 cursor-pointer"
-                            >
-                                ▲ Ocultar video
-                            </button>
-                            <button
-                                onClick={scrollToDoctor}
-                                className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer"
-                            >
-                                <span>Diagnosticar planta</span>
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                </svg>
-                            </button>
+                        <div className="min-w-0 flex-1 text-center px-1">
+                            <p className="text-[10px] text-stone-300 truncate font-medium">
+                                {currentSlide.subtitle}
+                            </p>
                         </div>
+
+                        <button
+                            onClick={() => handleCotizacionClick(currentSlide)}
+                            className="flex-shrink-0 py-1.5 px-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-400 text-stone-950 font-black text-xs rounded-xl shadow active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                            <svg className="w-3.5 h-3.5 text-stone-950" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+                            </svg>
+                            <span>Cotizar</span>
+                        </button>
                     </div>
-                )}
+                </div>
             </div>
 
             {/* ============================================================
