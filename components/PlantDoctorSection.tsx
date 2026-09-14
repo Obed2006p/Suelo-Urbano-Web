@@ -111,65 +111,66 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
 const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => {
     const luzInfo = ensureRequerimientoLuz(diagnosis);
     return (
-    <div className="animate-fade-in-up w-full text-left space-y-6">
+    <div className="animate-fade-in-up w-full text-left space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-20 w-20 flex-shrink-0 drop-shadow-md" />
-            <div>
-                <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Planta Observada</p>
-                <h3 className="text-2xl font-black text-green-900 mb-1 dark:text-green-300">{diagnosis.nombrePlanta}</h3>
-                <p className="text-gray-800 font-semibold dark:text-gray-200 mt-1 flex items-center gap-2">
-                    <HeartbeatIcon className="h-5 w-5 text-red-500" />
-                    Estado General: <span className="font-bold text-red-600 dark:text-red-400">{diagnosis.estadoGeneral}</span>
+        <div className="flex items-center gap-3 sm:gap-4 bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-14 w-14 sm:h-20 sm:w-20 flex-shrink-0 drop-shadow-md object-contain" />
+            <div className="min-w-0">
+                <p className="text-[11px] sm:text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Planta Observada</p>
+                <h3 className="text-lg sm:text-2xl font-black text-green-900 mb-0.5 sm:mb-1 dark:text-green-300 truncate">{diagnosis.nombrePlanta}</h3>
+                <p className="text-gray-800 text-xs sm:text-base font-semibold dark:text-gray-200 flex items-center gap-1.5 sm:gap-2">
+                    <HeartbeatIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />
+                    <span>Estado: </span>
+                    <span className="font-bold text-red-600 dark:text-red-400">{diagnosis.estadoGeneral}</span>
                 </p>
             </div>
         </div>
         
         {/* Diagnóstico Breve */}
-        <div className="bg-gray-50 border-l-4 border-green-500 p-4 rounded-r-lg dark:bg-gray-700 dark:border-green-400 shadow-sm">
-            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-2 dark:text-green-300">
-                <SparklesIcon className="h-5 w-5"/> Diagnóstico Breve
+        <div className="bg-gray-50 border-l-4 border-green-500 p-3 sm:p-4 rounded-r-lg dark:bg-gray-700 dark:border-green-400 shadow-sm">
+            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-1.5 sm:mb-2 text-sm sm:text-base dark:text-green-300">
+                <SparklesIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400"/> Diagnóstico Breve
             </h4>
-            <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-100 font-medium">
+            <p className="text-gray-800 text-xs sm:text-sm leading-relaxed dark:text-gray-100 font-medium">
                 {diagnosis.diagnosticoBreve}
             </p>
         </div>
 
         {/* Dos columnas: Problemas y Causas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-red-50 border border-red-200 p-4 rounded-xl dark:bg-red-900/20 dark:border-red-800 shadow-sm">
-                <h4 className="font-bold text-red-800 flex items-center gap-2 mb-3 dark:text-red-400">
-                    <CheckCircleIcon className="h-5 w-5"/> Problemas Detectados
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-red-50 border border-red-200 p-3.5 sm:p-4 rounded-xl dark:bg-red-900/20 dark:border-red-800 shadow-sm">
+                <h4 className="font-bold text-red-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-red-400">
+                    <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Problemas Detectados
                 </h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-red-900 dark:text-red-200">
+                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-red-900 dark:text-red-200">
                     {diagnosis.problemasDetectados.map((prob, idx) => <li key={idx}>{prob}</li>)}
                 </ul>
             </div>
             
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl dark:bg-amber-900/20 dark:border-amber-800 shadow-sm">
-                <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-3 dark:text-amber-400">
-                    <QuestionMarkCircleIcon className="h-5 w-5"/> Posibles Causas
+            <div className="bg-amber-50 border border-amber-200 p-3.5 sm:p-4 rounded-xl dark:bg-amber-900/20 dark:border-amber-800 shadow-sm">
+                <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-amber-400">
+                    <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Posibles Causas
                 </h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-amber-900 dark:text-amber-200">
+                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
                     {diagnosis.causasPosibles.map((causa, idx) => <li key={idx}>{causa}</li>)}
                 </ul>
             </div>
         </div>
         
         {/* Tratamiento y Control */}
-        <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-4 dark:text-green-300 text-lg border-b pb-2 dark:border-gray-700">
-                <ClipboardListIcon className="h-6 w-6"/> Tratamiento y Control
+        <div className="bg-white border border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-3 sm:mb-4 dark:text-green-300 text-base sm:text-lg border-b pb-2 dark:border-gray-700">
+                <ClipboardListIcon className="h-5 w-5 sm:h-6 sm:w-6"/> Tratamiento y Control
             </h4>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {diagnosis.tratamiento.map((step, index) => 
-                    <div key={index} className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-800 dark:text-green-300 font-bold border border-green-200 dark:border-green-700">
+                    <div key={index} className="flex gap-2.5 sm:gap-3 items-start">
+                        <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-800 dark:text-green-300 font-bold text-xs sm:text-sm border border-green-200 dark:border-green-700 mt-0.5">
                             {index + 1}
                         </div>
-                        <div>
-                            <strong className="font-bold text-gray-900 dark:text-gray-100 block mb-1">{step.paso}</strong>
-                            <p className="text-gray-700 text-sm dark:text-gray-300 whitespace-pre-wrap">{step.detalle}</p>
+                        <div className="min-w-0">
+                            <strong className="font-bold text-gray-900 dark:text-gray-100 block mb-0.5 text-xs sm:text-sm">{step.paso}</strong>
+                            <p className="text-gray-700 text-xs sm:text-sm dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{step.detalle}</p>
                         </div>
                     </div>
                 )}
@@ -177,66 +178,66 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
         </div>
 
         {/* Plan de recuperación */}
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm dark:bg-blue-900/20 dark:border-blue-800">
-            <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-3 dark:text-blue-300">
-                <LeafIcon className="h-5 w-5"/> Plan de Recuperación a Mediano Plazo
+        <div className="bg-blue-50 border border-blue-200 p-3.5 sm:p-4 rounded-xl shadow-sm dark:bg-blue-900/20 dark:border-blue-800">
+            <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-blue-300">
+                <LeafIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Plan de Recuperación a Mediano Plazo
             </h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-blue-900 dark:text-blue-200">
+            <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-blue-900 dark:text-blue-200">
                 {diagnosis.planRecuperacion.map((plan, idx) => <li key={idx}>{plan}</li>)}
             </ul>
         </div>
 
         {/* Luz, Riego y Prevención */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex items-center justify-between gap-2 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2.5">
-                    <h4 className="font-bold text-green-800 flex items-center gap-2 dark:text-green-300 text-base">
-                        <HumidityIcon className="h-5 w-5 text-green-600 dark:text-green-400"/>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-white border border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <h4 className="font-bold text-green-800 flex items-center gap-1.5 sm:gap-2 dark:text-green-300 text-sm sm:text-base">
+                        <HumidityIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400"/>
                         Luz y Riego
                     </h4>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/40">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-black bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/40">
                         ☀️ {luzInfo.rangoLux}
                     </span>
                 </div>
 
                 {/* Diagnóstico de Lux integrado */}
-                <div className="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-emerald-500/5 border border-amber-500/25 rounded-xl p-3.5 mb-3.5 space-y-2.5">
+                <div className="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-emerald-500/5 border border-amber-500/25 rounded-xl p-2.5 sm:p-3.5 mb-2.5 sm:mb-3.5 space-y-2 sm:space-y-2.5">
                     <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-                            <SunIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            Diagnóstico de Lux requerido:
+                        <span className="font-extrabold text-amber-900 dark:text-amber-300 flex items-center gap-1">
+                            <SunIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
+                            Diagnóstico Lux:
                         </span>
-                        <span className="font-bold text-stone-700 dark:text-stone-300 bg-white/80 dark:bg-stone-800 px-2 py-0.5 rounded border border-stone-200 dark:border-stone-700 text-[11px]">
+                        <span className="font-bold text-stone-700 dark:text-stone-300 bg-white/80 dark:bg-stone-800 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-700 text-[10px] sm:text-[11px]">
                             {luzInfo.nivelLuz}
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs">
                         <div className="bg-white/70 dark:bg-stone-800/70 p-2 rounded-lg border border-amber-200/50 dark:border-stone-700">
-                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[11px]">⏱️ Horas diarias:</span>
-                            <span className="text-stone-700 dark:text-stone-300 font-medium">{luzInfo.horasRecomendadas}</span>
+                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[10px] sm:text-[11px]">⏱️ Horas diarias:</span>
+                            <span className="text-stone-700 dark:text-stone-300 font-medium text-[11px] sm:text-xs">{luzInfo.horasRecomendadas}</span>
                         </div>
                         <div className="bg-white/70 dark:bg-stone-800/70 p-2 rounded-lg border border-amber-200/50 dark:border-stone-700">
-                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[11px]">📍 Ubicación recomendada:</span>
-                            <span className="text-stone-700 dark:text-stone-300 font-medium">{luzInfo.descripcionUbicacion}</span>
+                            <span className="font-bold text-amber-800 dark:text-amber-400 block text-[10px] sm:text-[11px]">📍 Ubicación sugerida:</span>
+                            <span className="text-stone-700 dark:text-stone-300 font-medium text-[11px] sm:text-xs">{luzInfo.descripcionUbicacion}</span>
                         </div>
                     </div>
 
-                    <div className="text-[11px] text-stone-600 dark:text-stone-300 bg-amber-50/70 dark:bg-amber-950/20 p-2 rounded-lg border border-amber-200/60 dark:border-amber-800/30">
+                    <div className="text-[10px] sm:text-[11px] text-stone-600 dark:text-stone-300 bg-amber-50/70 dark:bg-amber-950/20 p-2 rounded-lg border border-amber-200/60 dark:border-amber-800/30">
                         <strong className="text-amber-900 dark:text-amber-300 font-bold">📱 Medición con celular: </strong>
                         {luzInfo.consejoMedicion}
                     </div>
                 </div>
 
-                <p className="text-gray-800 text-sm leading-relaxed dark:text-gray-200">{diagnosis.luzYRiego}</p>
+                <p className="text-gray-800 text-xs sm:text-sm leading-relaxed dark:text-gray-200">{diagnosis.luzYRiego}</p>
             </div>
 
-            <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-3 dark:text-green-300 text-base border-b border-gray-100 dark:border-gray-700 pb-2.5">
-                    <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400"/>
+            <div className="bg-white border border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <h4 className="font-bold text-green-800 flex items-center gap-2 mb-2 sm:mb-3 dark:text-green-300 text-sm sm:text-base border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400"/>
                     Prevención
                 </h4>
-                <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-800 dark:text-gray-200">
+                <ul className="list-disc list-inside space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-gray-800 dark:text-gray-200">
                     {diagnosis.prevencion.map((p, idx) => <li key={idx}>{p}</li>)}
                 </ul>
             </div>
@@ -244,52 +245,52 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
 
         {/* Sección: Regla de Diagnóstico Condicional: Riego y Sustrato */}
         {diagnosis.riegoYSustrato && (
-            <div className="bg-gradient-to-br from-cyan-950/20 via-stone-900/10 to-emerald-950/20 border border-cyan-500/40 dark:border-cyan-500/30 p-5 rounded-2xl shadow-md space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyan-500/20 pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 flex-shrink-0">
-                            <HumidityIcon className="h-6 w-6" />
+            <div className="bg-gradient-to-br from-cyan-950/20 via-stone-900/10 to-emerald-950/20 border border-cyan-500/40 dark:border-cyan-500/30 p-3.5 sm:p-5 rounded-2xl shadow-md space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-cyan-500/20 pb-2.5 sm:pb-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                        <div className="p-2 sm:p-2.5 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 flex-shrink-0">
+                            <HumidityIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
                         <div>
-                            <h4 className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
+                            <h4 className="font-black text-stone-900 dark:text-white text-sm sm:text-base md:text-lg">
                                 Regla de Riego, Agua y Sustrato
                             </h4>
-                            <p className="text-xs text-stone-500 dark:text-stone-400 font-medium">
+                            <p className="text-[11px] sm:text-xs text-stone-500 dark:text-stone-400 font-medium">
                                 Tolerancia al agua de la llave, oxigenación y drenaje radicular
                             </p>
                         </div>
                     </div>
                     <div>
                         {diagnosis.riegoYSustrato.clasificacionEspecie === 'SENSIBLE' ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm">
                                 ⚠️ Especie Sensible al Agua de la Llave
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/40 shadow-sm">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/40 shadow-sm">
                                 ✅ Especie Tolerante al Agua de la Llave
                             </span>
                         )}
                     </div>
                 </div>
 
-                <div className="bg-white/80 dark:bg-stone-800/80 p-3.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+                <div className="bg-white/80 dark:bg-stone-800/80 p-3 rounded-xl border border-stone-200 dark:border-stone-700 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
                     <span className="font-bold text-stone-900 dark:text-white block mb-0.5">Clasificación de la Especie:</span>
                     {diagnosis.riegoYSustrato.descripcionClasificacion}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                     {diagnosis.riegoYSustrato.puntos.map((punto, idx) => {
                         const isWaterPoint = punto.tipo === 'agua';
                         return (
                             <div 
                                 key={idx}
-                                className={`p-4 rounded-xl border flex items-start gap-3.5 transition-all shadow-sm ${
+                                className={`p-3 sm:p-4 rounded-xl border flex items-start gap-2.5 sm:gap-3.5 transition-all shadow-sm ${
                                     isWaterPoint 
                                         ? 'bg-cyan-50/80 dark:bg-cyan-950/25 border-cyan-200 dark:border-cyan-800/50' 
                                         : 'bg-emerald-50/80 dark:bg-emerald-950/25 border-emerald-200 dark:border-emerald-800/50'
                                 }`}
                             >
-                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 mt-0.5 shadow-sm ${
+                                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm flex-shrink-0 mt-0.5 shadow-sm ${
                                     isWaterPoint
                                         ? 'bg-cyan-600 text-white'
                                         : 'bg-emerald-600 text-white'
@@ -297,11 +298,11 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
                                     {punto.numero}
                                 </div>
                                 <div className="flex-grow min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h5 className="text-sm font-extrabold text-stone-900 dark:text-white">
+                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                                        <h5 className="text-xs sm:text-sm font-extrabold text-stone-900 dark:text-white">
                                             {punto.titulo}
                                         </h5>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                        <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                                             isWaterPoint 
                                                 ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' 
                                                 : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
@@ -321,29 +322,29 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
         )}
 
         {/* Sustrato y Productos */}
-        <div className="bg-white border text-center border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-gray-900 mb-2 dark:text-white uppercase tracking-widest text-sm text-center border-b pb-2 dark:border-gray-700">Recomendación Oficial Suelo Urbano</h4>
-            <p className="text-green-800 font-bold text-lg mt-3 dark:text-green-400">Sustrato Ideal: {diagnosis.sustratoRecomendado}</p>
+        <div className="bg-white border text-center border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-gray-900 mb-1.5 sm:mb-2 dark:text-white uppercase tracking-widest text-xs sm:text-sm text-center border-b pb-2 dark:border-gray-700">Recomendación Oficial Suelo Urbano</h4>
+            <p className="text-green-800 font-bold text-base sm:text-lg mt-2 sm:mt-3 dark:text-green-400">Sustrato Ideal: {diagnosis.sustratoRecomendado}</p>
             
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+            <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-left">
                 {diagnosis.productosRecomendados.map((prod, idx) => (
-                     <div key={idx} className="bg-lime-50 dark:bg-lime-900/30 p-3 rounded-lg border border-lime-200 dark:border-lime-800">
-                         <span className="block font-bold text-lime-900 dark:text-lime-300">{prod.nombre}</span>
-                         <span className="text-xs text-lime-800 dark:text-lime-400">{prod.motivo}</span>
+                     <div key={idx} className="bg-lime-50 dark:bg-lime-900/30 p-2.5 sm:p-3 rounded-lg border border-lime-200 dark:border-lime-800">
+                         <span className="block font-bold text-lime-900 dark:text-lime-300 text-xs sm:text-sm">{prod.nombre}</span>
+                         <span className="text-[11px] sm:text-xs text-lime-800 dark:text-lime-400">{prod.motivo}</span>
                      </div>
                 ))}
             </div>
         </div>
         
         {/* Resultados Esperados y Seguimiento */}
-        <div className="bg-green-600 text-white p-5 rounded-xl shadow-md border border-green-700">
-             <h4 className="font-bold flex items-center gap-2 mb-3 text-lg">
-                <CalendarIcon className="h-6 w-6 text-green-200"/> Resultados y Seguimiento
+        <div className="bg-green-600 text-white p-3.5 sm:p-5 rounded-xl shadow-md border border-green-700">
+             <h4 className="font-bold flex items-center gap-2 mb-2 sm:mb-3 text-base sm:text-lg">
+                <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-200"/> Resultados y Seguimiento
             </h4>
-             <p className="text-sm text-green-100 mb-4">{diagnosis.seguimiento}</p>
-             <div className="flex flex-wrap gap-2">
+             <p className="text-xs sm:text-sm text-green-100 mb-3 sm:mb-4">{diagnosis.seguimiento}</p>
+             <div className="flex flex-wrap gap-1.5 sm:gap-2">
                  {diagnosis.resultadosEsperados.map((res, idx) => (
-                       <span key={idx} className="text-xs bg-green-800 text-green-50 px-3 py-1.5 rounded-full font-bold shadow-sm flex items-center">
+                       <span key={idx} className="text-[11px] sm:text-xs bg-green-800 text-green-50 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full font-bold shadow-sm flex items-center">
                            ✅ {res}
                        </span>
                  ))}
@@ -351,16 +352,16 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
         </div>
 
         {/* Imágenes de Referencia */}
-        <div className="bg-gray-50 border border-gray-200 p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-4 dark:text-gray-100 text-lg border-b pb-2 dark:border-gray-700">
-                <CameraIcon className="h-6 w-6 text-green-700 dark:text-green-400"/> Ejemplos Visuales
+        <div className="bg-gray-50 border border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-3 sm:mb-4 dark:text-gray-100 text-base sm:text-lg border-b pb-2 dark:border-gray-700">
+                <CameraIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-700 dark:text-green-400"/> Ejemplos Visuales
             </h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                 {diagnosis.imagenesReferencia.map((img, idx) => (
                     <ReferenceImage key={idx} term={img.terminoBusquedaWikipedia} description={img.descripcionEspanol} />
                 ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4 text-center">Estas imágenes son buscadas en enciclopedias (o generadas por IA como respaldo) para servir como referencia visual de la plaga o el estado ideal de tu planta.</p>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4 text-center">Estas imágenes son buscadas en enciclopedias (o generadas por IA como respaldo) para servir como referencia visual de la plaga o el estado ideal de tu planta.</p>
         </div>
     </div>
     );
@@ -378,6 +379,7 @@ const PlantDoctorSection: React.FC = () => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+    const resultsRef = useRef<HTMLDivElement>(null);
 
     const fileToGenerativePart = async (file: File) => {
         const base64EncodedDataPromise = new Promise<string>((resolve) => {
@@ -421,6 +423,12 @@ const PlantDoctorSection: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setDiagnosis(null);
+        
+        // Auto scroll hacia resultados en móviles/tablets para que vean el estado de análisis de inmediato
+        setTimeout(() => {
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+
         try {
             const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no está configurada.");
@@ -603,6 +611,9 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 // Garantizar requerimientoLuzLux
                 diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
                 setDiagnosis(diagnosisData);
+                setTimeout(() => {
+                    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 180);
             } else {
                 throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
             }
@@ -619,6 +630,9 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             } else {
                 setError("Ocurrió un inconveniente temporal al procesar la imagen. Puedes presionar 'Reintentar Diagnóstico' para volver a intentarlo.");
             }
+            setTimeout(() => {
+                resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 180);
         } finally {
             setIsLoading(false);
         }
@@ -888,45 +902,45 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 <div className="w-full">
                     <DiagnosisView diagnosis={diagnosis} />
                     
-                    <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-600 flex flex-col gap-3">
+                    <div className="mt-4 sm:mt-6 border-t border-gray-200 pt-4 sm:pt-6 dark:border-gray-600 flex flex-col gap-2.5 sm:gap-3">
                         <button 
                             onClick={generatePDF}
-                            className="w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 dark:bg-gray-700 dark:hover:bg-gray-600"
+                            className="w-full bg-gray-800 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center gap-2 text-xs sm:text-base dark:bg-gray-700 dark:hover:bg-gray-600 cursor-pointer"
                         >
-                            <DownloadIcon className="h-5 w-5"/>
+                            <DownloadIcon className="h-4 w-4 sm:h-5 sm:w-5"/>
                             Descargar Reporte Completo PDF
                         </button>
                         
                         <button 
                             onClick={handleSaveToGarden}
                             disabled={isSaving || saveSuccess}
-                            className={`w-full font-bold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm border-2 
+                            className={`w-full font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm border-2 text-xs sm:text-base cursor-pointer
                                 ${saveSuccess 
                                     ? 'bg-green-100 text-green-800 border-green-500 dark:bg-green-900/50 dark:text-green-300 dark:border-green-600 cursor-default' 
                                     : 'bg-white text-green-700 border-green-700 hover:bg-green-50 hover:scale-105 dark:bg-transparent dark:text-green-300 dark:border-green-500 dark:hover:bg-green-900/40'}`}
                         >
-                            <HeartbeatIcon className="h-5 w-5"/>
+                            <HeartbeatIcon className="h-4 w-4 sm:h-5 sm:w-5"/>
                             {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado en Mi Jardín!' : 'Guardar en "Mi Jardín Urbano" 🗓️'}
                         </button>
                         
-                        <p className="text-xs text-gray-500 text-center mt-2">Guarda este diagnóstico para ver su evolución o descargar el PDF.</p>
+                        <p className="text-[11px] sm:text-xs text-gray-500 text-center mt-1">Guarda este diagnóstico para ver su evolución o descargar el PDF.</p>
                     </div>
                 </div>
             );
         }
         // Default view: Show disabled button to prove code is deployed
         return (
-            <div className="text-gray-500 dark:text-gray-400 flex flex-col items-center">
-                <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-24 w-24 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold">El diagnóstico aparecerá aquí</h3>
-                <p className="text-sm mb-6">Sube una foto de tu planta para empezar.</p>
+            <div className="text-gray-500 dark:text-gray-400 flex flex-col items-center py-2 sm:py-4">
+                <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 sm:h-24 sm:w-24 mx-auto mb-2 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold">El diagnóstico aparecerá aquí</h3>
+                <p className="text-xs sm:text-sm mb-3 sm:mb-6">Sube o toma una foto de tu planta para empezar.</p>
                 
                 {/* Button visible but disabled to prove existence */}
                 <button 
                     disabled
-                    className="bg-gray-200 text-gray-400 font-bold py-2 px-6 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 border-2 border-gray-200 opacity-70"
+                    className="bg-gray-200 text-gray-400 font-bold py-2 px-4 sm:px-6 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 border-2 border-gray-200 opacity-70 text-xs sm:text-sm"
                 >
-                    <DownloadIcon className="h-5 w-5"/>
+                    <DownloadIcon className="h-4 w-4 sm:h-5 sm:w-5"/>
                     Diagnostica para descargar PDF
                 </button>
             </div>
@@ -934,44 +948,68 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
     };
 
     return (
-        <section className="py-8 md:py-14">
-            <div className="container mx-auto px-6">
+        <section id="seccion-doctor-planta" className="py-6 md:py-14">
+            <div className="container mx-auto px-3 sm:px-6">
                 {/* Sección Fija de Anuncio Publicitario Suelo Urbano - En la parte superior */}
                 <DoctorAdBanner />
 
-                <div className="text-center mb-10 pt-4 border-t border-gray-200 dark:border-gray-800">
-                    <h2 className="text-3xl md:text-4xl font-bold text-green-900 mb-4 dark:text-gray-100">Doctor de Plantas con IA</h2>
-                    <p className="max-w-3xl mx-auto text-gray-700 dark:text-gray-300">
+                <div className="text-center mb-6 md:mb-10 pt-2 md:pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-2 md:mb-4 dark:text-gray-100">Doctor de Plantas con IA</h2>
+                    <p className="max-w-3xl mx-auto text-sm sm:text-base text-gray-700 dark:text-gray-300">
                         ¿Tu planta se ve triste? Sube una foto y nuestra IA te dará un diagnóstico y un plan de acción para recuperarla.
                     </p>
-                     <div className="max-w-3xl mx-auto mt-4 text-xs text-gray-500 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 p-3 rounded-lg flex items-start text-left gap-2 shadow-sm">
-                        <QuestionMarkCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-gray-400" />
+                    <div className="max-w-3xl mx-auto mt-3 md:mt-4 text-[11px] sm:text-xs text-gray-500 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 p-2.5 sm:p-3 rounded-lg flex items-start text-left gap-2 shadow-sm">
+                        <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5 text-gray-400" />
                         <span>Nuestra IA está en constante aprendizaje. Los diagnósticos son una guía y pueden cometer errores. Para problemas serios, considera consultar a un experto.</span>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+
+                {/* Aviso / Acceso rápido en móviles cuando ya existe diagnóstico */}
+                {diagnosis && (
+                    <div className="lg:hidden mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl flex items-center justify-between shadow-sm">
+                        <div className="min-w-0 pr-2">
+                            <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200 truncate">
+                                ✨ ¡Diagnóstico listo para: {diagnosis.nombrePlanta}!
+                            </p>
+                            <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                                Desliza o toca para revisar tu receta botánica
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                            className="flex-shrink-0 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg shadow active:scale-95 cursor-pointer flex items-center gap-1"
+                        >
+                            <span>Ver receta</span>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-12 items-start">
                     {/* Contenedor de subida de imagen: Fondo blanco con sombras fuertes */}
-                    <div className="bg-white p-8 rounded-2xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                    <div id="doctor-uploader" className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl md:shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                         {!imagePreview ? (
-                            <div onDragEnter={handleDragEnter} onDragOver={handleDragEvents} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600'}`}>
-                                <CameraIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                                <p className="text-gray-700 font-semibold mb-2 dark:text-gray-300">Arrastra una foto de tu planta aquí</p>
-                                <p className="text-gray-500 mb-4 dark:text-gray-400">o</p>
-                                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                    <button onClick={() => fileInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors dark:bg-gray-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-gray-600">Elegir Archivo</button>
-                                    <button onClick={() => cameraInputRef.current?.click()} className="bg-white text-green-700 font-bold py-2 px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors dark:bg-gray-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-gray-600">Usar Cámara</button>
+                            <div onDragEnter={handleDragEnter} onDragOver={handleDragEvents} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors duration-300 ${dragOver ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600'}`}>
+                                <CameraIcon className="h-10 w-10 sm:h-16 sm:w-16 mx-auto text-gray-400 mb-2 sm:mb-4" />
+                                <p className="text-gray-700 font-semibold mb-1 text-sm sm:text-base dark:text-gray-300">Arrastra una foto de tu planta aquí</p>
+                                <p className="text-gray-500 mb-3 text-xs sm:text-sm dark:text-gray-400">o</p>
+                                <div className="flex flex-row justify-center gap-2 sm:gap-4">
+                                    <button onClick={() => fileInputRef.current?.click()} className="flex-1 sm:flex-initial bg-white text-green-700 font-bold py-2 px-3 sm:px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors text-xs sm:text-sm dark:bg-gray-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-gray-600 cursor-pointer">Elegir Archivo</button>
+                                    <button onClick={() => cameraInputRef.current?.click()} className="flex-1 sm:flex-initial bg-white text-green-700 font-bold py-2 px-3 sm:px-6 rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors text-xs sm:text-sm dark:bg-gray-700 dark:text-green-300 dark:border-green-600 dark:hover:bg-gray-600 cursor-pointer">Usar Cámara</button>
                                 </div>
                                 <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} className="hidden" />
                                 <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleImageChange} className="hidden" />
                             </div>
                         ) : (
                             <div className="text-center">
-                                <img src={imagePreview} alt="Vista previa de la planta a diagnosticar" className="max-h-80 w-auto mx-auto rounded-lg shadow-md mb-6" />
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <button onClick={runDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-3 px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <img src={imagePreview} alt="Vista previa de la planta a diagnosticar" className="max-h-56 sm:max-h-80 w-auto mx-auto rounded-lg shadow-md mb-4 sm:mb-6 object-contain" />
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                                    <button onClick={runDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer">
                                         {isLoading ? 'Analizando...' : 'Diagnosticar Planta'}
                                     </button>
-                                    <button onClick={reset} className="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-full hover:bg-gray-300 transition-colors dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                                    <button onClick={reset} className="bg-gray-200 text-gray-700 font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-full hover:bg-gray-300 transition-colors text-sm sm:text-base dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 cursor-pointer">
                                         Cambiar Imagen
                                     </button>
                                 </div>
@@ -979,7 +1017,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         )}
                     </div>
                     {/* Resultados: Fondo blanco para contraste limpio */}
-                    <div className="bg-white border border-gray-200 p-6 md:p-8 rounded-2xl shadow-xl h-full flex flex-col justify-center items-center text-center min-h-[400px] dark:bg-gray-800 dark:border-gray-700">
+                    <div ref={resultsRef} id="doctor-results" className="bg-white border border-gray-200 p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl h-full flex flex-col justify-center items-center text-center min-h-[160px] sm:min-h-[260px] md:min-h-[400px] dark:bg-gray-800 dark:border-gray-700">
                         {renderResults()}
                     </div>
                 </div>
