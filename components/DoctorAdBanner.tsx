@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SproutIcon } from './icons/Icons';
 
-interface AdSlide {
+export interface AdSlide {
     id: string;
     tabLabel: string;
     badge: string;
@@ -14,7 +14,7 @@ interface AdSlide {
     priceTag?: string;
 }
 
-const AD_SLIDES: AdSlide[] = [
+export const AD_SLIDES: AdSlide[] = [
     {
         id: 'caminadora',
         tabLabel: 'Caminadora Seminueva',

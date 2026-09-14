@@ -4,7 +4,7 @@ import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
-import DoctorAdBanner from './DoctorAdBanner';
+import DoctorAdBanner, { AD_SLIDES } from './DoctorAdBanner';
 
 // --- Interfaces para los datos de la IA ---
 interface PlantDiagnosis {
@@ -104,6 +104,86 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
                 )}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400 text-center font-medium line-clamp-2 md:hidden">{description}</p>
+        </div>
+    );
+};
+
+const DiagnosisLoadingAd: React.FC = () => {
+    const [adIndex, setAdIndex] = useState(0);
+    const [isMuted, setIsMuted] = useState(true);
+    const currentSlide = AD_SLIDES[adIndex];
+
+    const handleCotizacion = () => {
+        const textEncoded = encodeURIComponent(currentSlide.whatsappText);
+        window.open(`https://wa.me/${currentSlide.whatsappNumber}?text=${textEncoded}`, '_blank');
+    };
+
+    return (
+        <div className="w-full max-w-md mx-auto rounded-2xl overflow-hidden bg-stone-900 border border-emerald-500/30 text-white shadow-xl">
+            {/* Header del anuncio */}
+            <div className="bg-stone-950 px-3.5 py-2 flex items-center justify-between border-b border-stone-800">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    Spot en Video mientras esperas
+                </span>
+                <div className="flex gap-1">
+                    {AD_SLIDES.map((slide, idx) => (
+                        <button
+                            key={slide.id}
+                            type="button"
+                            onClick={() => setAdIndex(idx)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                                adIndex === idx ? 'bg-emerald-600 text-white shadow' : 'text-stone-400 hover:text-stone-200'
+                            }`}
+                        >
+                            {idx === 0 ? '🏃 Caminadora' : '🌱 Suelo'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Video del anuncio en formato compacto */}
+            <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+                <video
+                    key={currentSlide.id}
+                    src={currentSlide.videoUrl}
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-cover"
+                />
+                <button
+                    type="button"
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="absolute top-2 right-2 bg-black/75 hover:bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-md border border-white/20 active:scale-95 cursor-pointer shadow"
+                >
+                    {isMuted ? '🔇 Activar audio' : '🔊 Con sonido'}
+                </button>
+                {currentSlide.priceTag && (
+                    <span className="absolute bottom-2 left-2 bg-emerald-500 text-stone-950 text-[10px] font-black px-2 py-0.5 rounded shadow">
+                        {currentSlide.priceTag}
+                    </span>
+                )}
+            </div>
+
+            {/* Info y botón de WhatsApp */}
+            <div className="p-3 bg-stone-950 flex items-center justify-between gap-2 border-t border-stone-800">
+                <div className="min-w-0 text-left">
+                    <h5 className="text-xs font-black text-white truncate">{currentSlide.title}</h5>
+                    <p className="text-[10px] text-stone-400 truncate">{currentSlide.subtitle}</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleCotizacion}
+                    className="flex-shrink-0 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-stone-950 font-black text-xs rounded-xl shadow active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                >
+                    <span>Cotizar</span>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     );
 };
@@ -857,9 +937,27 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
     const renderResults = () => {
         if (isLoading) {
             return (
-                <div className="animate-pulse flex flex-col items-center text-green-700 dark:text-green-300">
-                    <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas pensando" className="h-24 w-24 mx-auto mb-4 opacity-75" />
-                    <p className="font-semibold text-lg">Nuestro doctor está analizando tu planta...</p>
+                <div className="w-full text-center space-y-4 py-2 animate-fade-in">
+                    {/* Header de Análisis con Mascota animada */}
+                    <div className="flex items-center justify-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-sm text-left">
+                        <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas pensando" className="h-12 w-12 sm:h-16 sm:w-16 animate-bounce flex-shrink-0" />
+                        <div>
+                            <p className="font-extrabold text-sm sm:text-base text-emerald-900 dark:text-emerald-200">
+                                🔬 El Doctor de Plantas está analizando tu imagen...
+                            </p>
+                            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                                Evaluando hojas, follaje y posibles plagas. Tu diagnóstico botánico estará listo en unos segundos.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Barra animada de progreso */}
+                    <div className="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-2 overflow-hidden shadow-inner">
+                        <div className="bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 h-full rounded-full animate-pulse w-4/5 transition-all duration-1000"></div>
+                    </div>
+
+                    {/* Spot publicitario en video mientras esperan el diagnóstico */}
+                    <DiagnosisLoadingAd />
                 </div>
             );
         }
@@ -953,12 +1051,12 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 {/* Sección Fija de Anuncio Publicitario Suelo Urbano - En la parte superior */}
                 <DoctorAdBanner />
 
-                <div className="text-center mb-6 md:mb-10 pt-2 md:pt-4 border-t border-gray-200 dark:border-gray-800">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-2 md:mb-4 dark:text-gray-100">Doctor de Plantas con IA</h2>
-                    <p className="max-w-3xl mx-auto text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                <div className="text-center mb-4 md:mb-10 pt-2 md:pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-900 mb-1 md:mb-4 dark:text-gray-100">Doctor de Plantas con IA</h2>
+                    <p className="hidden md:block max-w-3xl mx-auto text-sm sm:text-base text-gray-700 dark:text-gray-300">
                         ¿Tu planta se ve triste? Sube una foto y nuestra IA te dará un diagnóstico y un plan de acción para recuperarla.
                     </p>
-                    <div className="max-w-3xl mx-auto mt-3 md:mt-4 text-[11px] sm:text-xs text-gray-500 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 p-2.5 sm:p-3 rounded-lg flex items-start text-left gap-2 shadow-sm">
+                    <div className="hidden md:flex max-w-3xl mx-auto mt-3 md:mt-4 text-[11px] sm:text-xs text-gray-500 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 p-2.5 sm:p-3 rounded-lg items-start text-left gap-2 shadow-sm">
                         <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5 text-gray-400" />
                         <span>Nuestra IA está en constante aprendizaje. Los diagnósticos son una guía y pueden cometer errores. Para problemas serios, considera consultar a un experto.</span>
                     </div>
