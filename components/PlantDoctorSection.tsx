@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type, ThinkingLevel } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
@@ -381,20 +381,71 @@ const PlantDoctorSection: React.FC = () => {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [showProcessViewer, setShowProcessViewer] = useState(false);
     const [hasSkippedProcess, setHasSkippedProcess] = useState(false);
+    const [analysisStatus, setAnalysisStatus] = useState<string>('Iniciando diagnóstico...');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
 
-    const fileToGenerativePart = async (file: File) => {
-        const base64EncodedDataPromise = new Promise<string>((resolve) => {
+    // Optimiza y redimensiona la imagen a resolución idónea para visión por IA (máx 1024px, JPEG 0.85)
+    // Reduce drásticamente el peso de 15MB a ~150KB (un 98% menos), acelerando el envío y evitando demoras o errores 503 por alta demanda
+    const optimizeImageForGemini = async (file: File, maxDim = 1024): Promise<{ inlineData: { data: string; mimeType: string } }> => {
+        return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        let { width, height } = img;
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) {
+                            const raw = ((e.target?.result as string) || '').split(',')[1];
+                            resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
+                            return;
+                        }
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        const base64 = dataUrl.split(',')[1];
+                        resolve({ inlineData: { data: base64, mimeType: 'image/jpeg' } });
+                    } catch (err) {
+                        const raw = ((e.target?.result as string) || '').split(',')[1];
+                        resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
+                    }
+                };
+                img.onerror = () => {
+                    const raw = ((e.target?.result as string) || '').split(',')[1];
+                    resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
+                };
+                img.src = e.target?.result as string;
+            };
+            reader.onerror = () => {
+                resolve({ inlineData: { data: '', mimeType: 'image/jpeg' } });
+            };
             reader.readAsDataURL(file);
         });
-        return {
-            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
-        };
+    };
+
+    // Envoltorio con timeout para no dejar al usuario esperando si un servidor de IA está saturado
+    const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string): Promise<T> => {
+        return Promise.race([
+            promise,
+            new Promise<T>((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
+        ]);
     };
 
     const handleFile = (file: File | null) => {
@@ -430,6 +481,7 @@ const PlantDoctorSection: React.FC = () => {
         setDiagnosis(null);
         setShowProcessViewer(true);
         setHasSkippedProcess(false);
+        setAnalysisStatus('Optimizando foto para escaneo ultrarrápido...');
         
         // Auto scroll hacia el visor de los spots de proceso para visualizarlos de inmediato
         setTimeout(() => {
@@ -440,8 +492,18 @@ const PlantDoctorSection: React.FC = () => {
         try {
             const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no está configurada.");
-            const ai = new GoogleGenAI({ apiKey: apiKey });
-            const imagePart = await fileToGenerativePart(imageFile);
+            const ai = new GoogleGenAI({
+                apiKey: apiKey,
+                httpOptions: {
+                    headers: {
+                        'User-Agent': 'aistudio-build',
+                    }
+                }
+            });
+
+            // 1. Redimensionar y optimizar la imagen client-side (máx 1024px)
+            const imagePart = await optimizeImageForGemini(imageFile, 1024);
+            setAnalysisStatus('Analizando hojas, luz y salud botánica...');
             
             const unifiedSchema = {
                 type: Type.OBJECT,
@@ -590,16 +652,39 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             let lastError: any = null;
             let diagnosisData: any = null;
             
-            // Lista de modelos resilientes en caso de alta demanda (503 / 429)
-            const modelsToTry = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+            // Configuración de modelos con baja latencia (ThinkingLevel.LOW / MINIMAL) y timeouts preventivos
+            // para responder en 2-4 segundos y evitar demoras por alta demanda
+            const modelsConfig: { name: string; thinkingLevel?: ThinkingLevel; timeoutMs: number; label: string }[] = [
+                { name: 'gemini-3.8-flash', thinkingLevel: ThinkingLevel.LOW, timeoutMs: 14000, label: 'Gemini 3.8 Flash' },
+                { name: 'gemini-3.1-flash-lite', thinkingLevel: ThinkingLevel.MINIMAL, timeoutMs: 12000, label: 'Gemini 3.1 Flash Lite (Ultrarrápido)' },
+                { name: 'gemini-flash-latest', timeoutMs: 12000, label: 'Gemini Flash' },
+            ];
             
-            for (const modelName of modelsToTry) {
+            for (let i = 0; i < modelsConfig.length; i++) {
+                const cfg = modelsConfig[i];
                 try {
-                    const response = await ai.models.generateContent({
-                        model: modelName,
-                        contents: { parts: [imagePart, { text: prompt }] },
-                        config: { responseMimeType: "application/json", responseSchema: unifiedSchema }
-                    });
+                    if (i > 0) {
+                        setAnalysisStatus(`Canal con alta demanda, acelerando con ${cfg.label}...`);
+                    }
+
+                    const reqConfig: any = {
+                        responseMimeType: "application/json",
+                        responseSchema: unifiedSchema,
+                    };
+
+                    if (cfg.thinkingLevel !== undefined) {
+                        reqConfig.thinkingConfig = { thinkingLevel: cfg.thinkingLevel };
+                    }
+
+                    const response = await withTimeout(
+                        ai.models.generateContent({
+                            model: cfg.name,
+                            contents: { parts: [imagePart, { text: prompt }] },
+                            config: reqConfig
+                        }),
+                        cfg.timeoutMs,
+                        `Tiempo de espera agotado con ${cfg.name}`
+                    );
 
                     if (response.text) {
                         diagnosisData = JSON.parse(response.text);
@@ -608,10 +693,10 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         break; // Éxito, salir del bucle
                     }
                 } catch (err: any) {
-                    console.warn(`Intento con modelo ${modelName} falló:`, err);
+                    console.warn(`Intento con modelo ${cfg.name} falló o tardó demasiado:`, err);
                     lastError = err;
-                    // Si el error es de alta demanda o temporal, probar el siguiente modelo
-                    await new Promise(r => setTimeout(r, 600));
+                    // Breve pausa preventiva antes del siguiente canal
+                    await new Promise(r => setTimeout(r, 300));
                 }
             }
 
@@ -619,6 +704,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 // Garantizar requerimientoLuzLux
                 diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
                 setDiagnosis(diagnosisData);
+                setAnalysisStatus('¡Diagnóstico completado con éxito!');
                 setTimeout(() => {
                     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 180);
@@ -629,8 +715,8 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             console.error(err);
             const errStr = typeof err === 'string' ? err : err.message || JSON.stringify(err);
             
-            if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE")) {
-                setError("Los servidores de IA están experimentando una alta demanda momentánea. Tus datos están a salvo; por favor haz clic en 'Reintentar Diagnóstico' para procesar tu planta.");
+            if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE") || errStr.includes("agotado")) {
+                setError("Los servidores de IA experimentaron una congestión momentánea. Por favor haz clic en 'Reintentar Diagnóstico' para procesar tu planta de inmediato por el canal de alta velocidad.");
             } else if (errStr.includes("429") || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
                 setError("Se ha alcanzado el límite temporal de consultas. Espera unos segundos y pulsa 'Reintentar Diagnóstico'.");
             } else if (errStr.includes("API_KEY")) {
@@ -862,18 +948,19 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
         setIsLoading(false);
         setShowProcessViewer(false);
         setHasSkippedProcess(false);
+        setAnalysisStatus('Iniciando diagnóstico...');
     };
 
     const renderResults = () => {
         if (isLoading) {
             return (
                 <div className="w-full text-center space-y-4 py-2 animate-fade-in">
-                    {/* Header de Análisis con Mascota animada */}
+                    {/* Header de Análisis con Mascota animada y estado en tiempo real */}
                     <div className="flex items-center justify-center gap-3 bg-emerald-50 dark:bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-sm text-left">
                         <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas pensando" className="h-12 w-12 sm:h-16 sm:w-16 animate-bounce flex-shrink-0" />
                         <div>
-                            <p className="font-extrabold text-sm sm:text-base text-emerald-900 dark:text-emerald-200">
-                                🔬 El Doctor de Plantas está analizando tu imagen...
+                            <p className="font-extrabold text-sm sm:text-base text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
+                                <span>🔬 {analysisStatus}</span>
                             </p>
                             <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
                                 Evaluando hojas, follaje y posibles plagas. Revisa arriba los spots con los 5 procesos de regeneración botánica Suelo Urbano.
