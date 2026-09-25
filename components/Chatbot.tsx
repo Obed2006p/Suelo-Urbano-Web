@@ -203,7 +203,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
                 
                 const ai = new GoogleGenAI({ apiKey: apiKey });
                 let resultText = "¡No olvides hidratarlas hoy!";
-                const models = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+                const models = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
                 for (const m of models) {
                     try {
                         const result = await ai.models.generateContent({ model: m, contents: prompt });
@@ -265,12 +265,46 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
         try {
             const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
             if (!apiKey) throw new Error("API_KEY no configurada");
-            
+
+            // Preparar las partes del mensaje (texto y/o imagen)
+            const messageParts: any[] = [];
+            if (currentFile) {
+                const filePart = await fileToGenerativePart(currentFile);
+                messageParts.push(filePart);
+            }
+            if (userText) {
+                messageParts.push({ text: userText });
+            } else if (messageParts.length === 0) {
+                messageParts.push({ text: "Analiza la imagen adjunta de mi planta y bríndame recomendaciones." });
+            }
+
+            const messagePayload = currentFile ? messageParts : userText;
+
+            // Preparar historial compatible con Gemini (debe iniciar con turno 'user' y alternar turnos)
+            const validHistory: { role: string; parts: { text: string }[] }[] = [];
+            const firstUserIdx = messages.findIndex(m => m.sender === 'user' && m.text && m.text.trim() !== '');
+            if (firstUserIdx !== -1) {
+                for (let i = firstUserIdx; i < messages.length; i++) {
+                    const m = messages[i];
+                    if (!m.text || !m.text.trim()) continue;
+                    const role = m.sender === 'user' ? 'user' : 'model';
+                    const lastTurn = validHistory[validHistory.length - 1];
+                    if (lastTurn && lastTurn.role === role) {
+                        lastTurn.parts[0].text += `\n${m.text.trim()}`;
+                    } else {
+                        validHistory.push({
+                            role,
+                            parts: [{ text: m.text.trim() }]
+                        });
+                    }
+                }
+            }
+
             const ai = new GoogleGenAI({ apiKey: apiKey });
             
             let botResponse: string | null = null;
             let lastChatError: any = null;
-            const chatModels = ["gemini-3.7-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+            const chatModels = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
 
             for (const modelName of chatModels) {
                 try {
@@ -279,23 +313,18 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
                         config: {
                             systemInstruction: SYSTEM_INSTRUCTION,
                         },
-                        history: messages
-                            .filter(msg => msg.text && msg.text.trim() !== '')
-                            .map(msg => ({
-                                role: msg.sender === 'user' ? 'user' : 'model',
-                                parts: [{ text: msg.text }] 
-                            }))
+                        history: validHistory
                     });
 
-                    const result = await chat.sendMessage({ message: messageParts });
+                    const result = await chat.sendMessage({ message: messagePayload });
                     if (result.text) {
                         botResponse = result.text;
                         break;
                     }
-                } catch (e) {
+                } catch (e: any) {
                     lastChatError = e;
                     console.warn(`Chat attempt with ${modelName} failed:`, e);
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 600));
                 }
             }
 
@@ -307,7 +336,15 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
 
         } catch (error: any) {
             console.error("Chat error:", error);
-            setMessages(prev => [...prev, { text: error.message === "API_KEY no configurada" ? "Error: La API Key no está configurada. Añade VITE_API_KEY en las variables de entorno de Vercel y redespliega." : `Lo siento, tuve un problema: ${error.message || 'Intenta de nuevo.'} 🌱`, sender: 'bot' }]);
+            let errorMessage = "Lo siento, tuve un problema al procesar tu mensaje. Por favor intenta de nuevo. 🌱";
+            if (error?.message === "API_KEY no configurada") {
+                errorMessage = "Error: La API Key no está configurada. Añade VITE_API_KEY o GEMINI_API_KEY en las variables de entorno de Vercel y redespliega.";
+            } else if (error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand")) {
+                errorMessage = "El servicio de IA está experimentando alta demanda momentáneamente en los servidores de Google. Por favor, reenvía tu mensaje en un momento. 🌱";
+            } else if (error?.message) {
+                errorMessage = `Lo siento, tuve un problema: ${error.message} 🌱`;
+            }
+            setMessages(prev => [...prev, { text: errorMessage, sender: 'bot' }]);
         } finally {
             setIsLoading(false);
         }
