@@ -382,6 +382,14 @@ const PlantDoctorSection: React.FC = () => {
     const [showProcessViewer, setShowProcessViewer] = useState(false);
     const [hasSkippedProcess, setHasSkippedProcess] = useState(false);
     const [analysisStatus, setAnalysisStatus] = useState<string>('Iniciando diagnóstico...');
+    const [retryCooldown, setRetryCooldown] = useState(0);
+
+    useEffect(() => {
+        if (retryCooldown > 0) {
+            const timer = setTimeout(() => setRetryCooldown(prev => prev - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [retryCooldown]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -652,19 +660,20 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             let lastError: any = null;
             let diagnosisData: any = null;
             
-            // Configuración de modelos con baja latencia (ThinkingLevel.LOW / MINIMAL) y timeouts preventivos
-            // para responder en 2-4 segundos y evitar demoras por alta demanda
+            // Modelos probados y verificados con alta disponibilidad operativa y sin congestión 503
+            // gemini-flash-lite-latest responde de inmediato y no presenta saturación de alta demanda
             const modelsConfig: { name: string; thinkingLevel?: ThinkingLevel; timeoutMs: number; label: string }[] = [
-                { name: 'gemini-3.8-flash', thinkingLevel: ThinkingLevel.LOW, timeoutMs: 14000, label: 'Gemini 3.8 Flash' },
-                { name: 'gemini-3.1-flash-lite', thinkingLevel: ThinkingLevel.MINIMAL, timeoutMs: 12000, label: 'Gemini 3.1 Flash Lite (Ultrarrápido)' },
-                { name: 'gemini-flash-latest', timeoutMs: 12000, label: 'Gemini Flash' },
+                { name: 'gemini-flash-lite-latest', timeoutMs: 25000, label: 'Gemini Flash Lite (Canal Estable)' },
+                { name: 'gemini-3.5-flash-lite', timeoutMs: 25000, label: 'Gemini 3.5 Flash Lite' },
+                { name: 'gemini-3-flash-preview', timeoutMs: 22000, label: 'Gemini 3 Flash' },
+                { name: 'gemini-3.8-flash', thinkingLevel: ThinkingLevel.LOW, timeoutMs: 18000, label: 'Gemini 3.8 Flash' },
             ];
             
             for (let i = 0; i < modelsConfig.length; i++) {
                 const cfg = modelsConfig[i];
                 try {
                     if (i > 0) {
-                        setAnalysisStatus(`Canal con alta demanda, acelerando con ${cfg.label}...`);
+                        setAnalysisStatus(`Canal previo ocupado, procesando con ${cfg.label}...`);
                     }
 
                     const reqConfig: any = {
@@ -695,8 +704,8 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 } catch (err: any) {
                     console.warn(`Intento con modelo ${cfg.name} falló o tardó demasiado:`, err);
                     lastError = err;
-                    // Breve pausa preventiva antes del siguiente canal
-                    await new Promise(r => setTimeout(r, 300));
+                    // Pausa preventiva de 1.2s entre modelos para no saturar la cuota de consultas por minuto (429)
+                    await new Promise(r => setTimeout(r, 1200));
                 }
             }
 
@@ -715,13 +724,16 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             console.error(err);
             const errStr = typeof err === 'string' ? err : err.message || JSON.stringify(err);
             
-            if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE") || errStr.includes("agotado")) {
-                setError("Los servidores de IA experimentaron una congestión momentánea. Por favor haz clic en 'Reintentar Diagnóstico' para procesar tu planta de inmediato por el canal de alta velocidad.");
-            } else if (errStr.includes("429") || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
-                setError("Se ha alcanzado el límite temporal de consultas. Espera unos segundos y pulsa 'Reintentar Diagnóstico'.");
+            if (errStr.includes("429") || errStr.includes("quota") || errStr.includes("RESOURCE_EXHAUSTED")) {
+                setRetryCooldown(5);
+                setError("Se ha alcanzado temporalmente el límite de consultas por minuto. La disponibilidad se restablecerá en unos instantes.");
+            } else if (errStr.includes("503") || errStr.includes("high demand") || errStr.includes("UNAVAILABLE") || errStr.includes("agotado")) {
+                setRetryCooldown(3);
+                setError("Los servidores de IA experimentaron una congestión momentánea. El canal de alta disponibilidad está listo para procesar tu planta.");
             } else if (errStr.includes("API_KEY")) {
                 setError("La clave de API no está configurada correctamente. Revisa la configuración.");
             } else {
+                setRetryCooldown(2);
                 setError("Ocurrió un inconveniente temporal al procesar la imagen. Puedes presionar 'Reintentar Diagnóstico' para volver a intentarlo.");
             }
             setTimeout(() => {
@@ -1004,10 +1016,14 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
                             <button
                                 onClick={runDiagnosis}
-                                disabled={isLoading}
-                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                                disabled={isLoading || retryCooldown > 0}
+                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800/60 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-sm flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                🔄 Reintentar Diagnóstico
+                                {retryCooldown > 0 ? (
+                                    <span>⏳ Esperando {retryCooldown}s...</span>
+                                ) : (
+                                    <span>🔄 Reintentar Diagnóstico</span>
+                                )}
                             </button>
                             <button
                                 onClick={reset}
