@@ -6,14 +6,46 @@ import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, Requerimient
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
 import DoctorAdBanner from './DoctorAdBanner';
 import AnalysisProcessViewer from './AnalysisProcessViewer';
+import EnvironmentQuestionnaire, { EnvironmentAnswers, DEFAULT_ENVIRONMENT_ANSWERS } from './EnvironmentQuestionnaire';
 
 // --- Interfaces para los datos de la IA ---
-interface PlantDiagnosis {
+export interface PlantDiagnosis {
     nombrePlanta: string;
     estadoGeneral: string;
     diagnosticoBreve: string;
     problemasDetectados: string[];
     causasPosibles: string[];
+    
+    // PASO 2: Descripción Visual Objetiva (Obligatorio)
+    descripcionVisual?: {
+        tipoYBasales: string;
+        estadoFollaje: string;
+        analisisCorona: string;
+    };
+
+    // PASO 4: Diagnóstico Diferencial (Mínimo 3 Posibilidades simultáneas)
+    diagnosticoDiferencial?: {
+        posibilidadA: { titulo: string; detalle: string; tipo: string };
+        posibilidadB: { titulo: string; detalle: string; tipo: string };
+        posibilidadC: { titulo: string; detalle: string; tipo: string };
+    };
+
+    // PASO 5: Opciones de Tratamiento Múltiple (Mínimo 3 Líneas de Acción)
+    tratamientoMultiple?: {
+        opcion1Mecanica: {
+            titulo: string;
+            puntos: string[];
+        };
+        opcion2Ecologica: {
+            titulo: string;
+            puntos: string[];
+        };
+        opcion3Correctiva: {
+            titulo: string;
+            puntos: string[];
+        };
+    };
+
     tratamiento: { paso: string; detalle: string }[];
     planRecuperacion: string[];
     sustratoRecomendado: string;
@@ -34,6 +66,7 @@ interface PlantDiagnosis {
     productosRecomendados: { nombre: string; motivo: string }[];
     imagenesReferencia: { terminoBusquedaWikipedia: string; descripcionEspanol: string }[];
     resultadosEsperados: string[];
+    respuestasEntorno?: EnvironmentAnswers;
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -168,73 +201,385 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
 
 
 
-const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) => {
+const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; onOpenEnvironment?: () => void }> = ({ diagnosis, onOpenEnvironment }) => {
     const luzInfo = ensureRequerimientoLuz(diagnosis);
+    const [activeTreatmentTab, setActiveTreatmentTab] = useState<'mecanica' | 'ecologica' | 'correctiva' | 'pasos'>('mecanica');
+
+    const env = diagnosis.respuestasEntorno;
+    const hasEnvData = env && (env.ubicacion || env.iluminacion || env.riegoFrecuencia || env.drenajeAgujeros || env.materialMaceta);
+
+    const getUbicacionLabel = (val?: string) => {
+        if (val === 'interior') return '🏠 Interior';
+        if (val === 'exterior_terraza') return '☀️ Balcón / Terraza';
+        if (val === 'jardin') return '🌱 Jardín';
+        return val || 'No especificada';
+    };
+
+    const getLuzLabel = (val?: string) => {
+        if (val === 'sol_directo') return '☀️ Sol directo';
+        if (val === 'luz_indirecta') return '🪟 Luz brillante indirecta';
+        if (val === 'sombra') return '☁️ Sombra / Luz baja';
+        return val || 'No especificada';
+    };
+
+    const getRiegoLabel = (val?: string) => {
+        if (val === 'cada_2_3_dias') return '💧💧 Cada 2-3 días';
+        if (val === 'semanal') return '💧 1 vez/semana';
+        if (val === 'cada_10_15_dias') return '🌵 Cada 10-15 días';
+        if (val === 'segun_sustrato') return '👆 Al secar el sustrato';
+        return val || 'No especificado';
+    };
+
+    const getDrenajeLabel = (val?: string) => {
+        if (val === 'con_drenaje') return '✅ Con agujeros';
+        if (val === 'sin_drenaje') return '⚠️ Sin orificio de drenaje';
+        return val || '';
+    };
+
     return (
     <div className="animate-fade-in-up w-full text-left space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3 sm:gap-4 bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-14 w-14 sm:h-20 sm:w-20 flex-shrink-0 drop-shadow-md object-contain" />
-            <div className="min-w-0">
-                <p className="text-[11px] sm:text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Planta Observada</p>
-                <h3 className="text-lg sm:text-2xl font-black text-green-900 mb-0.5 sm:mb-1 dark:text-green-300 truncate">{diagnosis.nombrePlanta}</h3>
-                <p className="text-gray-800 text-xs sm:text-base font-semibold dark:text-gray-200 flex items-center gap-1.5 sm:gap-2">
-                    <HeartbeatIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />
-                    <span>Estado: </span>
-                    <span className="font-bold text-red-600 dark:text-red-400">{diagnosis.estadoGeneral}</span>
-                </p>
+        {/* Header de Paciente */}
+        <div className="flex items-center gap-3 sm:gap-4 bg-white dark:bg-gray-800 p-3.5 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <img src={DOCTOR_MASCOT_URL} alt="Doctor de Plantas Mascota" className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 drop-shadow-md object-contain" />
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <p className="text-[11px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paciente Botánico</p>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-2 py-0.2 rounded-full border border-emerald-300 dark:border-emerald-800">
+                        Evaluación Clínica
+                    </span>
+                </div>
+                <h3 className="text-lg sm:text-2xl font-black text-green-900 mb-1 dark:text-green-300 truncate">{diagnosis.nombrePlanta}</h3>
+                <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm font-semibold">
+                    <span className="flex items-center gap-1.5 text-stone-700 dark:text-stone-300">
+                        <HeartbeatIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <span>Estado:</span>
+                    </span>
+                    <span className="font-extrabold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-md border border-red-200 dark:border-red-900">
+                        {diagnosis.estadoGeneral}
+                    </span>
+                </div>
             </div>
         </div>
+
+        {/* Ficha de Entorno del Paciente (Si fue contestada o detectada) */}
+        {hasEnvData && (
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 p-3 sm:p-4 rounded-xl flex items-center justify-between gap-2 flex-wrap shadow-sm">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-900 dark:text-emerald-200">
+                    <span className="font-extrabold flex items-center gap-1">
+                        <span>📋 Hábitat reportado:</span>
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 text-[11px] sm:text-xs">
+                        {env?.ubicacion && <span className="bg-white dark:bg-stone-800 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700 font-medium">{getUbicacionLabel(env.ubicacion)}</span>}
+                        {env?.iluminacion && <span className="bg-white dark:bg-stone-800 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700 font-medium">{getLuzLabel(env.iluminacion)}</span>}
+                        {env?.riegoFrecuencia && <span className="bg-white dark:bg-stone-800 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700 font-medium">{getRiegoLabel(env.riegoFrecuencia)}</span>}
+                        {env?.drenajeAgujeros && <span className="bg-white dark:bg-stone-800 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700 font-medium">{getDrenajeLabel(env.drenajeAgujeros)}</span>}
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* PASO 2: Descripción Visual Objetiva (Obligatorio) */}
+        {diagnosis.descripcionVisual && (
+            <div className="bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 p-3.5 sm:p-5 rounded-2xl shadow-sm space-y-3">
+                <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-700 pb-2.5">
+                    <span className="text-base sm:text-lg">🔍</span>
+                    <div>
+                        <h4 className="font-black text-stone-900 dark:text-white text-sm sm:text-base">
+                            Descripción Visual Objetiva y Examen de la Corona
+                        </h4>
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                            Inspección física detallada de tallos, hojas y punto basal
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Pilar 1: Planta y características basales */}
+                    <div className="bg-white dark:bg-stone-700/60 p-3 rounded-xl border border-stone-200 dark:border-stone-600">
+                        <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1 mb-1">
+                            <span>🌿 Planta y Características Basales</span>
+                        </span>
+                        <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed font-medium">
+                            {diagnosis.descripcionVisual.tipoYBasales}
+                        </p>
+                    </div>
+
+                    {/* Pilar 2: Estado del follaje (Haz y Envés) */}
+                    <div className="bg-white dark:bg-stone-700/60 p-3 rounded-xl border border-stone-200 dark:border-stone-600">
+                        <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1 mb-1">
+                            <span>🍃 Follaje (Haz y Envés)</span>
+                        </span>
+                        <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed font-medium">
+                            {diagnosis.descripcionVisual.estadoFollaje}
+                        </p>
+                    </div>
+
+                    {/* Pilar 3: Análisis crítico de la corona */}
+                    <div className="bg-white dark:bg-stone-700/60 p-3 rounded-xl border border-stone-200 dark:border-stone-600">
+                        <span className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-1">
+                            <span>👑 Análisis Crítico de la Corona</span>
+                        </span>
+                        <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed font-medium">
+                            {diagnosis.descripcionVisual.analisisCorona}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )}
         
-        {/* Diagnóstico Breve */}
-        <div className="bg-gray-50 border-l-4 border-green-500 p-3 sm:p-4 rounded-r-lg dark:bg-gray-700 dark:border-green-400 shadow-sm">
-            <h4 className="font-bold text-green-900 flex items-center gap-2 mb-1.5 sm:mb-2 text-sm sm:text-base dark:text-green-300">
-                <SparklesIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400"/> Diagnóstico Breve
+        {/* PASO 3: Diagnóstico Breve con Lenguaje Prudente (Hedging) */}
+        <div className="bg-emerald-50/60 border-l-4 border-emerald-600 p-3.5 sm:p-4 rounded-r-2xl dark:bg-emerald-950/30 dark:border-emerald-500 shadow-sm">
+            <h4 className="font-bold text-emerald-900 flex items-center gap-2 mb-1.5 text-sm sm:text-base dark:text-emerald-300">
+                <SparklesIcon className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 dark:text-emerald-400"/> Dictamen Clínico Inicial
             </h4>
-            <p className="text-gray-800 text-xs sm:text-sm leading-relaxed dark:text-gray-100 font-medium">
+            <p className="text-stone-800 text-xs sm:text-sm leading-relaxed dark:text-stone-200 font-medium">
                 {diagnosis.diagnosticoBreve}
             </p>
         </div>
 
-        {/* Dos columnas: Problemas y Causas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="bg-red-50 border border-red-200 p-3.5 sm:p-4 rounded-xl dark:bg-red-900/20 dark:border-red-800 shadow-sm">
-                <h4 className="font-bold text-red-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-red-400">
-                    <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Problemas Detectados
-                </h4>
-                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-red-900 dark:text-red-200">
-                    {diagnosis.problemasDetectados.map((prob, idx) => <li key={idx}>{prob}</li>)}
-                </ul>
-            </div>
-            
-            <div className="bg-amber-50 border border-amber-200 p-3.5 sm:p-4 rounded-xl dark:bg-amber-900/20 dark:border-amber-800 shadow-sm">
-                <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-amber-400">
-                    <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Posibles Causas
-                </h4>
-                <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-                    {diagnosis.causasPosibles.map((causa, idx) => <li key={idx}>{causa}</li>)}
-                </ul>
-            </div>
-        </div>
-        
-        {/* Tratamiento y Control */}
-        <div className="bg-white border border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
-            <h4 className="font-bold text-green-800 flex items-center gap-2 mb-3 sm:mb-4 dark:text-green-300 text-base sm:text-lg border-b pb-2 dark:border-gray-700">
-                <ClipboardListIcon className="h-5 w-5 sm:h-6 sm:w-6"/> Tratamiento y Control
-            </h4>
-            <div className="space-y-3 sm:space-y-4">
-                {diagnosis.tratamiento.map((step, index) => 
-                    <div key={index} className="flex gap-2.5 sm:gap-3 items-start">
-                        <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-800 dark:text-green-300 font-bold text-xs sm:text-sm border border-green-200 dark:border-green-700 mt-0.5">
-                            {index + 1}
+        {/* PASO 4: Diagnóstico Diferencial (Mínimo 3 Posibilidades simultáneas) */}
+        {diagnosis.diagnosticoDiferencial ? (
+            <div className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                    <h4 className="font-extrabold text-stone-900 dark:text-white flex items-center gap-1.5 text-xs sm:text-sm uppercase tracking-wider">
+                        <span>🛡️ Diagnóstico Diferencial (3 Posibilidades Evaluadas)</span>
+                    </h4>
+                    <span className="text-[10px] text-stone-500 dark:text-stone-400 font-semibold">
+                        Evaluación médica simultánea
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Posibilidad A: Manejo y Ubicación */}
+                    <div className="bg-sky-50 dark:bg-sky-950/25 border border-sky-200 dark:border-sky-800/60 p-3.5 sm:p-4 rounded-xl shadow-sm space-y-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-extrabold bg-sky-200 dark:bg-sky-900 text-sky-800 dark:text-sky-200 px-2 py-0.5 rounded-full uppercase">
+                                Factor A
+                            </span>
+                            <span className="text-[11px] font-bold text-sky-700 dark:text-sky-300">Manejo / Ubicación</span>
                         </div>
-                        <div className="min-w-0">
-                            <strong className="font-bold text-gray-900 dark:text-gray-100 block mb-0.5 text-xs sm:text-sm">{step.paso}</strong>
-                            <p className="text-gray-700 text-xs sm:text-sm dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{step.detalle}</p>
-                        </div>
+                        <h5 className="font-bold text-xs sm:text-sm text-sky-950 dark:text-sky-100">
+                            {diagnosis.diagnosticoDiferencial.posibilidadA.titulo}
+                        </h5>
+                        <p className="text-xs text-sky-900/90 dark:text-sky-200 leading-relaxed font-medium">
+                            {diagnosis.diagnosticoDiferencial.posibilidadA.detalle}
+                        </p>
                     </div>
-                )}
+
+                    {/* Posibilidad B: Patógenos */}
+                    <div className="bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-800/60 p-3.5 sm:p-4 rounded-xl shadow-sm space-y-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-extrabold bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded-full uppercase">
+                                Factor B
+                            </span>
+                            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300">Patógenos / Hongos</span>
+                        </div>
+                        <h5 className="font-bold text-xs sm:text-sm text-amber-950 dark:text-amber-100">
+                            {diagnosis.diagnosticoDiferencial.posibilidadB.titulo}
+                        </h5>
+                        <p className="text-xs text-amber-900/90 dark:text-amber-200 leading-relaxed font-medium">
+                            {diagnosis.diagnosticoDiferencial.posibilidadB.detalle}
+                        </p>
+                    </div>
+
+                    {/* Posibilidad C: Plagas o Nutrición */}
+                    <div className="bg-rose-50 dark:bg-rose-950/25 border border-rose-200 dark:border-rose-800/60 p-3.5 sm:p-4 rounded-xl shadow-sm space-y-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] font-extrabold bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200 px-2 py-0.5 rounded-full uppercase">
+                                Factor C
+                            </span>
+                            <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300">Plagas o Nutrición</span>
+                        </div>
+                        <h5 className="font-bold text-xs sm:text-sm text-rose-950 dark:text-rose-100">
+                            {diagnosis.diagnosticoDiferencial.posibilidadC.titulo}
+                        </h5>
+                        <p className="text-xs text-rose-900/90 dark:text-rose-200 leading-relaxed font-medium">
+                            {diagnosis.diagnosticoDiferencial.posibilidadC.detalle}
+                        </p>
+                    </div>
+                </div>
             </div>
+        ) : (
+            /* Dos columnas de respaldo si no hay diagnóstico diferencial explícito */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div className="bg-red-50 border border-red-200 p-3.5 sm:p-4 rounded-xl dark:bg-red-900/20 dark:border-red-800 shadow-sm">
+                    <h4 className="font-bold text-red-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-red-400">
+                        <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Problemas Detectados
+                    </h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-red-900 dark:text-red-200 font-medium">
+                        {diagnosis.problemasDetectados.map((prob, idx) => <li key={idx}>{prob}</li>)}
+                    </ul>
+                </div>
+                
+                <div className="bg-amber-50 border border-amber-200 p-3.5 sm:p-4 rounded-xl dark:bg-amber-900/20 dark:border-amber-800 shadow-sm">
+                    <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-amber-400">
+                        <QuestionMarkCircleIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Posibles Causas
+                    </h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-amber-900 dark:text-amber-200 font-medium">
+                        {diagnosis.causasPosibles.map((causa, idx) => <li key={idx}>{causa}</li>)}
+                    </ul>
+                </div>
+            </div>
+        )}
+        
+        {/* PASO 5: Estrategia de Tratamiento Múltiple (Mínimo 3 Líneas de Acción) */}
+        <div className="bg-white border border-stone-200 dark:border-stone-700 p-3.5 sm:p-5 rounded-2xl shadow-sm dark:bg-stone-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 dark:border-stone-700 pb-3 mb-3.5">
+                <div>
+                    <h4 className="font-black text-stone-900 dark:text-white flex items-center gap-2 text-sm sm:text-base md:text-lg">
+                        <ClipboardListIcon className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600 dark:text-emerald-400"/>
+                        Estrategia de Tratamiento Múltiple
+                    </h4>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
+                        Elige una alternativa de tratamiento o combina las opciones según tus recursos
+                    </p>
+                </div>
+
+                {/* Selector de pestañas para evitar chorizo de texto */}
+                <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-900/80 p-1 rounded-xl text-xs overflow-x-auto">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTreatmentTab('mecanica')}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            activeTreatmentTab === 'mecanica'
+                                ? 'bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                        }`}
+                    >
+                        🪵 1. Mecánica y Postura
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTreatmentTab('ecologica')}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            activeTreatmentTab === 'ecologica'
+                                ? 'bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                        }`}
+                    >
+                        🌿 2. Orgánica y Ecológica
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTreatmentTab('correctiva')}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            activeTreatmentTab === 'correctiva'
+                                ? 'bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                        }`}
+                    >
+                        🛡️ 3. Control Correctivo
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTreatmentTab('pasos')}
+                        className={`px-2.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                            activeTreatmentTab === 'pasos'
+                                ? 'bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                                : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                        }`}
+                    >
+                        📋 Pasos 1-2-3
+                    </button>
+                </div>
+            </div>
+
+            {/* Contenido dinámico según la pestaña activa */}
+            {activeTreatmentTab === 'mecanica' && (
+                <div className="bg-stone-50 dark:bg-stone-900/50 p-4 rounded-xl border border-stone-200 dark:border-stone-700 space-y-2.5 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-amber-600 text-white text-xs">🪵</span>
+                        <h5 className="font-extrabold text-sm text-stone-900 dark:text-white">
+                            {diagnosis.tratamientoMultiple?.opcion1Mecanica.titulo || "Opción 1: Corrección Mecánica y Postura"}
+                        </h5>
+                    </div>
+                    <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-medium">
+                        Ajusta el soporte físico y la oxigenación para erradicar asfixia radicular y corregir el tallo:
+                    </p>
+                    <ul className="space-y-2 text-xs text-stone-800 dark:text-stone-200 font-medium">
+                        {(diagnosis.tratamientoMultiple?.opcion1Mecanica.puntos || [
+                            "Ajuste del nivel del suelo: deja la corona visible de la tierra hacia arriba para evitar pudrición.",
+                            "Nivelación del sustrato: distribuye la tierra de manera uniforme sin presionar en exceso.",
+                            "Mezcla porosa recomendada: tierra de hoja, corteza de árbol, tepojal/perlita y fibra de coco.",
+                            "Tutor de soporte: coloca una guía si el tallo principal está inclinado o desfasado."
+                        ]).map((punto, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0 mt-0.5">•</span>
+                                <span>{punto}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {activeTreatmentTab === 'ecologica' && (
+                <div className="bg-emerald-50/60 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/60 space-y-2.5 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-emerald-600 text-white text-xs">🌿</span>
+                        <h5 className="font-extrabold text-sm text-emerald-950 dark:text-emerald-100">
+                            {diagnosis.tratamientoMultiple?.opcion2Ecologica.titulo || "Opción 2: Tratamientos Ecológicos y Orgánicos"}
+                        </h5>
+                    </div>
+                    <p className="text-xs text-emerald-900/80 dark:text-emerald-300 leading-relaxed font-medium">
+                        Soluciones naturales y biológicas respetuosas con la vida del suelo y la microbiología:
+                    </p>
+                    <ul className="space-y-2 text-xs text-stone-800 dark:text-stone-200 font-medium">
+                        {(diagnosis.tratamientoMultiple?.opcion2Ecologica.puntos || [
+                            "Infusión de ajo preventiva: actúa como repelente natural y antifúngico biológico suave.",
+                            "Tratamiento con leche diluida (1 parte de leche por 9 de agua reposada) para contrarrestar hongos foliares.",
+                            "Humus de lombriz: nutrición orgánica suave que reactiva los pelos absorbentes sin quemar raíces.",
+                            "Emulsión botánica Suelo Urbano: aplica en dilución para revitalizar el microbioma radicular."
+                        ]).map((punto, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0 mt-0.5">•</span>
+                                <span>{punto}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {activeTreatmentTab === 'correctiva' && (
+                <div className="bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800/60 space-y-2.5 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-amber-600 text-white text-xs">🛡️</span>
+                        <h5 className="font-extrabold text-sm text-amber-950 dark:text-amber-100">
+                            {diagnosis.tratamientoMultiple?.opcion3Correctiva.titulo || "Opción 3: Control Correctivo Específico"}
+                        </h5>
+                    </div>
+                    <p className="text-xs text-amber-900/80 dark:text-amber-300 leading-relaxed font-medium">
+                        Intervención puntual recomendada únicamente si el daño está avanzado o persiste:
+                    </p>
+                    <ul className="space-y-2 text-xs text-stone-800 dark:text-stone-200 font-medium">
+                        {(diagnosis.tratamientoMultiple?.opcion3Correctiva.puntos || [
+                            "Bio-fitosanitarios específicos: jabón potásico o aceite de neem aplicado al atardecer sobre envés y haz.",
+                            "Correctores de pH del suelo: en caso de clorosis férrica o acumulación severa de sales calcáreas.",
+                            "Aislamiento preventivo: separa la planta temporalmente de otras especies para evitar dispersión."
+                        ]).map((punto, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                <span className="text-amber-600 dark:text-amber-400 font-bold shrink-0 mt-0.5">•</span>
+                                <span>{punto}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {activeTreatmentTab === 'pasos' && (
+                <div className="space-y-3 animate-fade-in">
+                    {diagnosis.tratamiento.map((step, index) => 
+                        <div key={index} className="flex gap-2.5 sm:gap-3 items-start bg-stone-50 dark:bg-stone-900/40 p-3 rounded-xl border border-stone-200/80 dark:border-stone-700/80">
+                            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-800 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-700 mt-0.5">
+                                {index + 1}
+                            </div>
+                            <div className="min-w-0">
+                                <strong className="font-bold text-stone-900 dark:text-stone-100 block mb-0.5 text-xs sm:text-sm">{step.paso}</strong>
+                                <p className="text-stone-700 text-xs dark:text-stone-300 whitespace-pre-wrap leading-relaxed font-medium">{step.detalle}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
 
         {/* Plan de recuperación */}
@@ -242,7 +587,7 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis }> = ({ diagnosis }) =
             <h4 className="font-bold text-blue-900 flex items-center gap-2 mb-2 sm:mb-3 text-sm sm:text-base dark:text-blue-300">
                 <LeafIcon className="h-4 w-4 sm:h-5 sm:w-5"/> Plan de Recuperación a Mediano Plazo
             </h4>
-            <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-blue-900 dark:text-blue-200">
+            <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-blue-900 dark:text-blue-200 font-medium">
                 {diagnosis.planRecuperacion.map((plan, idx) => <li key={idx}>{plan}</li>)}
             </ul>
         </div>
@@ -440,6 +785,7 @@ const PlantDoctorSection: React.FC = () => {
     const [hasSkippedProcess, setHasSkippedProcess] = useState(false);
     const [analysisStatus, setAnalysisStatus] = useState<string>('Iniciando diagnóstico...');
     const [retryCooldown, setRetryCooldown] = useState(0);
+    const [environmentAnswers, setEnvironmentAnswers] = useState<EnvironmentAnswers>(DEFAULT_ENVIRONMENT_ANSWERS);
 
     useEffect(() => {
         if (retryCooldown > 0) {
@@ -573,11 +919,86 @@ const PlantDoctorSection: React.FC = () => {
             const unifiedSchema = {
                 type: Type.OBJECT,
                 properties: {
-                    nombrePlanta: { type: Type.STRING, description: "Nombre común y popular de la planta." },
-                    estadoGeneral: { type: Type.STRING, description: "Estado general (ej: 'Atención moderada', 'Crítico', 'Saludable')." },
-                    diagnosticoBreve: { type: Type.STRING, description: "Párrafo conciso que explique el problema principal observado." },
-                    problemasDetectados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de problemas observables (ej: 'Puntos blancos distribuidos', 'Hojas con desgaste')." },
-                    causasPosibles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de causas posibles (ej: 'Ambiente poco ventilado', 'Humedad elevada')." },
+                    nombrePlanta: { type: Type.STRING, description: "Nombre común y botánico de la planta." },
+                    estadoGeneral: { type: Type.STRING, description: "Estado general (ej: 'Atención moderada', 'Crítico', 'Saludable', 'En recuperación')." },
+                    diagnosticoBreve: { type: Type.STRING, description: "Diagnóstico conciso usando lenguaje prudente de probabilidad obligatoria: 'Los síntomas visuales son consistentes con...', 'El daño observado se asemeja a...', o 'Es altamente probable que...'." },
+                    descripcionVisual: {
+                        type: Type.OBJECT,
+                        properties: {
+                            tipoYBasales: { type: Type.STRING, description: "Identificación botánica y descripción física de sus características basales (hábito, porte y tallos)." },
+                            estadoFollaje: { type: Type.STRING, description: "Estado exacto del follaje: tonalidad, manchas, bordes, marchitamiento o turgencia, y presencia o ausencia de plagas en haz y envés." },
+                            analisisCorona: { type: Type.STRING, description: "Análisis crítico de la corona (unión tallo-raíz): reportar minuciosamente si está enterrada de más bajo el sustrato, si la tierra está desnivelada, o si el tallo principal crece desfasado/inclinado." }
+                        },
+                        required: ["tipoYBasales", "estadoFollaje", "analisisCorona"],
+                        description: "Descripción visual objetiva y minuciosa de la planta."
+                    },
+                    diagnosticoDiferencial: {
+                        type: Type.OBJECT,
+                        properties: {
+                            posibilidadA: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Título breve del factor de manejo/ubicación." },
+                                    detalle: { type: Type.STRING, description: "Explicación de factores de ubicación/manejo: riego, asfixia radicular, etiolación o corrientes de aire." },
+                                    tipo: { type: Type.STRING, description: "Etiqueta: 'Manejo y Ubicación'" }
+                                },
+                                required: ["titulo", "detalle", "tipo"]
+                            },
+                            posibilidadB: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Título breve del patógeno fúngico o bacteriano." },
+                                    detalle: { type: Type.STRING, description: "Explicación de patógenos: infecciones por hongos (pudrición de corona/raíz) o bacterias por humedad estancada." },
+                                    tipo: { type: Type.STRING, description: "Etiqueta: 'Patógenos y Hongos'" }
+                                },
+                                required: ["titulo", "detalle", "tipo"]
+                            },
+                            posibilidadC: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Título breve de la plaga o desbalance nutricional." },
+                                    detalle: { type: Type.STRING, description: "Explicación de plagas (trips, araña roja, cochinilla) o clorosis por deficiencias o bloqueo de nutrientes en el suelo." },
+                                    tipo: { type: Type.STRING, description: "Etiqueta: 'Plagas o Nutrición'" }
+                                },
+                                required: ["titulo", "detalle", "tipo"]
+                            }
+                        },
+                        required: ["posibilidadA", "posibilidadB", "posibilidadC"],
+                        description: "Diagnóstico diferencial con mínimo 3 posibilidades evaluadas simultáneamente."
+                    },
+                    tratamientoMultiple: {
+                        type: Type.OBJECT,
+                        properties: {
+                            opcion1Mecanica: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Corrección Mecánica y Postura" },
+                                    puntos: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Viñetas cortas punchy: ajuste de nivel de suelo dejando corona visible hacia arriba, nivelación de sustrato, mezcla porosa (tierra de hoja, corteza de árbol, tepojal y fibra de coco), tutor de soporte." }
+                                },
+                                required: ["titulo", "puntos"]
+                            },
+                            opcion2Ecologica: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Tratamientos Ecológicos y Orgánicos" },
+                                    puntos: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Viñetas cortas punchy: infusión de ajo preventiva, leche diluida para hongos foliares, humus de lombriz, emulsión botánica Suelo Urbano." }
+                                },
+                                required: ["titulo", "puntos"]
+                            },
+                            opcion3Correctiva: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    titulo: { type: Type.STRING, description: "Control Correctivo Específico" },
+                                    puntos: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Viñetas cortas punchy: fitosanitarios específicos (jabón potásico / aceite de neem) o correctores de pH solo en caso de avance severo." }
+                                },
+                                required: ["titulo", "puntos"]
+                            }
+                        },
+                        required: ["opcion1Mecanica", "opcion2Ecologica", "opcion3Correctiva"],
+                        description: "Estrategia de tratamiento múltiple dividida en 3 líneas de acción diferentes."
+                    },
+                    problemasDetectados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de problemas observables en viñetas cortas." },
+                    causasPosibles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de causas posibles en viñetas cortas." },
                     tratamiento: {
                         type: Type.ARRAY,
                         items: {
@@ -590,7 +1011,7 @@ const PlantDoctorSection: React.FC = () => {
                         },
                         description: "Pasos numerados para tratamiento y control de plagas."
                     },
-                    planRecuperacion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Medidas a mediano plazo (ej: 'Mejorar ventilación', 'Revisar humedad')." },
+                    planRecuperacion: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Medidas a mediano plazo." },
                     sustratoRecomendado: { type: Type.STRING, description: "Nombre del sustrato de 'Suelo Urbano Tu Hogar'." },
                     luzYRiego: { type: Type.STRING, description: "Recomendaciones específicas de luz y riego." },
                     requerimientoLuzLux: {
@@ -663,56 +1084,54 @@ const PlantDoctorSection: React.FC = () => {
                     resultadosEsperados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Beneficios de seguir el tratamiento." }
                 },
                 required: [
-                    "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "problemasDetectados", "causasPosibles", 
-                    "tratamiento", "planRecuperacion", "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "prevencion", 
+                    "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "descripcionVisual", "diagnosticoDiferencial",
+                    "tratamientoMultiple", "problemasDetectados", "causasPosibles", "tratamiento", "planRecuperacion", 
+                    "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "prevencion", 
                     "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados"
                 ]
             };
             
-            const prompt = `Actúa como un 'Doctor de Plantas' experto de Suelo Urbano Tu Hogar. Tu tarea es analizar la imagen y proporcionar un diagnóstico completo en un solo paso, siguiendo esta estructura exacta:
-1. Nombre de la planta.
-2. Estado general (ej: Atención moderada).
-3. Diagnóstico breve: el problema principal.
-4. Problemas detectados: lista de observaciones visibles.
-5. Causas posibles: lista de por qué ocurrió.
-6. Tratamiento y control de plagas: Plan de acción paso a paso. (Si hay plagas, indícalo. Si no, cómo solucionar el problema actual).
-7. Plan de recuperación: Acciones de soporte.
-8. Sustrato recomendado: Debe ser 'Suelo Urbano Tu Hogar' o variantes.
-9. Luz y riego (luzYRiego): Ajustes necesarios de riego y humedad para la planta.
-10. Diagnóstico Técnico de LUX (requerimientoLuzLux - OBLIGATORIO):
-    - nivelLuz: Categoría botánica de luz (ej: 'Luz indirecta brillante', 'Sol directo', 'Sombra luminosa').
-    - rangoLux: Rango exacto de intensidad en LUX indispensable para fotosíntesis saludable (ej: '2,500 - 4,500 Lux', '800 - 1,500 Lux', '10,000+ Lux').
-    - horasRecomendadas: Fotoperiodo sugerido en horas al día (ej: '6 a 8 horas diarias').
-    - descripcionUbicacion: Ubicación ideal recomendada en el hogar o jardín para captar los luxes adecuados sin quemarse.
-    - consejoMedicion: Consejo práctico para medir los luxes con un luxómetro o una app gratuita de celular (como Photone o Lux Meter).
-11. Regla de Riego y Sustrato (riegoYSustrato - OBLIGATORIO): Aplica estrictamente la siguiente regla condicional:
+            const envDataString = `
+[INFORMACIÓN DE ENTORNO DECLARADA POR EL USUARIO]:
+- Ubicación: ${environmentAnswers.ubicacion ? environmentAnswers.ubicacion : 'No especificada (deducir del aspecto de la foto)'}
+- Iluminación: ${environmentAnswers.iluminacion ? environmentAnswers.iluminacion : 'No especificada (deducir con prudencia)'}
+- Frecuencia de Riego: ${environmentAnswers.riegoFrecuencia ? environmentAnswers.riegoFrecuencia : 'No especificada'}
+- Maceta y Drenaje: ${environmentAnswers.drenajeAgujeros ? environmentAnswers.drenajeAgujeros : 'No especificado'}, ${environmentAnswers.materialMaceta ? environmentAnswers.materialMaceta : ''}
+`;
 
-[REGLA DE DIAGNÓSTICO CONDICIONAL: RIEGO Y SUSTRATO]
+            const prompt = `Actúa como un 'Doctor de Plantas' médico-botánico clínico de Suelo Urbano Tu Hogar. Tu tarea es analizar la imagen y la información de entorno para entregar un diagnóstico médico vegetal riguroso, empático y estructurado en un solo paso, con lenguaje prudente, sin afirmaciones absolutas y sin tecnicismos excesivos:
 
-PASO 1: IDENTIFICACIÓN DE LA ESPECIE
-Al procesar la foto, identifica la especie de la planta y clasifícala en una de estas dos categorías:
-- TOLERANTE AL AGUA DE LA LLAVE: (Ej. Teléfono/Poto, Sansevieria/Espada de San Jorge, Palo de Brasil, Cuna de Moisés/Espatifilo, Mala Madre/Cinta, Monsteras maduras, Suculentas comunes).
-- SENSIBLE AL AGUA DE LA LLAVE: (Ej. Calateas, Orquídeas, Anturios, Helechos, Plantas Carnívoras, Marantas, Ficus Lyrata).
+${envDataString}
 
-PASO 2: APLICACIÓN FILTRO DE AGUA (PUNTOS 1 AL 3)
-- SI LA PLANTA ES TOLERANTE: Omite por completo los puntos sobre el cloro, la cal y el truco del reposo. No menciones nada sobre evitar el agua de la llave.
-- SI LA PLANTA ES SENSIBLE O TIENE DAÑO VISIBLE POR SALES: Incluye obligatoriamente los Puntos 1, 2 y 3.
+[PASO 1: EVALUACIÓN DE INFORMACIÓN Y ENTORNO]
+Toma en cuenta la ubicación, iluminación, frecuencia de riego y drenaje provistos. Si no fueron completados, deduce las condiciones con cautela clínica.
 
-PASO 3: APLICACIÓN REGLA DE SUSTRATO Y AIRE (PUNTOS 4 Y 5)
-Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya que todas sufren por falta de oxígeno y tierra compacta.
+[PASO 2: DESCRIPCIÓN VISUAL OBJETIVA (OBLIGATORIO - campo descripcionVisual)]
+Inicia describiendo de forma escrita y minuciosa:
+- tipoYBasales: El tipo de planta identificada y sus características basales (hábito, tallos, porte).
+- estadoFollaje: El estado exacto del follaje (color, manchas, marchitamiento o turgencia, y presencia o ausencia de plagas visibles en el haz o envés).
+- analisisCorona: Análisis crítico de la corona (el punto crucial donde los tallos se unen con la raíz). Reporta minuciosamente si está enterrada de más bajo la tierra, si el sustrato está desnivelado, o si el tallo principal está creciendo desfasado, horizontal o inclinado.
 
-[ESTRUCTURA DE LOS 5 PUNTOS (CUANDO APLIQUE TODO)]
-1. EVITAR AGUA DE LA LLAVE DIRECTA (Solo para plantas sensibles).
-2. DAÑO POR CLORO Y CAL (Solo para plantas sensibles): Explica cómo el cloro y sales queman bordes y bloquean raíces.
-3. EL TRUCO DEL REPOSO (Solo para plantas sensibles): Dejar reposar el agua 24-48 horas en recipiente abierto para evaporar cloro o usar agua filtrada/lluvia.
-4. PELIGRO DEL EXCESO DE AGUA (ASFIXIA RADICULAR): Explica que el riego excesivo expulsa el aire de la tierra. Sin oxígeno, las raíces se asfixian, bloqueando la absorción de aire, agua y nutrientes. (Aplica para todas).
-5. RECOMENDACIÓN DE TEPOJAL: Recomienda mezclar el sustrato con tepojal para mejorar la estructura, crear canales de aire y asegurar un buen drenaje. (Aplica para todas).
+[PASO 3: LENGUAJE DE DIAGNÓSTICO PRUDENTE (HEDGING)]
+Al realizar el análisis a distancia, evita usar afirmaciones absolutas. Es OBLIGATORIO estructurar tus teorías en 'diagnosticoBreve' usando frases de probabilidad como:
+"Los síntomas visuales son consistentes con...", "El daño observado se asemeja a...", o "Es altamente probable que la planta presente un cuadro de...".
 
-12. Prevención: Cómo evitar que regrese.
-13. Seguimiento: Qué esperar ver pronto.
-14. Productos recomendados: Lista de productos de la marca Suelo Urbano u orgánicos y por qué usarlos.
-15. Resultados esperados: Mejoras.
-16. Imágenes de referencia: 4 términos de búsqueda para Wikipedia (preferiblemente nombres científicos de la plaga u hongo, y el nombre científico de la planta sana).`;
+[PASO 4: DIAGNÓSTICO DIFERENCIAL - MÍNIMO 3 POSIBILIDADES (campo diagnosticoDiferencial)]
+Para garantizar precisión médica, presenta 3 causas posibles que expliquen el problema de forma simultánea:
+- posibilidadA (Factores de Ubicación/Manejo): Estrés por exceso/falta de riego, asfixia radicular, etiolación (falta de luz) o exposición a corrientes/gases.
+- posibilidadB (Patógenos): Infecciones por hongos (pudrición de corona o raíz) o bacterias causadas por humedad estancada.
+- posibilidadC (Plagas o Nutrición): Ataque de insectos (como trips, araña roja/ácaros o cochinilla) o clorosis por deficiencia o bloqueo de nutrientes en el suelo.
+
+[PASO 5: OPCIONES DE TRATAMIENTO MÚLTIPLE - MÍNIMO 3 LÍNEAS DE ACCIÓN (campo tratamientoMultiple)]
+Ofrece una estrategia de recuperación completa dividida en al menos 3 alternativas diferentes en viñetas punchy (de una sola frase corta):
+- opcion1Mecanica (Corrección Mecánica y Postura): Instrucciones precisas para ajustar el nivel del suelo (dejar la corona visible de la tierra hacia arriba), nivelar el sustrato de manera uniforme, sugerir un trasplante usando una mezcla aireada y porosa (tierra de hoja, corteza de árbol, tepojal/perlita y fibra de coco) o la colocación de un tutor de soporte si el tallo está inclinado.
+- opcion2Ecologica (Tratamientos Ecológicos y Orgánicos): Recomendación de soluciones naturales y preventivas como infusión de ajo, tratamientos con leche diluida para hongos foliares, humus de lombriz y nutrición biológica con la emulsión Suelo Urbano.
+- opcion3Correctiva (Control Correctivo Específico): Sugerir la aplicación de productos fitosanitarios específicos (como jabón potásico) o correctores de pH solo en caso de que el problema esté sumamente avanzado.
+
+[REGLAS INDISPENSABLES DE RESPUESTA]:
+- El agua de riego: Siempre que recomiendes pautas de riego para la recuperación, enfatiza la regla técnica de que el riego correcto debe hacerse con agua libre de cloro (reposada por 24 a 48 horas en recipiente abierto, filtrada o de lluvia).
+- Formato: Entrega siempre la información de forma estructurada, usando viñetas punchy (de una sola frase corta), títulos en negritas legibles y un tono profesional, educado y accesible, completamente libre de enlaces web o tecnicismos incomprensibles.
+- Incluye además: requerimientoLuzLux (categoría botánica, rango exacto numérico en LUX, fotoperiodo en horas y consejo con app móvil), riegoYSustrato (regla condicional de especie sensible/tolerante, asfixia radicular y tepojal), sustratoRecomendado, productosRecomendados, prevencion, seguimiento, imagenesReferencia y resultadosEsperados.`;
             
             let lastError: any = null;
             let diagnosisData: any = null;
@@ -752,6 +1171,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         diagnosisData = JSON.parse(response.text);
                         // Asegurar diagnóstico de Lux botánico normalizado
                         diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
+                        diagnosisData.respuestasEntorno = environmentAnswers;
                         break; // Éxito, salir del bucle
                     }
                 } catch (err: any) {
@@ -768,7 +1188,57 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                 diagnosisData = {
                     nombrePlanta: "Planta en Recuperación Botánica",
                     estadoGeneral: "Atención preventiva y soporte nutricional",
-                    diagnosticoBreve: "Se detectan signos comunes de estrés por desbalance en el riego o aireación del sustrato. Con ajuste de sustrato y nutrición orgánica puede reactivar su turgencia.",
+                    diagnosticoBreve: "Los síntomas visuales son consistentes con un cuadro de estrés por desbalance en el riego y compactación del sustrato. Con ajuste de niveles basales y nutrición orgánica puede reactivar su turgencia.",
+                    descripcionVisual: {
+                        tipoYBasales: "Planta herbácea de interior con ramificación basal y tallos en búsqueda de equilibrio lumínico.",
+                        estadoFollaje: "Bordes con clorosis incipiente y pérdida leve de turgencia. No se aprecian colonias activas masivas de plagas en el envés.",
+                        analisisCorona: "La corona muestra acumulación de tierra compacta cercana al cuello radicular; requiere despejarse para evitar pudrición húmeda."
+                    },
+                    diagnosticoDiferencial: {
+                        posibilidadA: {
+                            titulo: "Estrés Hídrico y Asfixia Radicular",
+                            detalle: "Riego con agua directa de la llave y compactación del sustrato que expulsa el oxígeno de las raíces.",
+                            tipo: "Manejo y Ubicación"
+                        },
+                        posibilidadB: {
+                            titulo: "Riesgo de Pudrición Fúngica de Cuello",
+                            detalle: "Humedad retenida en la corona por enterramiento excesivo de la base del tallo.",
+                            tipo: "Patógenos y Hongos"
+                        },
+                        posibilidadC: {
+                            titulo: "Bloqueo Nutricional por Sales y Cloro",
+                            detalle: "Presencia de sales en el agua de red que impiden la absorción óptima de hierro y nitrógeno.",
+                            tipo: "Plagas o Nutrición"
+                        }
+                    },
+                    tratamientoMultiple: {
+                        opcion1Mecanica: {
+                            titulo: "Opción 1: Corrección Mecánica y Postura",
+                            puntos: [
+                                "Despeje de corona: retira tierra suavemente hasta dejar la unión tallo-raíz al ras del aire.",
+                                "Nivelación del sustrato: redistribuye el suelo para evitar estancamientos en los bordes.",
+                                "Sustrato poroso: mezcla tierra de hoja con 25% de tepojal y fibra de coco para crear microporos de aire.",
+                                "Tutorado: coloca un soporte vertical ligero si el tallo principal presenta inclinación."
+                            ]
+                        },
+                        opcion2Ecologica: {
+                            titulo: "Opción 2: Tratamientos Ecológicos y Orgánicos",
+                            puntos: [
+                                "Infusión preventiva de ajo: aplica asperjada al atardecer como repelente biológico.",
+                                "Tratamiento con leche diluida (1:9 con agua reposada) para fortalecer la resistencia foliar ante esporas.",
+                                "Humus de lombriz: aporta materia orgánica suave que reactiva pelos absorbentes radiculares.",
+                                "Emulsión Suelo Urbano: aplica diluida cada 15 días para reconstruir la microbiología viva."
+                            ]
+                        },
+                        opcion3Correctiva: {
+                            titulo: "Opción 3: Control Correctivo Específico",
+                            puntos: [
+                                "Aplicación de bio-jabón potásico en caso de detección puntual de pulgones o trips.",
+                                "Corrección de pH si el sustrato presenta costras blancas de sales alcalinas.",
+                                "Aislamiento temporal si convive con otras plantas en el mismo espacio."
+                            ]
+                        }
+                    },
                     problemasDetectados: [
                         "Estrés foliar inicial por exceso de sales o cloración en el agua",
                         "Compactación y drenaje deficiente que limita el oxígeno en las raíces",
@@ -780,8 +1250,8 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         "Intensidad lumínica incompatible con el fotoperiodo de la especie"
                     ],
                     tratamiento: [
-                        { paso: "Paso 1 - Aireación y ajuste de riego", detalle: "Deja secar la capa superior de la tierra antes de volver a regar. Afloja la superficie suavemente." },
-                        { paso: "Paso 2 - Reposo del agua de riego", detalle: "Deja reposar el agua 24 a 48 horas en un recipiente abierto para eliminar el cloro." },
+                        { paso: "Paso 1 - Despeje de corona y ajuste de riego", detalle: "Deja secar la capa superior de la tierra antes de volver a regar. Afloja la superficie y despeja la corona." },
+                        { paso: "Paso 2 - Reposo del agua de riego 24h", detalle: "Deja reposar el agua 24 a 48 horas en un recipiente abierto para evaporar el cloro libre." },
                         { paso: "Paso 3 - Aplicación de Suelo Urbano", detalle: "Aplica la emulsión orgánica diluida para nutrir la microbiología y regenerar los pelos absorbentes." }
                     ],
                     planRecuperacion: [
@@ -790,7 +1260,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         "Ubicar en luz indirecta brillante para potenciar la fotosíntesis"
                     ],
                     sustratoRecomendado: "Suelo Urbano Tu Hogar con 25% de tepojal para drenaje y aireación",
-                    luzYRiego: "Luz indirecta brillante; regar únicamente cuando el primer tercio del sustrato esté seco.",
+                    luzYRiego: "Luz indirecta brillante; regar únicamente cuando el primer tercio del sustrato esté seco con agua reposada.",
                     requerimientoLuzLux: {
                         nivelLuz: "Luz indirecta brillante",
                         rangoLux: "2,500 - 4,500 Lux",
@@ -829,13 +1299,15 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         "Hojas más turgentes, firmes y coloridas",
                         "Raíces oxigenadas protegidas contra hongos",
                         "Reactivación natural del crecimiento"
-                    ]
+                    ],
+                    respuestasEntorno: environmentAnswers
                 };
             }
 
             if (diagnosisData) {
                 // Garantizar requerimientoLuzLux
                 diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
+                diagnosisData.respuestasEntorno = environmentAnswers;
                 setDiagnosis(diagnosisData);
                 setAnalysisStatus('¡Diagnóstico completado con éxito!');
                 setTimeout(() => {
@@ -1085,6 +1557,7 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
         setShowProcessViewer(false);
         setHasSkippedProcess(false);
         setAnalysisStatus('Iniciando diagnóstico...');
+        setEnvironmentAnswers(DEFAULT_ENVIRONMENT_ANSWERS);
     };
 
     const renderResults = () => {
@@ -1107,6 +1580,21 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                     {/* Barra animada de progreso */}
                     <div className="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-2 overflow-hidden shadow-inner">
                         <div className="bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 h-full rounded-full animate-pulse w-4/5 transition-all duration-1000"></div>
+                    </div>
+
+                    {/* Cuestionario de Entorno interactivo mientras se genera el diagnóstico */}
+                    <div className="text-left mt-3">
+                        <div className="mb-2 bg-emerald-100/70 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200 text-xs p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-2">
+                            <span className="text-base">✍️</span>
+                            <span className="font-semibold">
+                                Puedes ir contestando o afinando estas preguntas sobre el hábitat de tu planta mientras procesamos tu foto:
+                            </span>
+                        </div>
+                        <EnvironmentQuestionnaire 
+                            answers={environmentAnswers}
+                            onChange={setEnvironmentAnswers}
+                            isAnalyzing={true}
+                        />
                     </div>
 
                     {/* Indicador de proceso botánico */}
@@ -1164,6 +1652,17 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
             return (
                 <div className="w-full">
                     <DiagnosisView diagnosis={diagnosis} />
+
+                    {/* Cuestionario de Entorno para afinar o recalibrar */}
+                    <div className="mt-4 text-left">
+                        <EnvironmentQuestionnaire 
+                            answers={environmentAnswers}
+                            onChange={setEnvironmentAnswers}
+                            isAnalyzing={false}
+                            hasDiagnosis={true}
+                            onReapply={() => runDiagnosis()}
+                        />
+                    </div>
                     
                     <div className="mt-4 sm:mt-6 border-t border-gray-200 pt-4 sm:pt-6 dark:border-gray-600 flex flex-col gap-2.5 sm:gap-3">
                         <button 
@@ -1311,6 +1810,16 @@ Aplica estos dos puntos para TODAS las plantas de interior sin excepción, ya qu
                         ) : (
                             <div className="text-center">
                                 <img src={imagePreview} alt="Vista previa de la planta a diagnosticar" className="max-h-56 sm:max-h-80 w-auto mx-auto rounded-lg shadow-md mb-4 sm:mb-6 object-contain" />
+                                
+                                {/* Cuestionario de Entorno: responder antes o mientras se analiza */}
+                                <div className="mb-4 text-left">
+                                    <EnvironmentQuestionnaire 
+                                        answers={environmentAnswers}
+                                        onChange={setEnvironmentAnswers}
+                                        isAnalyzing={isLoading}
+                                    />
+                                </div>
+
                                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                                     <button onClick={runDiagnosis} disabled={isLoading} className="bg-green-600 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-md disabled:bg-green-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer">
                                         {isLoading ? 'Analizando...' : 'Diagnosticar Planta'}

@@ -39,6 +39,30 @@ export interface GardenPlant {
     productosRecomendados?: { nombre: string; motivo: string }[];
     resultadosEsperados?: string[];
     
+    // Innovaciones diagnósticas botánicas
+    descripcionVisual?: {
+        tipoYBasales: string;
+        estadoFollaje: string;
+        analisisCorona: string;
+    };
+    diagnosticoDiferencial?: {
+        posibilidadA: { titulo: string; detalle: string; tipo: string };
+        posibilidadB: { titulo: string; detalle: string; tipo: string };
+        posibilidadC: { titulo: string; detalle: string; tipo: string };
+    };
+    tratamientoMultiple?: {
+        opcion1Mecanica: { titulo: string; puntos: string[] };
+        opcion2Ecologica: { titulo: string; puntos: string[] };
+        opcion3Correctiva: { titulo: string; puntos: string[] };
+    };
+    respuestasEntorno?: {
+        ubicacion?: string;
+        iluminacion?: string;
+        riegoFrecuencia?: string;
+        drenajeAgujeros?: string;
+        materialMaceta?: string;
+    };
+    
     // Seguimiento y Bitácora Interactiva
     status?: 'critico' | 'en_tratamiento' | 'recuperada';
     completedSteps?: number[];
