@@ -62,6 +62,15 @@ export interface GardenPlant {
         drenajeAgujeros?: string;
         materialMaceta?: string;
     };
+    marcadoresFallaVisual?: {
+        titulo: string;
+        descripcion: string;
+        x: number;
+        y: number;
+        categoria?: string;
+        severidad?: string;
+        accionSugerida?: string;
+    }[];
     
     // Seguimiento y Bitácora Interactiva
     status?: 'critico' | 'en_tratamiento' | 'recuperada';

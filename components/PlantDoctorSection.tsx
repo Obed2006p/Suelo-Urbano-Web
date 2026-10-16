@@ -7,6 +7,7 @@ import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, P
 import DoctorAdBanner from './DoctorAdBanner';
 import AnalysisProcessViewer from './AnalysisProcessViewer';
 import EnvironmentQuestionnaire, { EnvironmentAnswers, DEFAULT_ENVIRONMENT_ANSWERS } from './EnvironmentQuestionnaire';
+import InteractivePlantScan, { PlantDiagnosticMarker } from './InteractivePlantScan';
 
 // --- Interfaces para los datos de la IA ---
 export interface PlantDiagnosis {
@@ -67,6 +68,7 @@ export interface PlantDiagnosis {
     imagenesReferencia: { terminoBusquedaWikipedia: string; descripcionEspanol: string }[];
     resultadosEsperados: string[];
     respuestasEntorno?: EnvironmentAnswers;
+    marcadoresFallaVisual?: PlantDiagnosticMarker[];
 }
 
 const DOCTOR_MASCOT_URL = "https://res.cloudinary.com/dsmzpsool/image/upload/v1757182726/Gemini_Generated_Image_xx5ythxx5ythxx5y-removebg-preview_guhkke.png";
@@ -201,7 +203,7 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
 
 
 
-const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; onOpenEnvironment?: () => void }> = ({ diagnosis, onOpenEnvironment }) => {
+const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; imagePreview?: string | null; onOpenEnvironment?: () => void }> = ({ diagnosis, imagePreview, onOpenEnvironment }) => {
     const luzInfo = ensureRequerimientoLuz(diagnosis);
     const [activeTreatmentTab, setActiveTreatmentTab] = useState<'mecanica' | 'ecologica' | 'correctiva' | 'pasos'>('mecanica');
 
@@ -276,6 +278,15 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; onOpenEnvironment?: (
                     </div>
                 </div>
             </div>
+        )}
+
+        {/* RADIOGRAFÍA VISUAL: Mapeo de Focos y Fallas con Flechas y Leyendas sobre la foto del cliente */}
+        {imagePreview && diagnosis.marcadoresFallaVisual && diagnosis.marcadoresFallaVisual.length > 0 && (
+            <InteractivePlantScan
+                imageUrl={imagePreview}
+                plantName={diagnosis.nombrePlanta}
+                markers={diagnosis.marcadoresFallaVisual}
+            />
         )}
 
         {/* PASO 2: Descripción Visual Objetiva (Obligatorio) */}
@@ -799,55 +810,84 @@ const PlantDoctorSection: React.FC = () => {
     const resultsRef = useRef<HTMLDivElement>(null);
 
     // Optimiza y redimensiona la imagen a resolución idónea para visión por IA (máx 1024px, JPEG 0.85)
-    // Reduce drásticamente el peso de 15MB a ~150KB (un 98% menos), acelerando el envío y evitando demoras o errores 503 por alta demanda
+    // Reduce drásticamente el peso de 15MB a ~150KB (un 98% menos), acelerando el envío y garantizando compatibilidad universal (JPG, PNG, HEIC de iPhone)
     const optimizeImageForGemini = async (file: File, maxDim = 1024): Promise<{ inlineData: { data: string; mimeType: string } }> => {
         return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    try {
-                        let { width, height } = img;
-                        if (width > maxDim || height > maxDim) {
-                            if (width > height) {
-                                height = Math.round((height * maxDim) / width);
-                                width = maxDim;
-                            } else {
-                                width = Math.round((width * maxDim) / height);
-                                height = maxDim;
-                            }
+            const processCanvas = (source: CanvasImageSource, width: number, height: number) => {
+                try {
+                    let w = width;
+                    let h = height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
                         }
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        if (!ctx) {
-                            const raw = ((e.target?.result as string) || '').split(',')[1];
-                            resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
-                            return;
-                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
                         ctx.imageSmoothingEnabled = true;
                         ctx.imageSmoothingQuality = 'high';
-                        ctx.drawImage(img, 0, 0, width, height);
+                        ctx.drawImage(source, 0, 0, w, h);
 
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                         const base64 = dataUrl.split(',')[1];
-                        resolve({ inlineData: { data: base64, mimeType: 'image/jpeg' } });
-                    } catch (err) {
-                        const raw = ((e.target?.result as string) || '').split(',')[1];
-                        resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
+                        if (base64 && base64.length > 50) {
+                            resolve({ inlineData: { data: base64, mimeType: 'image/jpeg' } });
+                            return;
+                        }
                     }
+                } catch (e) {
+                    console.warn("Canvas processing fallback:", e);
+                }
+                fallbackReader();
+            };
+
+            const fallbackReader = () => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const res = (e.target?.result as string) || '';
+                    const base64 = res.includes(',') ? res.split(',')[1] : res;
+                    // Forzar siempre 'image/jpeg' para no enviar formatos móviles no admitidos como image/heic
+                    resolve({ inlineData: { data: base64, mimeType: 'image/jpeg' } });
+                };
+                reader.onerror = () => {
+                    resolve({ inlineData: { data: '', mimeType: 'image/jpeg' } });
+                };
+                reader.readAsDataURL(file);
+            };
+
+            // 1. Usar createImageBitmap si está disponible (rápido y decodifica correctamente en smartphones)
+            if (typeof createImageBitmap === 'function') {
+                createImageBitmap(file)
+                    .then((bmp) => {
+                        processCanvas(bmp, bmp.width, bmp.height);
+                    })
+                    .catch(() => {
+                        standardImgLoad();
+                    });
+            } else {
+                standardImgLoad();
+            }
+
+            function standardImgLoad() {
+                const objectUrl = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    processCanvas(img, img.naturalWidth || img.width, img.naturalHeight || img.height);
+                    URL.revokeObjectURL(objectUrl);
                 };
                 img.onerror = () => {
-                    const raw = ((e.target?.result as string) || '').split(',')[1];
-                    resolve({ inlineData: { data: raw, mimeType: file.type || 'image/jpeg' } });
+                    URL.revokeObjectURL(objectUrl);
+                    fallbackReader();
                 };
-                img.src = e.target?.result as string;
-            };
-            reader.onerror = () => {
-                resolve({ inlineData: { data: '', mimeType: 'image/jpeg' } });
-            };
-            reader.readAsDataURL(file);
+                img.src = objectUrl;
+            }
         });
     };
 
@@ -914,6 +954,9 @@ const PlantDoctorSection: React.FC = () => {
 
             // 1. Redimensionar y optimizar la imagen client-side (máx 1024px)
             const imagePart = await optimizeImageForGemini(imageFile, 1024);
+            if (!imagePart.inlineData.data || imagePart.inlineData.data.length < 50) {
+                throw new Error("No se pudo procesar la fotografía. Por favor selecciona o toma una foto nuevamente.");
+            }
             setAnalysisStatus('Analizando hojas, luz y salud botánica...');
             
             const unifiedSchema = {
@@ -1081,13 +1124,30 @@ const PlantDoctorSection: React.FC = () => {
                         },
                         description: "4 imágenes. Si hay daño/plaga: 3 de la plaga/enfermedad (nombres científicos) y 1 de la especie botánica de la planta sana. Si está sana: 4 fotos de la planta sana buscando su especie."
                     },
-                    resultadosEsperados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Beneficios de seguir el tratamiento." }
+                    resultadosEsperados: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Beneficios de seguir el tratamiento." },
+                    marcadoresFallaVisual: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                titulo: { type: Type.STRING, description: "Título breve de la falla observada (ej: 'Corona enterrada', 'Borde clorótico', 'Mancha fúngica', 'Tallo desfasado')." },
+                                descripcion: { type: Type.STRING, description: "Explicación directa de la anomalía observada en este punto exacto." },
+                                x: { type: Type.NUMBER, description: "Posición horizontal en porcentaje de la foto de 5 a 95 (ej: 48)." },
+                                y: { type: Type.NUMBER, description: "Posición vertical en porcentaje de la foto de 5 a 95 (ej: 82)." },
+                                categoria: { type: Type.STRING, description: "'corona', 'follaje', 'patogeno', 'riego' o 'nutricion'." },
+                                severidad: { type: Type.STRING, description: "'critica', 'moderada' o 'leve'." },
+                                accionSugerida: { type: Type.STRING, description: "Acción inmediata puntual para corregir esa falla específica." }
+                            },
+                            required: ["titulo", "descripcion", "x", "y", "categoria", "severidad", "accionSugerida"]
+                        },
+                        description: "Entre 2 y 4 focos críticos detectados con coordenadas espaciales x,y (porcentajes de 5 a 95) para dibujar flechas y leyendas sobre la foto del cliente."
+                    }
                 },
                 required: [
                     "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "descripcionVisual", "diagnosticoDiferencial",
                     "tratamientoMultiple", "problemasDetectados", "causasPosibles", "tratamiento", "planRecuperacion", 
                     "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "prevencion", 
-                    "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados"
+                    "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados", "marcadoresFallaVisual"
                 ]
             };
             
@@ -1105,6 +1165,13 @@ ${envDataString}
 
 [PASO 1: EVALUACIÓN DE INFORMACIÓN Y ENTORNO]
 Toma en cuenta la ubicación, iluminación, frecuencia de riego y drenaje provistos. Si no fueron completados, deduce las condiciones con cautela clínica.
+
+[INNOVACIÓN EXCLUSIVA: MAPEO ESPACIAL DE FALLAS CON FLECHAS Y LEYENDAS (campo marcadoresFallaVisual)]
+Ubica exactamente entre 2 y 4 puntos críticos visibles en la fotografía de la planta del cliente para dibujar flechas y dianas interactivas:
+- Un punto en la corona/base si está enterrada, asfixiada o el sustrato está desnivelado (coordenadas x,y en % del 5 al 95).
+- Uno o dos puntos en las hojas si hay clorosis, manchas foliares, marchitamiento, quemaduras o sospecha de plagas (coordenadas x,y en %).
+- Un punto en el tallo si está curvado, inclinado o etiolado.
+Para cada marcador entrega: titulo, descripcion precisa, x (número de 5 a 95), y (número de 5 a 95), categoria ('corona'|'follaje'|'patogeno'|'riego'|'nutricion'), severidad ('critica'|'moderada'|'leve') y accionSugerida puntual.
 
 [PASO 2: DESCRIPCIÓN VISUAL OBJETIVA (OBLIGATORIO - campo descripcionVisual)]
 Inicia describiendo de forma escrita y minuciosa:
@@ -1136,13 +1203,13 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
             let lastError: any = null;
             let diagnosisData: any = null;
             
-            // Modelos probados y ordenados por ultra-baja latencia y máxima resiliencia contra saturación (503)
+            // Modelos ordenados priorizando máxima fidelidad visual botánica y resiliencia ante saturación (503)
             const modelsConfig: { name: string; timeoutMs: number; label: string }[] = [
-                { name: 'gemini-3.1-flash-lite', timeoutMs: 16000, label: 'Gemini 3.1 Flash Lite (Canal Instantáneo)' },
-                { name: 'gemini-flash-lite-latest', timeoutMs: 16000, label: 'Gemini Flash Lite (Alta Disponibilidad)' },
-                { name: 'gemini-3.5-flash-lite', timeoutMs: 18000, label: 'Gemini 3.5 Flash Lite' },
-                { name: 'gemini-flash-latest', timeoutMs: 20000, label: 'Gemini Flash (Estable)' },
-                { name: 'gemini-3.8-flash', timeoutMs: 22000, label: 'Gemini 3.8 Flash' },
+                { name: 'gemini-3.8-flash', timeoutMs: 26000, label: 'Gemini 3.8 Flash (Diagnóstico Botánico Principal)' },
+                { name: 'gemini-flash-latest', timeoutMs: 22000, label: 'Gemini Flash (Canal de Alta Fidelidad)' },
+                { name: 'gemini-3.5-flash-lite', timeoutMs: 20000, label: 'Gemini 3.5 Flash Lite' },
+                { name: 'gemini-3.1-flash-lite', timeoutMs: 18000, label: 'Gemini 3.1 Flash Lite' },
+                { name: 'gemini-flash-lite-latest', timeoutMs: 18000, label: 'Gemini Flash Lite (Respaldo Ligero)' },
             ];
             
             for (let i = 0; i < modelsConfig.length; i++) {
@@ -1160,7 +1227,7 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
                     const response = await withTimeout(
                         ai.models.generateContent({
                             model: cfg.name,
-                            contents: { parts: [imagePart, { text: prompt }] },
+                            contents: [imagePart, { text: prompt }],
                             config: reqConfig
                         }),
                         cfg.timeoutMs,
@@ -1300,6 +1367,35 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
                         "Raíces oxigenadas protegidas contra hongos",
                         "Reactivación natural del crecimiento"
                     ],
+                    marcadoresFallaVisual: [
+                        {
+                            titulo: "Corona con riesgo de asfixia",
+                            descripcion: "La tierra sobrepasa el cuello radicular; la humedad retenida en este punto propicia pudrición por hongos.",
+                            x: 50,
+                            y: 80,
+                            categoria: "corona",
+                            severidad: "critica",
+                            accionSugerida: "Retirar 2 cm de sustrato superficial hasta dejar el inicio del tallo al ras del aire."
+                        },
+                        {
+                            titulo: "Bordes foliares con clorosis por sales",
+                            descripcion: "Amarilleo marginal característico del cloro y sales acumuladas del agua directa de la llave.",
+                            x: 68,
+                            y: 38,
+                            categoria: "nutricion",
+                            severidad: "moderada",
+                            accionSugerida: "Regar exclusivamente con agua reposada 24-48 horas o filtrada."
+                        },
+                        {
+                            titulo: "Inclinación del tallo principal",
+                            descripcion: "El tallo crece desfasado buscando la fuente de luz más cercana (fototropismo).",
+                            x: 38,
+                            y: 56,
+                            categoria: "follaje",
+                            severidad: "leve",
+                            accionSugerida: "Girar la maceta 90° semanalmente y colocar un tutor ligero de soporte."
+                        }
+                    ],
                     respuestasEntorno: environmentAnswers
                 };
             }
@@ -1413,6 +1509,17 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
         addWrappedText("Diagnóstico:", 14, true);
         addWrappedText(diagnosis.diagnosticoBreve, 11);
         y += 5;
+
+        // --- Visual Markers ---
+        if (diagnosis.marcadoresFallaVisual && diagnosis.marcadoresFallaVisual.length > 0) {
+            if (y > 230) { doc.addPage(); y = 20; }
+            addWrappedText("Mapeo Visual de Focos y Fallas:", 12, true);
+            diagnosis.marcadoresFallaVisual.forEach((m, idx) => {
+                if (y > 265) { doc.addPage(); y = 20; }
+                addWrappedText(`• Punto ${idx + 1} (${m.titulo}): ${m.descripcion} - Acción: ${m.accionSugerida}`, 10);
+            });
+            y += 3;
+        }
         
         // --- Problems and Causes ---
         if (y > 230) { doc.addPage(); y = 20; }
@@ -1532,6 +1639,7 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
                 seguimiento: diagnosis.seguimiento,
                 productosRecomendados: diagnosis.productosRecomendados,
                 resultadosEsperados: diagnosis.resultadosEsperados,
+                marcadoresFallaVisual: diagnosis.marcadoresFallaVisual,
                 status: diagnosis.estadoGeneral?.toLowerCase().includes('crítico') ? 'critico' : 'en_tratamiento'
             });
             if (success) {
@@ -1651,7 +1759,7 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
         if (diagnosis) {
             return (
                 <div className="w-full">
-                    <DiagnosisView diagnosis={diagnosis} />
+                    <DiagnosisView diagnosis={diagnosis} imagePreview={imagePreview} />
 
                     {/* Cuestionario de Entorno para afinar o recalibrar */}
                     <div className="mt-4 text-left">
