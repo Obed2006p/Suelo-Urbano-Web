@@ -12,6 +12,23 @@ export interface RequerimientoLuzLux {
     consejoMedicion: string;
 }
 
+export interface ProtocoloFoliarYPoda {
+    esSensibleHumedadFoliar: boolean;
+    especieSensibleNombre: string;
+    alertaRiegoFoliar: {
+        prohibicionRociado: string;
+        riesgosFollaje: string[];
+        metodoCorrecto: string;
+    };
+    reglasPoda: {
+        aplicaPoda: boolean;
+        epocaIdeal: string;
+        podaEstructural: string;
+        podaMantenimiento: string;
+        propositoVentilacion: string;
+    };
+}
+
 export interface GardenPlant {
     id: string;
     date: number; // timestamp
@@ -55,6 +72,7 @@ export interface GardenPlant {
         opcion2Ecologica: { titulo: string; puntos: string[] };
         opcion3Correctiva: { titulo: string; puntos: string[] };
     };
+    protocoloFoliarYPoda?: ProtocoloFoliarYPoda;
     respuestasEntorno?: {
         ubicacion?: string;
         iluminacion?: string;
@@ -263,6 +281,37 @@ export const ensureRequerimientoLuz = (data: any): RequerimientoLuzLux => {
         horasRecomendadas: horas,
         descripcionUbicacion: ubicacion,
         consejoMedicion: consejo
+    };
+};
+
+export const ensureProtocoloFoliarYPoda = (data: any): ProtocoloFoliarYPoda => {
+    if (data?.protocoloFoliarYPoda?.alertaRiegoFoliar?.prohibicionRociado && data?.protocoloFoliarYPoda?.reglasPoda?.epocaIdeal) {
+        return data.protocoloFoliarYPoda;
+    }
+
+    const textToScan = `${data?.name || data?.nombrePlanta || ''} ${data?.luzYRiego || ''} ${data?.diagnosticoBreve || data?.diagnosis || ''}`.toLowerCase();
+    const isSensitive = /bugambilia|bougainvillea|suculenta|cactus|crasul|echeveria|aloe|violeta|tomate|jitomate|solanum|begonia|orqu[ií]dea|sansevieria|peperomia/i.test(textToScan);
+    const plantName = data?.name || data?.nombrePlanta || (isSensitive ? 'Especie Sensible a Humedad Foliar' : 'Planta en Cuidado Botánico');
+
+    return {
+        esSensibleHumedadFoliar: isSensitive,
+        especieSensibleNombre: plantName,
+        alertaRiegoFoliar: {
+            prohibicionRociado: "Prohibido estrictamente el rociado, pulverizado o aspersión de agua sobre las hojas, tallos y flores.",
+            riesgosFollaje: [
+                "Pudrición acelerada de hojas, tallos y botones florales por estancamiento de humedad",
+                "Proliferación de esporas fúngicas devastadoras (como mildiu, oidio y botritis)",
+                "Quemaduras foliares y necrosis por efecto lupa bajo los rayos del sol"
+            ],
+            metodoCorrecto: "El riego debe ser EXCLUSIVAMENTE a nivel de suelo/tierra. Usa riego por abajo (inmersión) para macetas pequeñas o regadera de cuello largo directo a la raíz."
+        },
+        reglasPoda: {
+            aplicaPoda: true,
+            epocaIdeal: "Finales del invierno o principios de la primavera (justo cuando las heladas o fríos intensos hayan terminado, antes de la brotación fuerte).",
+            podaEstructural: "Poda estructural o fuerte: Se realiza 1 sola vez al año (a finales de invierno) para dar forma, controlar el tamaño y retirar ramas leñosas viejas.",
+            podaMantenimiento: "Poda de mantenimiento: Se realiza de forma ligera durante primavera y verano únicamente para retirar flores marchitas, hojas secas o ramas enfermas.",
+            propositoVentilacion: "La poda correcta estimula la circulación del aire entre las ramas, evita la acumulación de humedad y fuerza a la planta a generar brotes nuevos con una floración mucho más abundante."
+        }
     };
 };
 

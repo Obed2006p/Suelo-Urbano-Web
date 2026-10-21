@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type, ThinkingLevel } from "@google/genai";
 import { jsPDF } from "jspdf";
-import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux } from '../lib/gardenStorage';
+import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux, ProtocoloFoliarYPoda, ensureProtocoloFoliarYPoda } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
 import DoctorAdBanner from './DoctorAdBanner';
 import AnalysisProcessViewer from './AnalysisProcessViewer';
@@ -16,6 +16,7 @@ export interface PlantDiagnosis {
     diagnosticoBreve: string;
     problemasDetectados: string[];
     causasPosibles: string[];
+    protocoloFoliarYPoda?: ProtocoloFoliarYPoda;
     
     // PASO 2: Descripción Visual Objetiva (Obligatorio)
     descripcionVisual?: {
@@ -201,7 +202,197 @@ const ReferenceImage: React.FC<{ term: string, description: string }> = ({ term,
     );
 };
 
+// --- Componente: Protocolo Antihumedad Foliar y Calendario de Poda (Diseño en Tarjetas Anti-Chorizo) ---
+const ProtocoloFoliarYPodaCard: React.FC<{ protocolo: ProtocoloFoliarYPoda; nombrePlanta: string }> = ({ protocolo, nombrePlanta }) => {
+    const [activeTab, setActiveTab] = useState<'ambos' | 'riego' | 'poda'>('ambos');
 
+    return (
+        <div className="bg-gradient-to-br from-emerald-950/20 via-teal-950/15 to-stone-900/20 border border-teal-500/40 dark:border-teal-500/30 p-3.5 sm:p-5 rounded-2xl shadow-md space-y-3 sm:space-y-4">
+            {/* Encabezado Principal */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-teal-500/20 pb-3">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/30 flex-shrink-0">
+                        <span className="text-xl sm:text-2xl">✂️</span>
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-black text-stone-900 dark:text-white text-sm sm:text-base md:text-lg">
+                                Protocolo Antihumedad Foliar & Calendario de Poda
+                            </h4>
+                            <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200 border border-teal-300 dark:border-teal-700">
+                                Criterio Dr. Plant
+                            </span>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-stone-500 dark:text-stone-400 font-medium">
+                            Prevención de hongos en hojas y estímulo de floración abundante
+                        </p>
+                    </div>
+                </div>
+
+                {/* Badges de Estado */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    {protocolo.esSensibleHumedadFoliar ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30 shadow-sm">
+                            🚫 Prohibido Rociar Hojas
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 shadow-sm">
+                            💧 Riego al Suelo Recomendado
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Selector de pestañas para vista en dispositivos móviles (evita saturación y chorizo) */}
+            <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] sm:text-xs font-bold text-stone-600 dark:text-stone-300">
+                    🌿 Directrices para: <strong className="text-stone-900 dark:text-white">{protocolo.especieSensibleNombre || nombrePlanta}</strong>
+                </span>
+                <div className="flex items-center bg-white/70 dark:bg-stone-800/80 p-0.5 rounded-lg border border-stone-200 dark:border-stone-700 text-xs">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('ambos')}
+                        className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+                            activeTab === 'ambos' ? 'bg-teal-700 text-white shadow-xs' : 'text-stone-600 dark:text-stone-400'
+                        }`}
+                    >
+                        Ver Todo
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('riego')}
+                        className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+                            activeTab === 'riego' ? 'bg-teal-700 text-white shadow-xs' : 'text-stone-600 dark:text-stone-400'
+                        }`}
+                    >
+                        🚿 Riego
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('poda')}
+                        className={`px-2 py-1 rounded font-bold transition-all cursor-pointer ${
+                            activeTab === 'poda' ? 'bg-teal-700 text-white shadow-xs' : 'text-stone-600 dark:text-stone-400'
+                        }`}
+                    >
+                        ✂️ Poda
+                    </button>
+                </div>
+            </div>
+
+            {/* Tarjetas Modulares en Grid (2 Columnas en desktop / 1 en móvil) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                {/* TARJETA 1: MÉTODO DE RIEGO OBLIGATORIO */}
+                {(activeTab === 'ambos' || activeTab === 'riego') && (
+                    <div className="bg-white/90 dark:bg-stone-800/90 rounded-xl p-3.5 sm:p-4 border border-rose-200 dark:border-rose-900/50 shadow-sm flex flex-col justify-between space-y-3">
+                        <div>
+                            {/* Titular */}
+                            <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-rose-100 dark:border-rose-950/60">
+                                <h5 className="font-extrabold text-xs sm:text-sm text-rose-950 dark:text-rose-200 flex items-center gap-1.5">
+                                    <span className="p-1 rounded bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-xs">🚿</span>
+                                    1. Método de Riego Obligatorio
+                                </h5>
+                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                                    Sin Aspersión
+                                </span>
+                            </div>
+
+                            {/* Alerta de prohibición */}
+                            <div className="bg-rose-50/80 dark:bg-rose-950/30 p-2.5 rounded-lg border border-rose-200 dark:border-rose-900/40 mb-2.5">
+                                <p className="text-xs font-bold text-rose-900 dark:text-rose-200 leading-snug">
+                                    {protocolo.alertaRiegoFoliar.prohibicionRociado}
+                                </p>
+                            </div>
+
+                            {/* Peligros en viñetas punchy */}
+                            <div className="space-y-1.5 mb-2.5">
+                                <span className="text-[11px] font-bold text-stone-700 dark:text-stone-300 block">
+                                    ⚠️ Riesgos críticos del agua estancada en hojas:
+                                </span>
+                                <ul className="space-y-1 text-xs text-stone-700 dark:text-stone-300 font-medium">
+                                    {protocolo.alertaRiegoFoliar.riesgosFollaje.map((riesgo, i) => (
+                                        <li key={i} className="flex items-start gap-1.5 bg-stone-50 dark:bg-stone-900/50 p-1.5 rounded-md border border-stone-200/60 dark:border-stone-700/60">
+                                            <span className="text-rose-600 dark:text-rose-400 font-black shrink-0">•</span>
+                                            <span>{riesgo}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Técnica correcta */}
+                        <div className="bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/40">
+                            <span className="text-[11px] font-extrabold text-emerald-900 dark:text-emerald-300 flex items-center gap-1 mb-1">
+                                <span>💧 Técnica Correcta de Aplicación:</span>
+                            </span>
+                            <p className="text-xs text-emerald-900/90 dark:text-emerald-200 font-medium leading-relaxed">
+                                {protocolo.alertaRiegoFoliar.metodoCorrecto}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* TARJETA 2: FRECUENCIA Y ÉPOCA DE PODA */}
+                {(activeTab === 'ambos' || activeTab === 'poda') && (
+                    <div className="bg-white/90 dark:bg-stone-800/90 rounded-xl p-3.5 sm:p-4 border border-indigo-200 dark:border-indigo-900/50 shadow-sm flex flex-col justify-between space-y-3">
+                        <div>
+                            {/* Titular */}
+                            <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-indigo-100 dark:border-indigo-950/60">
+                                <h5 className="font-extrabold text-xs sm:text-sm text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5">
+                                    <span className="p-1 rounded bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs">✂️</span>
+                                    2. Frecuencia y Época de Poda
+                                </h5>
+                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
+                                    Calendario
+                                </span>
+                            </div>
+
+                            {/* Época Ideal */}
+                            <div className="bg-amber-50/80 dark:bg-amber-950/30 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900/40 mb-2.5">
+                                <span className="text-[11px] font-bold text-amber-900 dark:text-amber-300 block mb-0.5">
+                                    📅 Mejor época para podar:
+                                </span>
+                                <p className="text-xs text-amber-950 dark:text-amber-200 font-semibold leading-snug">
+                                    {protocolo.reglasPoda.epocaIdeal}
+                                </p>
+                            </div>
+
+                            {/* Tipos de Poda en Viñetas Separadas */}
+                            <div className="space-y-2 mb-2.5">
+                                <div className="bg-stone-50 dark:bg-stone-900/50 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">
+                                    <span className="text-[11px] font-extrabold text-indigo-900 dark:text-indigo-300 block mb-0.5">
+                                        🏗️ Poda Estructural / Fuerte (1 sola vez al año):
+                                    </span>
+                                    <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+                                        {protocolo.reglasPoda.podaEstructural}
+                                    </p>
+                                </div>
+
+                                <div className="bg-stone-50 dark:bg-stone-900/50 p-2 rounded-lg border border-stone-200/60 dark:border-stone-700/60">
+                                    <span className="text-[11px] font-extrabold text-indigo-900 dark:text-indigo-300 block mb-0.5">
+                                        🌿 Poda de Mantenimiento (Primavera / Verano):
+                                    </span>
+                                    <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+                                        {protocolo.reglasPoda.podaMantenimiento}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Propósito botánico */}
+                        <div className="bg-teal-50 dark:bg-teal-950/30 p-2.5 rounded-lg border border-teal-200 dark:border-teal-800/40">
+                            <span className="text-[11px] font-extrabold text-teal-900 dark:text-teal-300 flex items-center gap-1 mb-1">
+                                <span>🌬️ Propósito de Ventilación y Floración:</span>
+                            </span>
+                            <p className="text-xs text-teal-900/90 dark:text-teal-200 font-medium leading-relaxed">
+                                {protocolo.reglasPoda.propositoVentilacion}
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; imagePreview?: string | null; onOpenEnvironment?: () => void }> = ({ diagnosis, imagePreview, onOpenEnvironment }) => {
     const luzInfo = ensureRequerimientoLuz(diagnosis);
@@ -737,6 +928,9 @@ const DiagnosisView: React.FC<{ diagnosis: PlantDiagnosis; imagePreview?: string
             </div>
         )}
 
+        {/* NUEVA FUNCIÓN BOTÁNICA: Protocolo Antihumedad Foliar y Calendario de Poda (Diseño en Tarjetas Anti-Chorizo) */}
+        <ProtocoloFoliarYPodaCard protocolo={ensureProtocoloFoliarYPoda(diagnosis)} nombrePlanta={diagnosis.nombrePlanta} />
+
         {/* Sustrato y Productos */}
         <div className="bg-white border text-center border-gray-200 p-3.5 sm:p-5 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
             <h4 className="font-bold text-gray-900 mb-1.5 sm:mb-2 dark:text-white uppercase tracking-widest text-xs sm:text-sm text-center border-b pb-2 dark:border-gray-700">Recomendación Oficial Suelo Urbano</h4>
@@ -1141,12 +1335,44 @@ const PlantDoctorSection: React.FC = () => {
                             required: ["titulo", "descripcion", "x", "y", "categoria", "severidad", "accionSugerida"]
                         },
                         description: "Entre 2 y 4 focos críticos detectados con coordenadas espaciales x,y (porcentajes de 5 a 95) para dibujar flechas y leyendas sobre la foto del cliente."
+                    },
+                    protocoloFoliarYPoda: {
+                        type: Type.OBJECT,
+                        properties: {
+                            esSensibleHumedadFoliar: { type: Type.BOOLEAN, description: "True si es sensible a la humedad foliar (como Bugambilias, Suculentas, Cactus, Violetas Africanas y Tomates)." },
+                            especieSensibleNombre: { type: Type.STRING, description: "Nombre de la planta y clasificación de sensibilidad foliar." },
+                            alertaRiegoFoliar: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    prohibicionRociado: { type: Type.STRING, description: "Prohibición estricta de rociar, pulverizar o aspersar sobre hojas, tallos y flores." },
+                                    riesgosFollaje: {
+                                        type: Type.ARRAY,
+                                        items: { type: Type.STRING },
+                                        description: "Riesgos del agua estancada: pudrición, hongos (como mildiu u oidio) y quemaduras por efecto lupa bajo el sol."
+                                    },
+                                    metodoCorrecto: { type: Type.STRING, description: "Riego EXCLUSIVAMENTE a nivel de suelo/tierra: inmersión por abajo para macetas pequeñas o regadera de cuello largo directo a la raíz." }
+                                },
+                                required: ["prohibicionRociado", "riesgosFollaje", "metodoCorrecto"]
+                            },
+                            reglasPoda: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    aplicaPoda: { type: Type.BOOLEAN, description: "Si aplica poda para la especie." },
+                                    epocaIdeal: { type: Type.STRING, description: "Finales del invierno o principios de la primavera (tras heladas, antes de la brotación fuerte)." },
+                                    podaEstructural: { type: Type.STRING, description: "Poda estructural/fuerte: 1 sola vez al año para dar forma, controlar tamaño y retirar ramas viejas." },
+                                    podaMantenimiento: { type: Type.STRING, description: "Poda de mantenimiento ligera durante primavera/verano únicamente para quitar flores marchitas, hojas secas o ramas enfermas." },
+                                    propositoVentilacion: { type: Type.STRING, description: "Estimula circulación de aire entre ramas, evita acumulación de humedad y fuerza floración abundante." }
+                                },
+                                required: ["aplicaPoda", "epocaIdeal", "podaEstructural", "podaMantenimiento", "propositoVentilacion"]
+                            }
+                        },
+                        required: ["esSensibleHumedadFoliar", "especieSensibleNombre", "alertaRiegoFoliar", "reglasPoda"]
                     }
                 },
                 required: [
                     "nombrePlanta", "estadoGeneral", "diagnosticoBreve", "descripcionVisual", "diagnosticoDiferencial",
                     "tratamientoMultiple", "problemasDetectados", "causasPosibles", "tratamiento", "planRecuperacion", 
-                    "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "prevencion", 
+                    "sustratoRecomendado", "luzYRiego", "requerimientoLuzLux", "riegoYSustrato", "protocoloFoliarYPoda", "prevencion", 
                     "seguimiento", "productosRecomendados", "imagenesReferencia", "resultadosEsperados", "marcadoresFallaVisual"
                 ]
             };
@@ -1195,10 +1421,25 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
 - opcion2Ecologica (Tratamientos Ecológicos y Orgánicos): Recomendación de soluciones naturales y preventivas como infusión de ajo, tratamientos con leche diluida para hongos foliares, humus de lombriz y nutrición biológica con la emulsión Suelo Urbano.
 - opcion3Correctiva (Control Correctivo Específico): Sugerir la aplicación de productos fitosanitarios específicos (como jabón potásico) o correctores de pH solo en caso de que el problema esté sumamente avanzado.
 
+[PASO 6: PROTOCOLO OBLIGATORIO DE HUMEDAD FOLIAR Y CALENDARIO DE PODA (campo protocoloFoliarYPoda)]
+Aplica estrictamente los criterios del rol [Dr. Plant] para plantas sensibles a la humedad foliar (como Bugambilias, Suculentas, Cactus, Violetas Africanas y hortalizas como el Tomate) y para la salud foliar general:
+1. MÉTODO DE RIEGO OBLIGATORIO:
+- Prohíbe explícitamente el rociado, pulverizado o aspersión de agua sobre las hojas, tallos y flores.
+- Explica al usuario que el agua estancada en el follaje causa pudrición, hongos (como mildiu u oidio) y quemaduras por efecto lupa bajo el sol.
+- Indica que el riego debe ser EXCLUSIVAMENTE a nivel de suelo/tierra. Recomienda el riego por abajo (inmersión) para macetas pequeñas o el uso de regaderas de cuello largo directo a la raíz.
+
+2. FRECUENCIA Y ÉPOCA DE PODA:
+Cuando se evalúe o consulte por la poda de estas plantas (especialmente arbustivas y tropicales de clima seco como la Bugambilia):
+- Mejor época para podar: Finales del invierno o principios de la primavera. Debe hacerse justo cuando las heladas o los fríos intensos hayan terminado, pero antes de que la planta comience su brotación fuerte de primavera.
+- Frecuencia de poda:
+  * Poda estructural/fuerte: Se realiza 1 sola vez al año (en la época antes mencionada) para dar forma, controlar el tamaño y retirar ramas viejas.
+  * Poda de mantenimiento: Se realiza de forma ligera durante la temporada de crecimiento (primavera/verano) únicamente para quitar flores marchitas, hojas secas o ramas enfermas.
+- Propósito: Explica que la poda correcta estimula la circulación del aire entre las ramas, evita la acumulación de humedad y fuerza a la planta a generar brotes nuevos con una floración mucho más abundante.
+
 [REGLAS INDISPENSABLES DE RESPUESTA]:
 - El agua de riego: Siempre que recomiendes pautas de riego para la recuperación, enfatiza la regla técnica de que el riego correcto debe hacerse con agua libre de cloro (reposada por 24 a 48 horas en recipiente abierto, filtrada o de lluvia).
 - Formato: Entrega siempre la información de forma estructurada, usando viñetas punchy (de una sola frase corta), títulos en negritas legibles y un tono profesional, educado y accesible, completamente libre de enlaces web o tecnicismos incomprensibles.
-- Incluye además: requerimientoLuzLux (categoría botánica, rango exacto numérico en LUX, fotoperiodo en horas y consejo con app móvil), riegoYSustrato (regla condicional de especie sensible/tolerante, asfixia radicular y tepojal), sustratoRecomendado, productosRecomendados, prevencion, seguimiento, imagenesReferencia y resultadosEsperados.`;
+- Incluye además: protocoloFoliarYPoda (alerta de rociado, riesgos foliares, técnica de suelo/inmersión, época de poda, poda estructural, poda de mantenimiento y propósito de ventilación), requerimientoLuzLux (categoría botánica, rango exacto numérico en LUX, fotoperiodo en horas y consejo con app móvil), riegoYSustrato (regla condicional de especie sensible/tolerante, asfixia radicular y tepojal), sustratoRecomendado, productosRecomendados, prevencion, seguimiento, imagenesReferencia y resultadosEsperados.`;
             
             let lastError: any = null;
             let diagnosisData: any = null;
@@ -1236,8 +1477,9 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
 
                     if (response.text) {
                         diagnosisData = JSON.parse(response.text);
-                        // Asegurar diagnóstico de Lux botánico normalizado
+                        // Asegurar diagnóstico de Lux botánico normalizado y protocolo foliar y poda
                         diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
+                        diagnosisData.protocoloFoliarYPoda = ensureProtocoloFoliarYPoda(diagnosisData);
                         diagnosisData.respuestasEntorno = environmentAnswers;
                         break; // Éxito, salir del bucle
                     }
@@ -1401,8 +1643,9 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
             }
 
             if (diagnosisData) {
-                // Garantizar requerimientoLuzLux
+                // Garantizar requerimientoLuzLux y protocolo de humedad foliar y poda
                 diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
+                diagnosisData.protocoloFoliarYPoda = ensureProtocoloFoliarYPoda(diagnosisData);
                 diagnosisData.respuestasEntorno = environmentAnswers;
                 setDiagnosis(diagnosisData);
                 setAnalysisStatus('¡Diagnóstico completado con éxito!');
@@ -1577,6 +1820,19 @@ Ofrece una estrategia de recuperación completa dividida en al menos 3 alternati
             });
             y += 4;
         }
+
+        // --- Protocolo de Riego Foliar y Calendario de Poda ---
+        const pdfFoliarPoda = ensureProtocoloFoliarYPoda(diagnosis);
+        if (y > 220) { doc.addPage(); y = 20; }
+        addWrappedText("Protocolo Antihumedad Foliar y Calendario de Poda:", 14, true);
+        addWrappedText(`• Riego Foliar: ${pdfFoliarPoda.alertaRiegoFoliar.prohibicionRociado}`, 10);
+        addWrappedText(`• Peligros en Hojas: ${pdfFoliarPoda.alertaRiegoFoliar.riesgosFollaje.join(' | ')}`, 9);
+        addWrappedText(`• Técnica Correcta: ${pdfFoliarPoda.alertaRiegoFoliar.metodoCorrecto}`, 10);
+        addWrappedText(`• Época de Poda: ${pdfFoliarPoda.reglasPoda.epocaIdeal}`, 10);
+        addWrappedText(`• Poda Estructural: ${pdfFoliarPoda.reglasPoda.podaEstructural}`, 10);
+        addWrappedText(`• Poda Mantenimiento: ${pdfFoliarPoda.reglasPoda.podaMantenimiento}`, 10);
+        addWrappedText(`• Propósito Botánico: ${pdfFoliarPoda.reglasPoda.propositoVentilacion}`, 9);
+        y += 4;
 
         // --- Prevent and Follow up ---
         if (y > 230) { doc.addPage(); y = 20; }

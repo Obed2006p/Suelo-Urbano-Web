@@ -11,7 +11,8 @@ import {
     recordWatering,
     GardenPlant, 
     resizeImageToBase64,
-    ensureRequerimientoLuz
+    ensureRequerimientoLuz,
+    ensureProtocoloFoliarYPoda
 } from '../lib/gardenStorage';
 import { 
     HeartIcon, 
@@ -482,6 +483,69 @@ const PlantRecordModal: React.FC<PlantModalProps> = ({ plant, onClose, onUpdate 
                                     </div>
                                 </div>
                             )}
+
+                            {/* Protocolo Antihumedad Foliar y Poda en Mi Jardín */}
+                            {(() => {
+                                const foliarPoda = ensureProtocoloFoliarYPoda(plant);
+                                return (
+                                    <div className="bg-gradient-to-br from-teal-950/20 via-emerald-950/15 to-stone-900/20 p-4 sm:p-5 rounded-2xl border border-teal-500/30 space-y-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-500/20 pb-2.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="p-1.5 rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 text-sm">✂️</span>
+                                                <div>
+                                                    <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white">
+                                                        Protocolo de Riego Foliar & Calendario de Poda
+                                                    </h4>
+                                                    <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                                                        Criterios estrictos para prevenir hongos foliares y estimular brotes
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30">
+                                                🚫 Prohibido Rociar Hojas
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+                                            <div className="bg-white/80 dark:bg-stone-800 p-3 rounded-xl border border-rose-200 dark:border-rose-900/40 space-y-2">
+                                                <strong className="text-xs font-bold text-rose-900 dark:text-rose-300 block">
+                                                    🚿 Método de Riego Obligatorio:
+                                                </strong>
+                                                <p className="text-xs text-rose-950 dark:text-rose-200 font-semibold">
+                                                    {foliarPoda.alertaRiegoFoliar.prohibicionRociado}
+                                                </p>
+                                                <ul className="space-y-1 text-[11px] text-stone-600 dark:text-stone-300">
+                                                    {foliarPoda.alertaRiegoFoliar.riesgosFollaje.map((r, i) => (
+                                                        <li key={i} className="flex items-start gap-1">
+                                                            <span className="text-rose-500 font-bold">•</span>
+                                                            <span>{r}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <p className="text-[11px] bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-lg text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-medium">
+                                                    💧 {foliarPoda.alertaRiegoFoliar.metodoCorrecto}
+                                                </p>
+                                            </div>
+
+                                            <div className="bg-white/80 dark:bg-stone-800 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/40 space-y-2">
+                                                <strong className="text-xs font-bold text-indigo-900 dark:text-indigo-300 block">
+                                                    ✂️ Calendario de Poda:
+                                                </strong>
+                                                <p className="text-xs text-amber-900 dark:text-amber-300 font-semibold bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg border border-amber-200 dark:border-amber-800/40">
+                                                    📅 {foliarPoda.reglasPoda.epocaIdeal}
+                                                </p>
+                                                <div className="space-y-1 text-[11px] text-stone-700 dark:text-stone-300">
+                                                    <p><strong>🏗️ Estructural (1x año):</strong> {foliarPoda.reglasPoda.podaEstructural}</p>
+                                                    <p><strong>🌿 Mantenimiento:</strong> {foliarPoda.reglasPoda.podaMantenimiento}</p>
+                                                </div>
+                                                <p className="text-[11px] text-teal-800 dark:text-teal-300 font-medium bg-teal-50 dark:bg-teal-950/30 p-1.5 rounded-lg border border-teal-200 dark:border-teal-800/30">
+                                                    🌬️ {foliarPoda.reglasPoda.propositoVentilacion}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                         </div>
                     )}
