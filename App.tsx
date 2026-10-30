@@ -301,12 +301,18 @@ const App: React.FC = () => {
   
   return (
       <div className="relative font-sans text-gray-800 dark:text-gray-100">
-        {/* Main Content Wrapper - gets blurred */}
-        <div className={`transition-all duration-500 ${appState === 'video' ? 'blur-md brightness-75 pointer-events-none' : ''}`}>
+        {/* Main Content Wrapper - video blur and cinematic entrance */}
+        <div className={`transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+          appState === 'video' ? 'blur-md brightness-75 pointer-events-none' : ''
+        }`}>
             <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 -z-20" />
             
-            {/* Content that is part of the page and should be blurred */}
-            <div className={appState === 'splash' ? 'opacity-0' : (appState === 'home' ? 'animate-fade-in-main' : 'opacity-100')}>
+            {/* Content with cinematic entrance from splash */}
+            <div className={`transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+              appState === 'splash' 
+                ? 'scale-95 blur-lg opacity-0' 
+                : 'scale-100 blur-0 opacity-100 animate-fade-in-main'
+            }`}>
                 {appState === 'home' && !isHomePage && <FallingLeaves position="fixed" />}
                 {appState === 'home' && isHomePage && <FloatingDonationButton />}
                 

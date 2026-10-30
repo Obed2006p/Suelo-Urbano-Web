@@ -9,7 +9,7 @@ interface CompositionPageProps {
 
 const CompositionPage: React.FC<CompositionPageProps> = ({ header }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-transparent dark:bg-transparent">
+    <div className="min-h-screen flex flex-col bg-slate-900 dark:bg-slate-950 text-white">
       {header}
       <main className="flex-grow">
         <ElementsSection />
