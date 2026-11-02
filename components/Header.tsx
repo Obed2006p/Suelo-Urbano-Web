@@ -136,9 +136,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
       
       {/* 
         Menú Flotante Compacto (Popover / Dropdown)
-        - NO tiene fondo oscuro (backdrop) que tape o desenfoque la página
-        - NO es un bloque largo que se extienda hasta el fondo de la pantalla al hacer scroll
-        - Cierra limpiamente al hacer clic afuera, presionar Escape o seleccionar una opción
+        - Fondo 100% sólido y elegante (sin transparencia que dificulte la lectura)
+        - Diseño botánico premium con bordes esmeralda y detalles en oro/verde
+        - Scrollbar ultrafino estilizado
+        - Cierre instantáneo al hacer clic fuera o presionar Escape
       */}
       {isMenuOpen && (
         <div 
@@ -146,32 +147,49 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
           role="dialog"
           aria-modal="true"
           aria-label="Menú principal de navegación"
-          className="fixed top-16 left-3 sm:left-6 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-5rem)] bg-stone-900/98 border border-emerald-500/40 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col z-[100] overflow-hidden animate-fade-in-down"
+          className="fixed top-16 left-3 sm:left-6 w-[21rem] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-5rem)] bg-[#0a120e] border-2 border-emerald-500/60 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_25px_rgba(16,185,129,0.25)] flex flex-col z-[100] overflow-hidden animate-fade-in-down"
+          style={{ backgroundColor: '#09110d' }}
         >
-          {/* Header del menú flotante */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-800 bg-stone-950/70">
-            <div className="flex items-center gap-2.5">
-              <img 
-                src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" 
-                alt="Logo" 
-                className="h-8 w-auto" 
-              />
+          {/* Luz ambiental sutil decorativa superior */}
+          <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-emerald-600/15 via-emerald-800/5 to-transparent pointer-events-none" />
+
+          {/* Header del menú flotante - Fondo sólido con efecto premium */}
+          <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-emerald-900/60 bg-[#060c09]">
+            <div className="flex items-center gap-3">
+              <div className="relative p-1 bg-emerald-950/80 rounded-xl border border-emerald-500/30 shadow-inner">
+                <img 
+                  src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" 
+                  alt="Logo" 
+                  className="h-8 w-auto object-contain" 
+                />
+              </div>
               <div>
-                <span className="block text-sm font-bold text-white leading-tight">Suelo Urbano</span>
-                <span className="block text-[10px] font-semibold text-yellow-300 tracking-wide">Tu Hogar</span>
+                <span className="block text-sm font-extrabold text-white tracking-wide leading-tight flex items-center gap-1.5">
+                  Suelo Urbano
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                </span>
+                <span className="block text-[11px] font-bold text-yellow-300 tracking-wider uppercase">Tu Hogar Botánico</span>
               </div>
             </div>
             <button 
               onClick={() => setIsMenuOpen(false)} 
-              className="text-stone-400 hover:text-white p-1.5 rounded-lg hover:bg-stone-800 transition-colors active:scale-95" 
+              className="text-stone-400 hover:text-white p-1.5 rounded-xl bg-stone-900/80 hover:bg-emerald-900/50 border border-stone-800 hover:border-emerald-700/50 transition-all active:scale-90" 
               aria-label="Cerrar menú"
             >
               <XIcon className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Lista de enlaces navegables */}
-          <nav className="flex-1 overflow-y-auto p-2 space-y-1 max-h-[55vh]">
+          {/* Lista de enlaces navegables con fondo sólido y scrollbar ultrafino */}
+          <nav 
+            className="relative flex-1 overflow-y-auto p-2.5 space-y-1.5 bg-[#09110d] max-h-[58vh] 
+              [scrollbar-width:thin] [scrollbar-color:#059669_#09110d] 
+              [&::-webkit-scrollbar]:w-1.5 
+              [&::-webkit-scrollbar-track]:bg-[#09110d] 
+              [&::-webkit-scrollbar-thumb]:bg-emerald-600/70 
+              [&::-webkit-scrollbar-thumb]:rounded-full 
+              hover:[&::-webkit-scrollbar-thumb]:bg-emerald-500"
+          >
             {pageNavLinks.map((link) => {
               const PREMIUM_HREFS = [
                 '#/mi-jardin', 
@@ -189,17 +207,19 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
                   id={link.id}
                   href={link.href}
                   onClick={(e) => handleLinkClick(e, link.href)}
-                  className="flex items-center gap-3 text-stone-200 hover:bg-emerald-950/50 hover:text-emerald-300 active:bg-emerald-900/60 transition-all duration-150 font-medium text-sm w-full text-left py-2 px-3 rounded-xl border border-transparent hover:border-emerald-800/40 group"
+                  className="flex items-center gap-3 text-stone-100 bg-[#0e1a14] hover:bg-[#152a20] active:bg-emerald-950/80 transition-all duration-150 font-semibold text-sm w-full text-left py-2.5 px-3 rounded-xl border border-emerald-900/40 hover:border-emerald-500/50 group shadow-sm hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                 >
-                  <div className="p-1.5 bg-stone-800/80 group-hover:bg-emerald-950 rounded-lg transition-colors">
+                  <div className="p-1.5 bg-[#08100c] border border-emerald-900/60 group-hover:border-emerald-500/50 group-hover:bg-emerald-950 rounded-lg text-emerald-400 group-hover:text-emerald-300 transition-all">
                     {link.icon}
                   </div>
-                  <span className="flex-1 truncate">{link.label}</span>
+                  <span className="flex-1 truncate tracking-wide text-white group-hover:text-emerald-200">
+                    {link.label}
+                  </span>
                   {isPremiumItem && (
-                    <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex items-center gap-1 border ${
+                    <span className={`text-[9px] font-black tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1 border shadow-sm ${
                       isPremiumUnlocked 
-                        ? 'bg-emerald-950 text-emerald-400 border-green-800/50 animate-pulse' 
-                        : 'bg-stone-800/90 text-stone-400 border-stone-700'
+                        ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40 animate-pulse' 
+                        : 'bg-stone-900 text-stone-400 border-stone-800'
                     }`}>
                       {isPremiumUnlocked ? '✨ CLUB' : '🔒 CLUB'}
                     </span>
@@ -209,15 +229,21 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
             })}
           </nav>
 
-          {/* Panel Club Premium inferior */}
-          <div className="p-3 border-t border-stone-800/80 bg-stone-950/50">
+          {/* Panel Club Premium inferior - Fondo 100% sólido con contraste destacado */}
+          <div className="relative p-3 border-t border-emerald-900/60 bg-[#060c09]">
             {isPremiumUnlocked ? (
-              <div className="p-2.5 bg-gradient-to-r from-emerald-950 to-green-950 border border-emerald-800/50 rounded-xl flex items-center justify-between text-xs font-bold shadow-sm">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <span className="text-sm">🌟</span>
+              <div className="p-2.5 bg-gradient-to-r from-[#0d2218] to-[#08160f] border border-emerald-600/40 rounded-xl flex items-center justify-between text-xs font-bold shadow-md">
+                <div className="flex items-center gap-2.5 text-emerald-400">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-900/60 border border-emerald-500/30 flex items-center justify-center text-sm shadow-sm">
+                    🌟
+                  </div>
                   <div>
-                    <span className="block text-white text-[9px] uppercase font-extrabold tracking-wider leading-none mb-0.5">Acceso Completo</span>
-                    <span className="block text-[10px] text-emerald-300 font-medium">Club Premium Activo</span>
+                    <span className="block text-white text-[9px] uppercase font-black tracking-wider leading-none mb-0.5">
+                      Acceso Completo
+                    </span>
+                    <span className="block text-[11px] text-emerald-300 font-bold">
+                      Club Premium Activo
+                    </span>
                   </div>
                 </div>
                 <button 
@@ -226,7 +252,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
                       onLockStatusChange();
                     }
                   }}
-                  className="bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-red-400 border border-stone-700 font-bold py-1 px-2.5 rounded-lg text-[9px] uppercase transition-colors"
+                  className="bg-stone-900 hover:bg-red-950/80 text-stone-300 hover:text-red-300 border border-stone-700 hover:border-red-600/50 font-bold py-1 px-3 rounded-lg text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95" 
                   title="Salir de la sesión premium"
                 >
                   Salir
@@ -236,15 +262,15 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
               <a 
                 href="#/orquideas"
                 onClick={(e) => handleLinkClick(e, '#/orquideas')}
-                className="w-full bg-gradient-to-r from-green-700 to-emerald-600 hover:from-green-600 hover:to-emerald-500 text-center text-white font-bold py-2 px-3 rounded-xl text-xs tracking-wide transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5"
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-600 text-center text-white font-extrabold py-2.5 px-3 rounded-xl text-xs tracking-wide transition-all shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:shadow-[0_4px_20px_rgba(16,185,129,0.5)] active:scale-95 flex items-center justify-center gap-2"
               >
-                <LockIcon className="h-3.5 w-3.5 text-green-300" />
+                <LockIcon className="h-4 w-4 text-emerald-200" />
                 <span>Activar Club Premium</span>
               </a>
             )}
 
-            <p className="mt-2 text-center text-[10px] text-stone-500 flex items-center justify-center gap-1">
-              Hecho con <HeartIcon className="w-2.5 h-2.5 text-red-500 inline" /> para tu jardín
+            <p className="mt-2 text-center text-[10px] text-stone-400 font-medium flex items-center justify-center gap-1">
+              Hecho con <HeartIcon className="w-2.5 h-2.5 text-red-500 inline fill-red-500" /> para tu jardín
             </p>
           </div>
         </div>
