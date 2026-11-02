@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { PROCESS_SPOTS, ProcessSpot } from './ProcessSpots';
 
 interface AnalysisProcessViewerProps {
@@ -22,20 +21,10 @@ export const AnalysisProcessViewer: React.FC<AnalysisProcessViewerProps> = ({
     const [currentSpotIndex, setCurrentSpotIndex] = useState(0);
     const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [showEmergentModal, setShowEmergentModal] = useState(false);
-    const [hasDismissedEmergent, setHasDismissedEmergent] = useState(false);
-
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
     const prevIndexRef = useRef(currentSpotIndex);
 
     const currentSpot = PROCESS_SPOTS[currentSpotIndex];
-
-    // Mostrar modal emergente cuando el diagnóstico se vuelve listo
-    useEffect(() => {
-        if (isDiagnosisReady && !hasDismissedEmergent) {
-            setShowEmergentModal(true);
-        }
-    }, [isDiagnosisReady, hasDismissedEmergent]);
 
     // Manejo de reproducción al cambiar de spot
     useEffect(() => {
@@ -98,14 +87,7 @@ export const AnalysisProcessViewer: React.FC<AnalysisProcessViewerProps> = ({
     };
 
     const handleSkip = () => {
-        setShowEmergentModal(false);
-        setHasDismissedEmergent(true);
         onSkipToDiagnosis();
-    };
-
-    const handleKeepWatching = () => {
-        setShowEmergentModal(false);
-        setHasDismissedEmergent(true);
     };
 
     return (
@@ -263,77 +245,6 @@ export const AnalysisProcessViewer: React.FC<AnalysisProcessViewerProps> = ({
                 </div>
             </div>
 
-            {/* ============================================================
-                PANTALLA / MODAL EMERGENTE AL ESTAR LISTO EL DIAGNÓSTICO
-                El usuario decide: Ver su diagnóstico (Skip) o seguir viendo
-               ============================================================ */}
-            <AnimatePresence>
-                {showEmergentModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="bg-stone-900 border-2 border-emerald-500 rounded-3xl max-w-md w-full p-5 sm:p-6 text-white shadow-[0_25px_60px_rgba(0,0,0,0.9)] text-center relative overflow-hidden"
-                        >
-                            {/* Brillo decorativo */}
-                            <div className="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-                            {/* Icono animado de éxito */}
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-2xl sm:text-3xl mb-3 shadow-inner">
-                                🌿
-                            </div>
-
-                            <span className="inline-block text-[11px] font-black uppercase text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 mb-2">
-                                ✨ ¡Diagnóstico Finalizado!
-                            </span>
-
-                            <h3 className="text-xl sm:text-2xl font-black text-white mb-1">
-                                {diagnosisSummary?.nombrePlanta || 'Tu Planta'}
-                            </h3>
-                            
-                            {diagnosisSummary?.estadoGeneral && (
-                                <p className="text-xs sm:text-sm font-bold text-emerald-400 mb-2">
-                                    Estado: <span className="text-stone-200">{diagnosisSummary.estadoGeneral}</span>
-                                </p>
-                            )}
-
-                            {diagnosisSummary?.diagnosticoBreve && (
-                                <p className="text-xs text-stone-300 leading-relaxed font-medium bg-stone-950/70 p-3 rounded-xl border border-stone-800 mb-4 text-left line-clamp-3">
-                                    {diagnosisSummary.diagnosticoBreve}
-                                </p>
-                            )}
-
-                            <p className="text-xs text-stone-400 mb-4 font-semibold">
-                                ¿Deseas saltar el spot y consultar tu receta botánica completa o seguir viendo los videos del proceso?
-                            </p>
-
-                            {/* Opciones de Acción */}
-                            <div className="flex flex-col gap-2.5">
-                                <button
-                                    type="button"
-                                    onClick={handleSkip}
-                                    className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-stone-950 font-black text-sm rounded-xl shadow-lg transition-all transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
-                                >
-                                    <span>Ver mi Diagnóstico ahora (Skip)</span>
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleKeepWatching}
-                                    className="w-full py-2.5 px-4 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs rounded-xl border border-stone-700 transition-all active:scale-95 cursor-pointer"
-                                >
-                                    🎬 Seguir viendo videos del proceso
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };

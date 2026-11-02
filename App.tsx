@@ -80,7 +80,16 @@ type AppState = 'splash' | 'video' | 'home';
 
 const App: React.FC = () => {
   const [route, setRoute] = React.useState(getCurrentHash());
-  const [appState, setAppState] = React.useState<AppState>('splash');
+  const [appState, setAppState] = React.useState<AppState>(() => {
+    const initialHash = getCurrentHash();
+    if (initialHash && initialHash !== '#') {
+      return 'home';
+    }
+    if (localStorage.getItem('suelo_urbano_entered')) {
+      return 'home';
+    }
+    return 'splash';
+  });
   const [isPremiumUnlocked, setIsPremiumUnlocked] = React.useState<boolean>(() => {
     return !!localStorage.getItem('suelo_urbano_premium_code');
   });
@@ -154,6 +163,9 @@ const App: React.FC = () => {
 
       // 2. Cambiar ruta y reiniciar cronómetro
       setRoute(newRoute);
+      if (newRoute && newRoute !== '#') {
+        setAppState('home');
+      }
       currentPathRef.current = newRoute;
       routeStartTimeRef.current = Date.now();
       window.scrollTo(0, 0);
@@ -179,16 +191,14 @@ const App: React.FC = () => {
   }, []);
 
   const handleEnterSplash = () => {
-    const hasSeenVideo = localStorage.getItem('hasSeenIntroVideo');
-    if (hasSeenVideo) {
-      setAppState('home');
-    } else {
-      setAppState('video');
-    }
+    localStorage.setItem('suelo_urbano_entered', 'true');
+    localStorage.setItem('hasSeenIntroVideo', 'true');
+    setAppState('home');
   };
 
   const handleVideoComplete = () => {
     localStorage.setItem('hasSeenIntroVideo', 'true');
+    localStorage.setItem('suelo_urbano_entered', 'true');
     setAppState('home');
   };
   

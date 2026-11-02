@@ -1649,9 +1649,11 @@ Cuando se evalúe o consulte por la poda de estas plantas (especialmente arbusti
                 diagnosisData.respuestasEntorno = environmentAnswers;
                 setDiagnosis(diagnosisData);
                 setAnalysisStatus('¡Diagnóstico completado con éxito!');
+                setShowProcessViewer(false);
+                setHasSkippedProcess(true);
                 setTimeout(() => {
                     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 180);
+                }, 120);
             } else {
                 throw lastError || new Error("No se pudo obtener una respuesta del modelo.");
             }
