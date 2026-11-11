@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { CameraIcon, SparklesIcon, LeafIcon, QuestionMarkCircleIcon } from './icons/Icons';
 
 interface PlantIdentifierSectionProps {
@@ -77,59 +76,28 @@ const PlantIdentifierSection: React.FC<PlantIdentifierSectionProps> = ({ onNavig
         setResult(null);
 
         try {
-            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
-            if (!apiKey) {
-                throw new Error("API_KEY no está configurada en las variables de entorno.");
-            }
-            const ai = new GoogleGenAI({ apiKey: apiKey });
             const imagePart = await fileToGenerativePart(imageFile);
-            
-            const schema = {
-                type: Type.OBJECT,
-                properties: {
-                    nombreComun: { type: Type.STRING, description: "Nombre común y popular de la planta." },
-                    nombreCientifico: { type: Type.STRING, description: "Nombre científico (latín) de la planta." },
-                    cuidados: {
-                        type: Type.OBJECT,
-                        properties: {
-                            luz: { type: Type.STRING, description: "Requerimientos de luz solar." },
-                            agua: { type: Type.STRING, description: "Instrucciones de riego." },
-                            temperatura: { type: Type.STRING, description: "Rango de temperatura ideal." },
-                        },
-                    },
-                    recomendacionEmulsion: { type: Type.STRING, description: "Cómo la emulsión 'Suelo Urbano' beneficia a esta planta." }
-                },
-            };
-
-            let lastError: any = null;
-            let parsedResult: any = null;
-            const modelsToTry = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
-
-            for (const modelName of modelsToTry) {
-                try {
-                    const response: GenerateContentResponse = await ai.models.generateContent({
-                        model: modelName,
-                        contents: { parts: [imagePart, { text: "Identifica la planta en la imagen. Proporciona su nombre, cuidados básicos y una recomendación para usar la emulsión 'Suelo Urbano' con ella." }] },
-                        config: {
-                            responseMimeType: "application/json",
-                            responseSchema: schema
-                        }
-                    });
-                    
-                    if (response.text) {
-                        parsedResult = JSON.parse(response.text);
-                        break;
+            const response = await fetch('/api/gemini/identify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: {
+                        data: imagePart.inlineData.data,
+                        mimeType: imagePart.inlineData.mimeType,
                     }
-                } catch (err) {
-                    lastError = err;
-                    await new Promise(r => setTimeout(r, 600));
-                }
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Error del servidor HTTP ${response.status}`);
             }
 
-            if (parsedResult) {
-                setResult(parsedResult);
+            const resJson = await response.json();
+            if (resJson && resJson.data) {
+                setResult(resJson.data);
             } else {
-                throw lastError || new Error("No se pudo identificar la planta.");
+                throw new Error("No se pudo identificar la planta.");
             }
         } catch (err: any) {
             console.error(err);

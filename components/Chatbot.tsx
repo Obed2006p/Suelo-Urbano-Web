@@ -1,6 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { ChatBubbleIcon, XIcon, PaperAirplaneIcon, RobotIcon, CameraIcon } from './icons/Icons';
 
 interface Message {
@@ -265,75 +264,27 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
         setIsLoading(true);
 
         try {
-            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
-            if (!apiKey) throw new Error("API_KEY no configurada");
+            // Enviar mensaje al servidor seguro con el historial y la instrucción de Dr. Plant
+            const response = await fetch('/api/gemini/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: messagePayload,
+                    history: validHistory,
+                    systemInstruction: SYSTEM_INSTRUCTION
+                })
+            });
 
-            // Preparar las partes del mensaje (texto y/o imagen)
-            const messageParts: any[] = [];
-            if (currentFile) {
-                const filePart = await fileToGenerativePart(currentFile);
-                messageParts.push(filePart);
-            }
-            if (userText) {
-                messageParts.push({ text: userText });
-            } else if (messageParts.length === 0) {
-                messageParts.push({ text: "Analiza la imagen adjunta de mi planta y bríndame recomendaciones." });
-            }
-
-            const messagePayload = currentFile ? messageParts : userText;
-
-            // Preparar historial compatible con Gemini (debe iniciar con turno 'user' y alternar turnos)
-            const validHistory: { role: string; parts: { text: string }[] }[] = [];
-            const firstUserIdx = messages.findIndex(m => m.sender === 'user' && m.text && m.text.trim() !== '');
-            if (firstUserIdx !== -1) {
-                for (let i = firstUserIdx; i < messages.length; i++) {
-                    const m = messages[i];
-                    if (!m.text || !m.text.trim()) continue;
-                    const role = m.sender === 'user' ? 'user' : 'model';
-                    const lastTurn = validHistory[validHistory.length - 1];
-                    if (lastTurn && lastTurn.role === role) {
-                        lastTurn.parts[0].text += `\n${m.text.trim()}`;
-                    } else {
-                        validHistory.push({
-                            role,
-                            parts: [{ text: m.text.trim() }]
-                        });
-                    }
-                }
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Error del servidor HTTP ${response.status}`);
             }
 
-            const ai = new GoogleGenAI({ apiKey: apiKey });
-            
-            let botResponse: string | null = null;
-            let lastChatError: any = null;
-            const chatModels = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
-
-            for (const modelName of chatModels) {
-                try {
-                    const chat = ai.chats.create({
-                        model: modelName,
-                        config: {
-                            systemInstruction: SYSTEM_INSTRUCTION,
-                        },
-                        history: validHistory
-                    });
-
-                    const result = await chat.sendMessage({ message: messagePayload });
-                    if (result.text) {
-                        botResponse = result.text;
-                        break;
-                    }
-                } catch (e: any) {
-                    lastChatError = e;
-                    console.warn(`Chat attempt with ${modelName} failed:`, e);
-                    await new Promise(r => setTimeout(r, 600));
-                }
-            }
-
-            if (botResponse) {
-                setMessages(prev => [...prev, { text: botResponse, sender: 'bot' }]);
+            const data = await response.json();
+            if (data && data.text) {
+                setMessages(prev => [...prev, { text: data.text, sender: 'bot' }]);
             } else {
-                throw lastChatError || new Error("No se pudo obtener respuesta del chatbot.");
+                throw new Error("No se pudo obtener respuesta del chatbot.");
             }
 
         } catch (error: any) {

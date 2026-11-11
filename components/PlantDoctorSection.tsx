@@ -1,13 +1,22 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, GenerateContentResponse, Type, ThinkingLevel } from "@google/genai";
 import { jsPDF } from "jspdf";
 import { saveToGarden, resizeImageToBase64, ensureRequerimientoLuz, RequerimientoLuzLux, ProtocoloFoliarYPoda, ensureProtocoloFoliarYPoda } from '../lib/gardenStorage';
 import { CameraIcon, SparklesIcon, LeafIcon, HeartbeatIcon, ClipboardListIcon, PhIcon, MixIcon, HumidityIcon, QuestionMarkCircleIcon, ChevronDownIcon, CalendarIcon, DownloadIcon, BeakerIcon, SpoonIcon, CheckCircleIcon, SunIcon } from './icons/Icons';
+
+const Type = {
+    OBJECT: 'OBJECT',
+    STRING: 'STRING',
+    NUMBER: 'NUMBER',
+    INTEGER: 'INTEGER',
+    BOOLEAN: 'BOOLEAN',
+    ARRAY: 'ARRAY'
+} as const;
 import DoctorAdBanner from './DoctorAdBanner';
 import AnalysisProcessViewer from './AnalysisProcessViewer';
 import EnvironmentQuestionnaire, { EnvironmentAnswers, DEFAULT_ENVIRONMENT_ANSWERS } from './EnvironmentQuestionnaire';
 import InteractivePlantScan, { PlantDiagnosticMarker } from './InteractivePlantScan';
+import { PlantAudioAssistant } from './PlantAudioAssistant';
 
 // --- Interfaces para los datos de la IA ---
 export interface PlantDiagnosis {
@@ -1135,17 +1144,6 @@ const PlantDoctorSection: React.FC = () => {
         }, 120);
 
         try {
-            const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' && typeof process.env !== 'undefined' ? process.env.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY : undefined);
-            if (!apiKey) throw new Error("API_KEY no está configurada.");
-            const ai = new GoogleGenAI({
-                apiKey: apiKey,
-                httpOptions: {
-                    headers: {
-                        'User-Agent': 'aistudio-build',
-                    }
-                }
-            });
-
             // 1. Redimensionar y optimizar la imagen client-side (máx 1024px)
             const imagePart = await optimizeImageForGemini(imageFile, 1024);
             if (!imagePart.inlineData.data || imagePart.inlineData.data.length < 50) {
@@ -1444,51 +1442,38 @@ Cuando se evalúe o consulte por la poda de estas plantas (especialmente arbusti
             let lastError: any = null;
             let diagnosisData: any = null;
             
-            // Modelos ordenados priorizando máxima fidelidad visual botánica y resiliencia ante saturación (503)
-            const modelsConfig: { name: string; timeoutMs: number; label: string }[] = [
-                { name: 'gemini-3.8-flash', timeoutMs: 26000, label: 'Gemini 3.8 Flash (Diagnóstico Botánico Principal)' },
-                { name: 'gemini-flash-latest', timeoutMs: 22000, label: 'Gemini Flash (Canal de Alta Fidelidad)' },
-                { name: 'gemini-3.5-flash-lite', timeoutMs: 20000, label: 'Gemini 3.5 Flash Lite' },
-                { name: 'gemini-3.1-flash-lite', timeoutMs: 18000, label: 'Gemini 3.1 Flash Lite' },
-                { name: 'gemini-flash-lite-latest', timeoutMs: 18000, label: 'Gemini Flash Lite (Respaldo Ligero)' },
-            ];
-            
-            for (let i = 0; i < modelsConfig.length; i++) {
-                const cfg = modelsConfig[i];
-                try {
-                    if (i > 0) {
-                        setAnalysisStatus(`Procesando con canal de respaldo: ${cfg.label}...`);
-                    }
+            setAnalysisStatus('Analizando planta con Doctor de Plantas en el servidor seguro...');
+            try {
+                const apiRes = await fetch('/api/gemini/diagnose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: {
+                            data: imagePart.inlineData.data,
+                            mimeType: imagePart.inlineData.mimeType,
+                        },
+                        prompt,
+                        schema: unifiedSchema,
+                        environmentAnswers,
+                    }),
+                });
 
-                    const reqConfig: any = {
-                        responseMimeType: "application/json",
-                        responseSchema: unifiedSchema,
-                    };
-
-                    const response = await withTimeout(
-                        ai.models.generateContent({
-                            model: cfg.name,
-                            contents: [imagePart, { text: prompt }],
-                            config: reqConfig
-                        }),
-                        cfg.timeoutMs,
-                        `Tiempo de espera agotado con ${cfg.name}`
-                    );
-
-                    if (response.text) {
-                        diagnosisData = JSON.parse(response.text);
-                        // Asegurar diagnóstico de Lux botánico normalizado y protocolo foliar y poda
+                if (apiRes.ok) {
+                    const resJson = await apiRes.json();
+                    if (resJson && resJson.diagnosis) {
+                        diagnosisData = resJson.diagnosis;
                         diagnosisData.requerimientoLuzLux = ensureRequerimientoLuz(diagnosisData);
                         diagnosisData.protocoloFoliarYPoda = ensureProtocoloFoliarYPoda(diagnosisData);
                         diagnosisData.respuestasEntorno = environmentAnswers;
-                        break; // Éxito, salir del bucle
                     }
-                } catch (err: any) {
-                    console.warn(`Intento con modelo ${cfg.name} falló o tardó demasiado:`, err);
-                    lastError = err;
-                    // Pausa preventiva breve entre canales para descongestión
-                    await new Promise(r => setTimeout(r, 600));
+                } else {
+                    const errJson = await apiRes.json().catch(() => ({}));
+                    console.warn("Error en respuesta del servidor:", errJson);
+                    lastError = new Error(errJson.error || `Error del servidor (${apiRes.status})`);
                 }
+            } catch (err: any) {
+                console.warn("Falla de conexión con el endpoint de diagnóstico:", err);
+                lastError = err;
             }
 
             // Fallback botánico inteligente si toda la infraestructura remota de Google está bajo mantenimiento
@@ -2017,6 +2002,9 @@ Cuando se evalúe o consulte por la poda de estas plantas (especialmente arbusti
         if (diagnosis) {
             return (
                 <div className="w-full">
+                    {/* Asistente de Voz IA para leer el diagnóstico */}
+                    <PlantAudioAssistant diagnosis={diagnosis} />
+
                     <DiagnosisView diagnosis={diagnosis} imagePreview={imagePreview} />
 
                     {/* Cuestionario de Entorno para afinar o recalibrar */}

@@ -6,7 +6,6 @@ import Hero from './components/Hero';
 import BenefitsSection from './components/BenefitsSection';
 import UsageSection from './components/UsageSection';
 import Footer from './components/Footer';
-import EmulsionExplainedSection from './components/EmulsionExplainedSection';
 import OrderPage from './components/OrderPage';
 import UtilitiesPage from './components/UtilitiesPage';
 import CompositionPage from './components/CompositionPage';
@@ -43,10 +42,6 @@ const HomePage: React.FC = () => {
                 
                 <div className="relative">
                     <FallingLeaves position="absolute" />
-                    
-                    <div id="que-es">
-                        <EmulsionExplainedSection />
-                    </div>
 
                     <div id="beneficios">
                         <BenefitsSection />
@@ -85,9 +80,6 @@ const App: React.FC = () => {
     if (initialHash && initialHash !== '#') {
       return 'home';
     }
-    if (localStorage.getItem('suelo_urbano_entered')) {
-      return 'home';
-    }
     return 'splash';
   });
   const [isPremiumUnlocked, setIsPremiumUnlocked] = React.useState<boolean>(() => {
@@ -122,6 +114,17 @@ const App: React.FC = () => {
     if (!firstVisit) {
         localStorage.setItem('suelo_urbano_first_visit', Date.now().toString());
     }
+  }, []);
+
+  // Escuchar evento para reabrir la pantalla de bienvenida (Inmersión Ecológica)
+  React.useEffect(() => {
+    const handleResetSplash = () => {
+      localStorage.removeItem('suelo_urbano_entered');
+      localStorage.removeItem('hasSeenIntroVideo');
+      setAppState('splash');
+    };
+    window.addEventListener('reset-welcome-splash', handleResetSplash);
+    return () => window.removeEventListener('reset-welcome-splash', handleResetSplash);
   }, []);
 
   // Referencias para medir permanencia por página
@@ -318,11 +321,11 @@ const App: React.FC = () => {
             <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 -z-20" />
             
             {/* Content with cinematic entrance from splash */}
-            <div className={`transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+            <div className={
               appState === 'splash' 
-                ? 'scale-95 blur-lg opacity-0' 
-                : 'scale-100 blur-0 opacity-100 animate-fade-in-main'
-            }`}>
+                ? 'scale-95 blur-lg opacity-0 pointer-events-none fixed inset-0 transition-all duration-1000' 
+                : 'opacity-100'
+            }>
                 {appState === 'home' && !isHomePage && <FallingLeaves position="fixed" />}
                 {appState === 'home' && isHomePage && <FloatingDonationButton />}
                 

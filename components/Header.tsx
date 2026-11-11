@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, HeartIcon, CalendarIcon, FlowerIcon, LockIcon } from './icons/Icons';
+import { MenuIcon, XIcon, SproutIcon, AtomIcon, WaterDropIcon, HeartbeatIcon, HomeIcon, PlayCircleIcon, HeartIcon, CalendarIcon, FlowerIcon, LockIcon, SparklesIcon } from './icons/Icons';
 
 interface HeaderProps {
   onNavigate?: (id: string) => void;
@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
     document.documentElement.classList.add('dark');
   }, []);
 
-  // Cierre al hacer clic fuera o presionar tecla Escape (sin sombras oscuras ni capas de desenfoque de fondo)
+  // Cierre al hacer clic fuera o presionar tecla Escape
   React.useEffect(() => {
     if (!isMenuOpen) return;
 
@@ -52,22 +52,40 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
   }, [isMenuOpen]);
 
   const inPageNavLinks = [
-    { id: 'inicio', label: 'Inicio' },
-    { id: 'que-es', label: 'Qué es' },
-    { id: 'beneficios', label: 'Beneficios' },
-    { id: 'modo-uso', label: 'Modo de empleo' },
-    { id: 'composta', label: 'Composta' },
+    { id: 'inicio', label: 'Inicio', isRoute: false },
+    { id: 'doctor-plantas', label: 'Doctor Plantas 🩺', href: '#/doctor-plantas', isRoute: true },
+    { id: 'mi-jardin', label: 'Mi Jardín 🌿', href: '#/mi-jardin', isRoute: true },
+    { id: 'composicion', label: 'Composición 🧪', href: '#/composicion', isRoute: true },
+    { id: 'beneficios', label: 'Beneficios', isRoute: false },
+    { id: 'modo-uso', label: 'Modo de empleo', isRoute: false },
   ];
   
-  const pageNavLinks = [
+  const pageNavLinks: Array<{
+    id: string;
+    href: string;
+    label: string;
+    icon: React.ReactNode;
+    onClick?: (e: React.MouseEvent) => void;
+  }> = [
     { href: '#', label: 'Inicio', icon: <HomeIcon className="h-5 w-5 text-emerald-400" /> },
+    { 
+      id: 'nav-link-welcome', 
+      href: '#', 
+      label: 'Inmersión Ecológica (Bienvenida)', 
+      icon: <SparklesIcon className="h-5 w-5 text-yellow-300 animate-pulse" />, 
+      onClick: (e: React.MouseEvent) => { 
+        e.preventDefault(); 
+        window.dispatchEvent(new CustomEvent('reset-welcome-splash')); 
+        setIsMenuOpen(false); 
+      } 
+    },
+    { id: 'nav-link-doctor-plantas', href: '#/doctor-plantas', label: 'Doctor de Plantas (IA)', icon: <HeartbeatIcon className="h-5 w-5 text-emerald-400" /> },
     { id: 'nav-link-mi-jardin', href: '#/mi-jardin', label: 'Mi Jardín Urbano', icon: <CalendarIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-utilidades', href: '#/utilidades', label: 'Utilidades', icon: <SproutIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-composicion', href: '#/composicion', label: 'Composición', icon: <AtomIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-guia-riego', href: '#/guia-riego', label: 'Guía de Riego', icon: <WaterDropIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-guia-interactiva', href: '#/guia-interactiva', label: 'Guía Interactiva', icon: <PlayCircleIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-doctor-plantas', href: '#/doctor-plantas', label: 'Doctor de Plantas', icon: <HeartbeatIcon className="h-5 w-5 text-emerald-400" /> },
-    { id: 'nav-link-orquideas', href: '#/orquideas', label: 'Orquídeas', icon: <FlowerIcon className="h-5 w-5 text-emerald-400" /> },
+    { id: 'nav-link-composicion', href: '#/composicion', label: 'Composición de la Emulsión', icon: <AtomIcon className="h-5 w-5 text-emerald-400" /> },
+    { id: 'nav-link-guia-riego', href: '#/guia-riego', label: 'Guía de Riego Automatizada', icon: <WaterDropIcon className="h-5 w-5 text-emerald-400" /> },
+    { id: 'nav-link-guia-interactiva', href: '#/guia-interactiva', label: 'Guía Interactiva Avanzada', icon: <PlayCircleIcon className="h-5 w-5 text-emerald-400" /> },
+    { id: 'nav-link-utilidades', href: '#/utilidades', label: 'Utilidades Botánicas', icon: <SproutIcon className="h-5 w-5 text-emerald-400" /> },
+    { id: 'nav-link-orquideas', href: '#/orquideas', label: 'Cuidado de Orquídeas', icon: <FlowerIcon className="h-5 w-5 text-emerald-400" /> },
   ];
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -88,72 +106,105 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
 
   return (
     <>
-      <header className="bg-green-800 sticky top-0 z-50 shadow-md border-b border-green-900 transition-all duration-300">
-        <div className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center relative">
+      {/* Header Fijo / Sticky permanente que no se pierde al hacer scroll */}
+      <header className="bg-green-800/95 backdrop-blur-md sticky top-0 z-50 shadow-lg border-b border-green-900 transition-all duration-300">
+        <div className="container mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex justify-between items-center relative">
             {/* Logo Container & Menu Toggle */}
             <div className="flex items-center gap-2 sm:gap-4 z-10">
                  <button 
                     ref={buttonRef}
                     id="main-menu-toggle" 
                     onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                    className="text-green-100 hover:text-white focus:outline-none p-2 rounded-full hover:bg-green-700/50 active:scale-95 transition-all" 
-                    aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"} 
+                    className="text-green-100 hover:text-white focus:outline-none p-2 rounded-xl hover:bg-green-700/60 active:scale-95 transition-all flex items-center gap-1.5" 
+                    aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú de opciones"} 
                     aria-expanded={isMenuOpen}
+                    title="Ver todas las opciones"
                  >
                     {isMenuOpen ? (
-                      <XIcon className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
+                      <XIcon className="w-6 h-6 text-yellow-300" />
                     ) : (
-                      <MenuIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                      <MenuIcon className="w-6 h-6" />
                     )}
+                    <span className="hidden lg:inline text-xs font-bold uppercase tracking-wider text-green-200">Menú</span>
                  </button>
                 <a href="#" onClick={navigateHome} className="flex items-center gap-2 cursor-pointer relative group" aria-label="Volver a la página principal">
-                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-10 sm:h-12 relative z-10" />
+                    <img src="https://res.cloudinary.com/dsmzpsool/image/upload/v1759686619/WhatsApp_Image_2025-10-05_at_11.46.24_AM-removebg-preview_wleawb.png" alt="Alimento para plantas Logo" className="h-9 sm:h-11 relative z-10" />
                     
-                    <div className="hidden sm:block text-center">
-                        <span className="block text-xl sm:text-2xl font-bold text-white leading-tight">Alimento para plantas</span>
-                        <span className="block text-xs sm:text-sm font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
+                    <div className="hidden md:block text-left">
+                        <span className="block text-lg sm:text-xl font-bold text-white leading-tight">Alimento para plantas</span>
+                        <span className="block text-xs font-semibold text-yellow-300 -mt-1 tracking-wide" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>en suelo urbano</span>
                     </div>
                 </a>
             </div>
 
-            {/* Centered Navigation (Desktop) */}
-            {isHomePage && onNavigate && (
-                 <nav className="hidden md:flex items-center gap-4 lg:gap-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-max">
-                    {inPageNavLinks.map((link) => (
+            {/* Navegación Visible en Header (Escritorio) - Acceso Directo sin depender de las 3 rayitas */}
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+                {inPageNavLinks.map((link) => {
+                  if (link.isRoute && link.href) {
+                    return (
+                      <a
+                        key={link.id}
+                        href={link.href}
+                        onClick={(e) => handleLinkClick(e, link.href!)}
+                        className={`transition-all duration-200 text-xs xl:text-sm font-bold py-1 px-2.5 rounded-lg flex items-center gap-1 ${
+                          link.id === 'doctor-plantas'
+                            ? 'text-yellow-300 hover:text-white bg-green-900/60 border border-yellow-400/30 hover:border-yellow-300'
+                            : 'text-green-100 hover:text-white hover:bg-green-700/50'
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    );
+                  }
+                  return isHomePage && onNavigate ? (
                     <button
                         key={link.id}
                         onClick={() => onNavigate(link.id)}
-                        className="text-green-100 hover:text-white transition-all duration-300 font-medium hover:[text-shadow:0_0_6px_rgba(255,255,255,0.7)] text-sm lg:text-base relative group"
+                        className="text-green-100 hover:text-white transition-all duration-300 font-medium text-xs xl:text-sm relative group"
                     >
                         {link.label}
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-400 transition-all duration-300 group-hover:w-full"></span>
                     </button>
-                    ))}
-                </nav>
-            )}
+                  ) : null;
+                })}
+            </nav>
+
+            {/* Botón Destacado de Acceso Directo: Doctor de Plantas (Siempre visible en Header) */}
+            <div className="flex items-center gap-2">
+              <a
+                href="#/doctor-plantas"
+                onClick={(e) => handleLinkClick(e, '#/doctor-plantas')}
+                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white font-extrabold py-1.5 sm:py-2 px-3 sm:px-4 rounded-full text-xs sm:text-sm shadow-md transition-all active:scale-95 border border-emerald-300/40 hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] group"
+                aria-label="Abrir Doctor de Plantas"
+                title="Diagnosticar con Doctor de Plantas"
+              >
+                <div className="p-0.5 bg-emerald-950/60 rounded-full">
+                  <HeartbeatIcon className="w-4 h-4 text-yellow-300 group-hover:scale-110 transition-transform animate-pulse" />
+                </div>
+                <span className="tracking-wide">Doctor Plantas</span>
+                <span className="hidden sm:inline text-[9px] bg-yellow-400 text-stone-900 font-black px-1.5 py-0.2 rounded-full uppercase">IA</span>
+              </a>
+            </div>
         </div>
       </header>
       
+
+      
       {/* 
-        Menú Flotante Compacto (Popover / Dropdown)
-        - Fondo 100% sólido y elegante (sin transparencia que dificulte la lectura)
-        - Diseño botánico premium con bordes esmeralda y detalles en oro/verde
-        - Scrollbar ultrafino estilizado
-        - Cierre instantáneo al hacer clic fuera o presionar Escape
+        MENÚ FLOTANTE COMPLETO (POPOVER / DROPDOWN)
+        - Fondo 100% sólido y de alta legibilidad
+        - Permanece accesible en cualquier punto del scroll
       */}
       {isMenuOpen && (
         <div 
           ref={menuRef}
           role="dialog"
           aria-modal="true"
-          aria-label="Menú principal de navegación"
-          className="fixed top-16 left-3 sm:left-6 w-[21rem] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-5rem)] bg-[#0a120e] border-2 border-emerald-500/60 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_25px_rgba(16,185,129,0.25)] flex flex-col z-[100] overflow-hidden animate-fade-in-down"
+          aria-label="Menú principal de opciones"
+          className="fixed top-16 left-3 sm:left-6 w-[22rem] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-5rem)] bg-[#0a120e] border-2 border-emerald-500/60 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_25px_rgba(16,185,129,0.25)] flex flex-col z-[100] overflow-hidden animate-fade-in-down"
           style={{ backgroundColor: '#09110d' }}
         >
-          {/* Luz ambiental sutil decorativa superior */}
-          <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-emerald-600/15 via-emerald-800/5 to-transparent pointer-events-none" />
-
-          {/* Header del menú flotante - Fondo sólido con efecto premium */}
+          {/* Header del menú flotante */}
           <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-emerald-900/60 bg-[#060c09]">
             <div className="flex items-center gap-3">
               <div className="relative p-1 bg-emerald-950/80 rounded-xl border border-emerald-500/30 shadow-inner">
@@ -168,7 +219,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
                   Suelo Urbano
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
                 </span>
-                <span className="block text-[11px] font-bold text-yellow-300 tracking-wider uppercase">Tu Hogar Botánico</span>
+                <span className="block text-[11px] font-bold text-yellow-300 tracking-wider uppercase">Todas las Opciones</span>
               </div>
             </div>
             <button 
@@ -180,7 +231,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
             </button>
           </div>
 
-          {/* Lista de enlaces navegables con fondo sólido y scrollbar ultrafino */}
+          {/* Lista de enlaces navegables */}
           <nav 
             className="relative flex-1 overflow-y-auto p-2.5 space-y-1.5 bg-[#09110d] max-h-[58vh] 
               [scrollbar-width:thin] [scrollbar-color:#059669_#09110d] 
@@ -201,18 +252,33 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
                 '#/guia-riego'
               ];
               const isPremiumItem = PREMIUM_HREFS.includes(link.href);
+              const isDoctor = link.href === '#/doctor-plantas';
               return (
                 <a
-                  key={link.href}
+                  key={link.id + link.href}
                   id={link.id}
                   href={link.href}
-                  onClick={(e) => handleLinkClick(e, link.href)}
-                  className="flex items-center gap-3 text-stone-100 bg-[#0e1a14] hover:bg-[#152a20] active:bg-emerald-950/80 transition-all duration-150 font-semibold text-sm w-full text-left py-2.5 px-3 rounded-xl border border-emerald-900/40 hover:border-emerald-500/50 group shadow-sm hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                  onClick={(e) => {
+                    if (link.onClick) {
+                      link.onClick(e);
+                    } else {
+                      handleLinkClick(e, link.href);
+                    }
+                  }}
+                  className={`flex items-center gap-3 text-stone-100 transition-all duration-150 font-semibold text-sm w-full text-left py-2.5 px-3 rounded-xl border group shadow-sm ${
+                    isDoctor 
+                      ? 'bg-gradient-to-r from-[#123120] to-[#0d2015] border-emerald-500/60 hover:border-yellow-400 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)]' 
+                      : 'bg-[#0e1a14] hover:bg-[#152a20] border-emerald-900/40 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]'
+                  }`}
                 >
-                  <div className="p-1.5 bg-[#08100c] border border-emerald-900/60 group-hover:border-emerald-500/50 group-hover:bg-emerald-950 rounded-lg text-emerald-400 group-hover:text-emerald-300 transition-all">
+                  <div className={`p-1.5 rounded-lg transition-all ${
+                    isDoctor 
+                      ? 'bg-emerald-900/80 border border-yellow-400/50 text-yellow-300' 
+                      : 'bg-[#08100c] border border-emerald-900/60 text-emerald-400 group-hover:text-emerald-300 group-hover:bg-emerald-950'
+                  }`}>
                     {link.icon}
                   </div>
-                  <span className="flex-1 truncate tracking-wide text-white group-hover:text-emerald-200">
+                  <span className={`flex-1 truncate tracking-wide ${isDoctor ? 'text-yellow-200 font-bold' : 'text-white group-hover:text-emerald-200'}`}>
                     {link.label}
                   </span>
                   {isPremiumItem && (
@@ -229,7 +295,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, isHomePage, isPremiumUnlock
             })}
           </nav>
 
-          {/* Panel Club Premium inferior - Fondo 100% sólido con contraste destacado */}
+          {/* Panel Club Premium inferior */}
           <div className="relative p-3 border-t border-emerald-900/60 bg-[#060c09]">
             {isPremiumUnlocked ? (
               <div className="p-2.5 bg-gradient-to-r from-[#0d2218] to-[#08160f] border border-emerald-600/40 rounded-xl flex items-center justify-between text-xs font-bold shadow-md">
