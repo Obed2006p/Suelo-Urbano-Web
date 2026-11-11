@@ -74,9 +74,9 @@ app.post('/api/gemini/diagnose', async (req: Request, res: Response) => {
     };
 
     const modelsToTry = [
-      { name: 'gemini-3.1-flash-lite', timeout: 15000 },
-      { name: 'gemini-3.8-flash', timeout: 20000 },
-      { name: 'gemini-flash-latest', timeout: 18000 },
+      { name: 'gemini-3.8-flash', timeout: 45000 },
+      { name: 'gemini-3.1-flash-lite', timeout: 40000 },
+      { name: 'gemini-flash-latest', timeout: 40000 },
     ];
 
     let diagnosisData: any = null;
@@ -138,7 +138,7 @@ app.post('/api/gemini/chat', async (req: Request, res: Response) => {
     }
 
     const ai = getAiClient();
-    const chatModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+    const chatModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
 
     let botResponse: string | null = null;
     let lastError: any = null;
@@ -154,7 +154,7 @@ app.post('/api/gemini/chat', async (req: Request, res: Response) => {
         });
 
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 12000)
+          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 30000)
         );
 
         const result: any = await Promise.race([chat.sendMessage({ message }), timeoutPromise]);
