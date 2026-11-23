@@ -1154,7 +1154,7 @@ const PlantDoctorSection: React.FC = () => {
             const unifiedSchema = {
                 type: Type.OBJECT,
                 properties: {
-                    nombrePlanta: { type: Type.STRING, description: "Nombre común y botánico de la planta." },
+                    nombrePlanta: { type: Type.STRING, description: "Nombre común y nombre científico exacto o especie probable de la planta diagnosticada (OBLIGATORIO)." },
                     estadoGeneral: { type: Type.STRING, description: "Estado general (ej: 'Atención moderada', 'Crítico', 'Saludable', 'En recuperación')." },
                     diagnosticoBreve: { type: Type.STRING, description: "Diagnóstico conciso usando lenguaje prudente de probabilidad obligatoria: 'Los síntomas visuales son consistentes con...', 'El daño observado se asemeja a...', o 'Es altamente probable que...'." },
                     descripcionVisual: {
@@ -1386,6 +1386,9 @@ const PlantDoctorSection: React.FC = () => {
             const prompt = `Actúa como un 'Doctor de Plantas' médico-botánico clínico de Suelo Urbano Tu Hogar. Tu tarea es analizar la imagen y la información de entorno para entregar un diagnóstico médico vegetal riguroso, empático y estructurado en un solo paso, con lenguaje prudente, sin afirmaciones absolutas y sin tecnicismos excesivos:
 
 ${envDataString}
+
+[PASO 0: IDENTIFICACIÓN OBLIGATORIA DE LA PLANTA (campo nombrePlanta)]
+Es estrictamente OBLIGATORIO identificar y escribir con claridad el nombre común y el nombre científico (o especie más probable) de la planta en el campo 'nombrePlanta' (ej: "Monstera deliciosa (Costilla de Adán)", "Spathiphyllum (Cuna de Moisés)", "Epipremnum aureum (Poto)"). NUNCA dejes este campo con nombres genéricos como "Planta" o "Planta en Recuperación".
 
 [PASO 1: EVALUACIÓN DE INFORMACIÓN Y ENTORNO]
 Toma en cuenta la ubicación, iluminación, frecuencia de riego y drenaje provistos. Si no fueron completados, deduce las condiciones con cautela clínica.
