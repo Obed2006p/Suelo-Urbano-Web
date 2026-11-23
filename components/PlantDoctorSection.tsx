@@ -17,6 +17,7 @@ import AnalysisProcessViewer from './AnalysisProcessViewer';
 import EnvironmentQuestionnaire, { EnvironmentAnswers, DEFAULT_ENVIRONMENT_ANSWERS } from './EnvironmentQuestionnaire';
 import InteractivePlantScan, { PlantDiagnosticMarker } from './InteractivePlantScan';
 import { PlantAudioAssistant } from './PlantAudioAssistant';
+import { LiveConsultaModal } from './LiveConsultaModal';
 
 // --- Interfaces para los datos de la IA ---
 export interface PlantDiagnosis {
@@ -1000,6 +1001,7 @@ const PlantDoctorSection: React.FC = () => {
     const [analysisStatus, setAnalysisStatus] = useState<string>('Iniciando diagnóstico...');
     const [retryCooldown, setRetryCooldown] = useState(0);
     const [environmentAnswers, setEnvironmentAnswers] = useState<EnvironmentAnswers>(DEFAULT_ENVIRONMENT_ANSWERS);
+    const [showLiveModal, setShowLiveModal] = useState<boolean>(false);
 
     useEffect(() => {
         if (retryCooldown > 0) {
@@ -2007,6 +2009,29 @@ Cuando se evalúe o consulte por la poda de estas plantas (especialmente arbusti
                 <div className="w-full">
                     {/* Asistente de Voz IA para leer el diagnóstico */}
                     <PlantAudioAssistant diagnosis={diagnosis} />
+
+                    {/* Botón para Llamada en Vivo con Doctor Planta */}
+                    <div className="mb-4">
+                        <button
+                            type="button"
+                            onClick={() => setShowLiveModal(true)}
+                            className="w-full bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-3.5 px-6 rounded-2xl shadow-lg border border-emerald-400/40 flex items-center justify-center gap-3 transition-all transform hover:scale-[1.01] active:scale-95 cursor-pointer text-sm sm:text-base"
+                        >
+                            <HeartbeatIcon className="w-5 h-5 text-yellow-300 animate-pulse" />
+                            <span>Hablar en vivo con Doctor Planta</span>
+                            <span className="text-[10px] bg-yellow-400 text-stone-900 font-extrabold px-2 py-0.5 rounded-full uppercase">
+                                En Vivo 🔴
+                            </span>
+                        </button>
+                    </div>
+
+                    {showLiveModal && (
+                        <LiveConsultaModal 
+                            diagnosis={diagnosis} 
+                            imagePreview={imagePreview} 
+                            onClose={() => setShowLiveModal(false)} 
+                        />
+                    )}
 
                     <DiagnosisView diagnosis={diagnosis} imagePreview={imagePreview} />
 
