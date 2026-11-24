@@ -269,6 +269,13 @@ app.post('/api/gemini/chat', async (req: Request, res: Response) => {
     let botResponse: string | null = null;
     let lastError: any = null;
 
+    const formattedHistory = Array.isArray(history)
+      ? history.map((h: any) => ({
+          role: h.role === 'model' ? 'model' : 'user',
+          parts: [{ text: h.content || h.parts?.[0]?.text || '' }]
+        }))
+      : [];
+
     for (const modelName of chatModels) {
       try {
         const chat = ai.chats.create({
@@ -276,7 +283,7 @@ app.post('/api/gemini/chat', async (req: Request, res: Response) => {
           config: {
             systemInstruction: systemInstruction || undefined,
           },
-          history: Array.isArray(history) ? history : [],
+          history: formattedHistory,
         });
 
         const timeoutPromise = new Promise((_, reject) =>
