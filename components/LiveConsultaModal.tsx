@@ -18,6 +18,7 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
   const recognitionRef = useRef<any | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
   const isSpeakingRef = useRef<boolean>(false);
+  const isProcessingRef = useRef<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
   const lastSpokenTextRef = useRef<string>('');
 
@@ -45,12 +46,19 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
 
     utterance.onend = () => {
       isSpeakingRef.current = false;
-      if (!isMountedRef.current || isMuted) return;
+      if (!isMountedRef.current || isMuted) {
+        if (onReadyToListen) onReadyToListen();
+        return;
+      }
       
       // Short cooldown before listening again to clear audio echo
       setTimeout(() => {
-        if (!isMountedRef.current || isMuted || isSpeakingRef.current) return;
+        if (!isMountedRef.current || isMuted || isSpeakingRef.current) {
+          if (onReadyToListen) onReadyToListen();
+          return;
+        }
         setStatus('Escuchando...');
+        isProcessingRef.current = false;
         if (recognitionRef.current) {
           try {
             recognitionRef.current.start();
@@ -59,13 +67,17 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
           }
         }
         if (onReadyToListen) onReadyToListen();
-      }, 750);
+      }, 1000);
     };
 
     utterance.onerror = () => {
       isSpeakingRef.current = false;
-      if (!isMountedRef.current || isMuted) return;
+      if (!isMountedRef.current || isMuted) {
+        if (onReadyToListen) onReadyToListen();
+        return;
+      }
       setStatus('Escuchando...');
+      isProcessingRef.current = false;
       if (recognitionRef.current) {
         try { recognitionRef.current.start(); } catch {}
       }
@@ -92,21 +104,30 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       recognition.interimResults = false;
 
       recognition.onstart = () => {
-        if (!isSpeakingRef.current && !isMuted) {
+        if (!isSpeakingRef.current && !isMuted && !isProcessingRef.current) {
           setStatus('Escuchando...');
         }
       };
 
       recognition.onresult = async (event: any) => {
-        if (isSpeakingRef.current || isMuted) return;
+        if (isSpeakingRef.current || isMuted || isProcessingRef.current) return;
+        isProcessingRef.current = true;
+
+        if (recognitionRef.current) {
+          try { recognitionRef.current.stop(); } catch {}
+        }
 
         const last = event.results.length - 1;
         const text = event.results[last][0].transcript.trim();
         
-        if (!text || text.length < 2) return;
+        if (!text || text.length < 2) {
+          isProcessingRef.current = false;
+          return;
+        }
 
         // Ignore if recognized text matches what Dr. Planta just said (echo prevention)
         if (text.toLowerCase().includes(lastSpokenTextRef.current.slice(0, 15))) {
+          isProcessingRef.current = false;
           return;
         }
 
@@ -118,13 +139,12 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
 
         try {
           const res = await fetch('/api/gemini/chat', {
-            model: 'gemini-3.8-flash',
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               message: text,
               history: newHistory.slice(-6), // keep last 6 turns
-              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario (ej. si pregunta el nombre, di el nombre; si pregunta el riego, da el riego). NUNCA repitas frases predeterminadas ni consejos genéricos automáticos. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 2 oraciones, de forma práctica, cercana y en español de México.`
+              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario (ej. si te pregunta el nombre de la planta, responde exactamente el nombre; si pregunta el riego, da el riego exacto). NUNCA repitas respuestas anteriores ni des consejos genéricos. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 1 o 2 oraciones, de forma directa y en español de México.`
             })
           });
           const data = await res.json();
@@ -133,10 +153,11 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
             setConversationHistory(prev => [...prev, { role: 'model', content: data.text }]);
             speakText(data.text);
           } else {
-            speakText("Te sugiero aplicar la emulsión Suelo Urbano y asegurar un riego equilibrado.");
+            speakText("Por favor repíteme tu pregunta sobre la planta.");
           }
         } catch (e) {
-          speakText("Mantén el sustrato bien drenado y la corona visible. ¿Tienes otra duda?");
+          isProcessingRef.current = false;
+          speakText("¿Podrías repetirme tu pregunta?");
         }
       };
 
@@ -145,7 +166,7 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       };
 
       recognition.onend = () => {
-        if (!isMountedRef.current || isSpeakingRef.current || isMuted) return;
+        if (!isMountedRef.current || isSpeakingRef.current || isMuted || isProcessingRef.current) return;
         // Automatically restart listening if not speaking or muted
         try {
           recognition.start();
@@ -219,6 +240,7 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       }
     } else {
       setStatus('Escuchando...');
+      isProcessingRef.current = false;
       if (recognitionRef.current) {
         try { recognitionRef.current.start(); } catch {}
       }

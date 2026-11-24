@@ -1,6 +1,6 @@
 {
-  "summary":  "Plan to fix Dr. Plant voice assistant prompt so it directly answers user questions without looping default phrases",
-  "updatedAt":  "2026-11-24T14:09:02.518262771Z",
+  "summary":  "Plan to fix speech recognition loop and context repetition in LiveConsultaModal without removing voice interaction",
+  "updatedAt":  "2026-11-24T17:31:46.061971282Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

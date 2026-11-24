@@ -1,17 +1,18 @@
-# Implementation Plan - Fix Dr. Plant Voice Assistant Response Relevance
+# Implementation Plan - Fix Speech Recognition Loop & Context Repetition
 
 ## Goal
-Ensure Dr. Planta directly answers the user's exact spoken question in voice consultations instead of repeating fallback default phrases (like "mantener el sustrato y la corona visible").
+Resolve the bug where the voice assistant loops or repeats canned responses by refining speech recognition state management, preventing echo pickup, and improving backend prompt context passing in `LiveConsultaModal.tsx`.
 
 ## Proposed Changes
 
-### 1. Backend Chat Prompt (`server.ts`)
-- Update the system instruction and prompt for `/api/gemini/chat` to strictly enforce direct answering:
-  - "Responde ÚNICAMENTE a la pregunta específica que acaba de hacer el usuario. No repitas frases predeterminadas ni consejos genéricos a menos que se relacionen directamente con la pregunta."
+### 1. Robust Speech State & Echo Guard (`components/LiveConsultaModal.tsx`)
+- Implement a strict locking mechanism (`isProcessingRef`) during API calls so speech recognition results are completely ignored while waiting for the model or while `speechSynthesis` is active.
+- Add a timeout window after speech synthesis ends before restarting recognition.
+- Filter out empty or hallucinated transcripts.
 
-### 2. Frontend Assistant (`components/LiveConsultaModal.tsx`)
-- Refine the instruction sent with each message in `LiveConsultaModal.tsx` to emphasize immediate, direct, conversational relevance to the user's exact input.
+### 2. Enhanced Chat Prompt (`server.ts` / `LiveConsultaModal.tsx`)
+- Ensure the chat request passes the specific user message correctly and includes clear persona instructions.
 
 ## Verification Plan
 - Compile the applet using `compile_applet`.
-- Verify that asking specific questions (e.g., watering frequency, plant name) receives precise, relevant answers.
+- Verify that voice input accurately triggers distinct model answers without looping.
