@@ -9,35 +9,25 @@ interface LiveConsultaModalProps {
 }
 
 export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis, imagePreview, onClose }) => {
-  const [status, setStatus] = useState<string>('Iniciando consulta con Dr. Planta...');
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>('Toca el botón para hablar con Dr. Planta');
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(180); // 3:00 minutes
-  const [transcript, setTranscript] = useState<string>('Iniciando asistente de voz...');
+  const [transcript, setTranscript] = useState<string>('Haz una pregunta sobre tu planta tocando el botón de abajo.');
   const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
 
   const recognitionRef = useRef<any | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
-  const isSpeakingRef = useRef<boolean>(false);
-  const isProcessingRef = useRef<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
-  const lastSpokenTextRef = useRef<string>('');
 
-  const speakText = (text: string, onReadyToListen?: () => void) => {
+  const speakText = (text: string, onEnd?: () => void) => {
     if (!window.speechSynthesis) {
-      if (onReadyToListen) onReadyToListen();
+      if (onEnd) onEnd();
       return;
     }
 
-    // Stop recognition while speaking to prevent mic from picking up speaker audio (echo loop)
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {}
-    }
-
     window.speechSynthesis.cancel();
-    isSpeakingRef.current = true;
-    lastSpokenTextRef.current = text.toLowerCase();
+    setIsSpeaking(true);
     setStatus('Dr. Planta hablando...');
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -45,43 +35,17 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
     utterance.rate = 1.0;
 
     utterance.onend = () => {
-      isSpeakingRef.current = false;
-      if (!isMountedRef.current || isMuted) {
-        if (onReadyToListen) onReadyToListen();
-        return;
-      }
-      
-      // Short cooldown before listening again to clear audio echo
-      setTimeout(() => {
-        if (!isMountedRef.current || isMuted || isSpeakingRef.current) {
-          if (onReadyToListen) onReadyToListen();
-          return;
-        }
-        setStatus('Escuchando...');
-        isProcessingRef.current = false;
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            // Already started or restarting
-          }
-        }
-        if (onReadyToListen) onReadyToListen();
-      }, 1000);
+      setIsSpeaking(false);
+      if (!isMountedRef.current) return;
+      setStatus('Toca el botón para preguntar de nuevo');
+      if (onEnd) onEnd();
     };
 
     utterance.onerror = () => {
-      isSpeakingRef.current = false;
-      if (!isMountedRef.current || isMuted) {
-        if (onReadyToListen) onReadyToListen();
-        return;
-      }
-      setStatus('Escuchando...');
-      isProcessingRef.current = false;
-      if (recognitionRef.current) {
-        try { recognitionRef.current.start(); } catch {}
-      }
-      if (onReadyToListen) onReadyToListen();
+      setIsSpeaking(false);
+      if (!isMountedRef.current) return;
+      setStatus('Toca el botón para preguntar');
+      if (onEnd) onEnd();
     };
 
     window.speechSynthesis.speak(utterance);
@@ -91,106 +55,80 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
     isMountedRef.current = true;
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setStatus('Modo Lectura (Voz no soportada en este navegador)');
-      speakText(diagnosis ? `Hola, soy Dr. Planta. Analicemos tu ${diagnosis.nombrePlanta}.` : "¡Hola! Soy Dr. Planta de Suelo Urbano.");
-      return;
-    }
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-MX';
+        recognition.continuous = false;
+        recognition.interimResults = false;
 
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'es-MX';
-      recognition.continuous = false; // Restart after each utterance for better turn-taking
-      recognition.interimResults = false;
+        recognition.onstart = () => {
+          setIsListening(true);
+          setStatus('Escuchando tu pregunta...');
+        };
 
-      recognition.onstart = () => {
-        if (!isSpeakingRef.current && !isMuted && !isProcessingRef.current) {
-          setStatus('Escuchando...');
-        }
-      };
-
-      recognition.onresult = async (event: any) => {
-        if (isSpeakingRef.current || isMuted || isProcessingRef.current) return;
-        isProcessingRef.current = true;
-
-        if (recognitionRef.current) {
-          try { recognitionRef.current.stop(); } catch {}
-        }
-
-        const last = event.results.length - 1;
-        const text = event.results[last][0].transcript.trim();
-        
-        if (!text || text.length < 2) {
-          isProcessingRef.current = false;
-          return;
-        }
-
-        // Ignore if recognized text matches what Dr. Planta just said (echo prevention)
-        if (text.toLowerCase().includes(lastSpokenTextRef.current.slice(0, 15))) {
-          isProcessingRef.current = false;
-          return;
-        }
-
-        setTranscript(`Tú: "${text}"`);
-        setStatus('Dr. Planta pensando...');
-
-        const newHistory = [...conversationHistory, { role: 'user', content: text }];
-        setConversationHistory(newHistory);
-
-        try {
-          const res = await fetch('/api/gemini/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: text,
-              history: newHistory.slice(-6), // keep last 6 turns
-              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario (ej. si te pregunta el nombre de la planta, responde exactamente el nombre; si pregunta el riego, da el riego exacto). NUNCA repitas respuestas anteriores ni des consejos genéricos. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 1 o 2 oraciones, de forma directa y en español de México.`
-            })
-          });
-          const data = await res.json();
-          if (data.success && data.text) {
-            setTranscript(`Dr. Planta: "${data.text}"`);
-            setConversationHistory(prev => [...prev, { role: 'model', content: data.text }]);
-            speakText(data.text);
-          } else {
-            speakText("Por favor repíteme tu pregunta sobre la planta.");
+        recognition.onresult = async (event: any) => {
+          setIsListening(false);
+          const last = event.results.length - 1;
+          const text = event.results[last][0].transcript.trim();
+          
+          if (!text || text.length < 2) {
+            setStatus('Toca el botón para hablar');
+            return;
           }
-        } catch (e) {
-          isProcessingRef.current = false;
-          speakText("¿Podrías repetirme tu pregunta?");
-        }
-      };
 
-      recognition.onerror = (e: any) => {
-        console.warn('Speech recognition event error:', e);
-      };
+          setTranscript(`Tú: "${text}"`);
+          setStatus('Dr. Planta pensando...');
 
-      recognition.onend = () => {
-        if (!isMountedRef.current || isSpeakingRef.current || isMuted || isProcessingRef.current) return;
-        // Automatically restart listening if not speaking or muted
-        try {
-          recognition.start();
-        } catch (err) {
-          // Ignore if already started
-        }
-      };
+          const newHistory = [...conversationHistory, { role: 'user', content: text }];
+          setConversationHistory(newHistory);
 
-      recognitionRef.current = recognition;
-      recognition.start();
+          try {
+            const res = await fetch('/api/gemini/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: text,
+                history: newHistory.slice(-6),
+                systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario sobre su planta. NUNCA des respuestas genéricas ni repitas frases predeterminadas. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 2 oraciones, de forma directa, cálida y en español de México.`
+              })
+            });
+            const data = await res.json();
+            if (data.success && data.text) {
+              setTranscript(`Dr. Planta: "${data.text}"`);
+              setConversationHistory(prev => [...prev, { role: 'model', content: data.text }]);
+              speakText(data.text);
+            } else {
+              speakText("Por favor repíteme tu pregunta sobre la planta.");
+            }
+          } catch (e) {
+            speakText("¿Podrías repetirme tu pregunta?");
+          }
+        };
 
-      // Initial greeting
-      const initialGreeting = diagnosis 
-        ? `Hola, soy Dr. Planta. Veo tu ${diagnosis.nombrePlanta} con estado ${diagnosis.estadoGeneral}. ¿Qué te gustaría saber sobre su recuperación?`
-        : "¡Hola! Soy Dr. Planta de Suelo Urbano. ¿En qué puedo ayudarte con tu jardín hoy?";
-      
-      setTranscript(`Dr. Planta: "${initialGreeting}"`);
-      speakText(initialGreeting);
+        recognition.onerror = (e: any) => {
+          console.warn('Speech recognition error:', e);
+          setIsListening(false);
+          setStatus('Toca el botón para hablar');
+        };
 
-    } catch (e) {
-      console.warn('Could not initialize SpeechRecognition:', e);
-      setStatus('Modo Asistente Activo');
-      speakText("¡Hola! Soy Dr. Planta. ¿Cómo puedo ayudarte?");
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      } catch (e) {
+        console.warn('Could not initialize SpeechRecognition:', e);
+      }
     }
+
+    // Initial greeting
+    const initialGreeting = diagnosis 
+      ? `Hola, soy Dr. Planta. Veo tu ${diagnosis.nombrePlanta} con estado ${diagnosis.estadoGeneral}. Toca el botón de hablar y dime qué duda tienes.`
+      : "¡Hola! Soy Dr. Planta de Suelo Urbano. Toca el botón y dime en qué puedo ayudarte hoy.";
+    
+    setTranscript(`Dr. Planta: "${initialGreeting}"`);
+    speakText(initialGreeting);
 
     // Countdown Timer (3 minutes = 180 seconds)
     timerIntervalRef.current = window.setInterval(() => {
@@ -216,6 +154,23 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
     };
   }, []);
 
+  const handleStartListening = () => {
+    if (isListening || isSpeaking) return;
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        // Already started
+      }
+    } else {
+      alert('El reconocimiento de voz no está disponible en este navegador. Puedes usar los botones de diagnóstico o el chat.');
+    }
+  };
+
   const handleClose = () => {
     isMountedRef.current = false;
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -226,25 +181,6 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       window.speechSynthesis.cancel();
     }
     onClose();
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (!isMuted) {
-      setStatus('Micrófono silenciado');
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
-      }
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    } else {
-      setStatus('Escuchando...');
-      isProcessingRef.current = false;
-      if (recognitionRef.current) {
-        try { recognitionRef.current.start(); } catch {}
-      }
-    }
   };
 
   const formatTime = (seconds: number) => {
@@ -280,21 +216,21 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
           </h3>
         </div>
 
-        <p className="text-xs sm:text-sm text-emerald-300 font-medium mb-4">
+        <p className="text-xs sm:text-sm text-emerald-300 font-medium mb-3">
           {diagnosis ? `Planta: ${diagnosis.nombrePlanta}` : 'Asistente Botánico en Tiempo Real'}
         </p>
 
         {/* Visual Pulse Indicator */}
-        <div className="relative my-4 flex items-center justify-center w-28 h-28">
-          <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" style={{ animationDuration: '2s' }} />
+        <div className="relative my-3 flex items-center justify-center w-28 h-28">
+          <div className={`absolute inset-0 rounded-full bg-emerald-500/20 ${isListening || isSpeaking ? 'animate-ping' : ''}`} style={{ animationDuration: '2s' }} />
           <div className="absolute inset-3 rounded-full bg-emerald-600/30 animate-pulse" />
           <div className="relative w-16 h-16 rounded-full bg-emerald-950 border-2 border-emerald-400 flex items-center justify-center shadow-lg">
-            <SparklesIcon className="w-8 h-8 text-yellow-300 animate-pulse" />
+            <SparklesIcon className={`w-8 h-8 text-yellow-300 ${isSpeaking || isListening ? 'animate-bounce' : ''}`} />
           </div>
         </div>
 
         {/* Status Text & Live Transcript */}
-        <div className="mb-5 w-full">
+        <div className="mb-4 w-full">
           <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 text-xs font-bold uppercase tracking-wider shadow-inner mb-3">
             ● {status}
           </span>
@@ -306,26 +242,29 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
           </p>
         </div>
 
-        {/* Control Buttons */}
-        <div className="flex items-center gap-3 justify-center w-full">
-          {/* Mute Button */}
+        {/* Push to Talk Button & Close Button */}
+        <div className="flex flex-col gap-3 w-full">
           <button
-            onClick={toggleMute}
-            className={`flex-1 py-3 px-4 rounded-2xl font-bold text-xs sm:text-sm border transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 ${
-              isMuted 
-                ? 'bg-rose-950/80 border-rose-500 text-rose-300' 
-                : 'bg-stone-800 border-stone-700 text-stone-200 hover:bg-stone-700'
+            type="button"
+            onClick={handleStartListening}
+            disabled={isListening || isSpeaking}
+            className={`w-full py-4 px-6 rounded-2xl font-black text-sm sm:text-base border transition-all shadow-xl flex items-center justify-center gap-3 cursor-pointer active:scale-95 ${
+              isListening
+                ? 'bg-rose-600 border-rose-400 text-white animate-pulse'
+                : isSpeaking
+                ? 'bg-emerald-800 border-emerald-600 text-emerald-200 opacity-90 cursor-not-allowed'
+                : 'bg-gradient-to-r from-emerald-500 via-green-600 to-emerald-600 hover:from-emerald-400 hover:to-green-500 text-white border-emerald-300/40'
             }`}
           >
-            <span>{isMuted ? '🔇 Silenciado' : '🎤 Silenciar'}</span>
+            <span className="text-xl">🎙️</span>
+            <span>{isListening ? 'Escuchando tu pregunta...' : isSpeaking ? 'Dr. Planta hablando...' : 'Toca para hablar con Dr. Planta'}</span>
           </button>
 
-          {/* Close / Hang Up Button */}
           <button
             onClick={handleClose}
-            className="flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm bg-rose-600 hover:bg-rose-500 text-white border border-rose-400 shadow-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 transition-all cursor-pointer"
           >
-            <span>📞 Finalizar</span>
+            Finalizar consulta
           </button>
         </div>
 

@@ -1,18 +1,15 @@
-# Implementation Plan - Fix Speech Recognition Loop & Context Repetition
+# Implementation Plan - Push-to-Talk Voice Interaction
 
 ## Goal
-Resolve the bug where the voice assistant loops or repeats canned responses by refining speech recognition state management, preventing echo pickup, and improving backend prompt context passing in `LiveConsultaModal.tsx`.
+Replace continuous speech recognition with a reliable Push-to-Talk ("Presionar para hablar") button in `LiveConsultaModal.tsx` so the user controls when recording occurs, completely eliminating loops, echo triggers, and abrupt disconnections.
 
 ## Proposed Changes
 
-### 1. Robust Speech State & Echo Guard (`components/LiveConsultaModal.tsx`)
-- Implement a strict locking mechanism (`isProcessingRef`) during API calls so speech recognition results are completely ignored while waiting for the model or while `speechSynthesis` is active.
-- Add a timeout window after speech synthesis ends before restarting recognition.
-- Filter out empty or hallucinated transcripts.
-
-### 2. Enhanced Chat Prompt (`server.ts` / `LiveConsultaModal.tsx`)
-- Ensure the chat request passes the specific user message correctly and includes clear persona instructions.
+### 1. Push-to-Talk Voice Interface (`components/LiveConsultaModal.tsx`)
+- Remove continuous background speech recognition listening loop.
+- Add a prominent microphone button: "Mantén presionado o toca para hablar con Dr. Planta".
+- When pressed/touched, starts speech recognition and listens for the user's explicit query. When released or utterance ends, sends the query to `/api/gemini/chat` and speaks the response.
 
 ## Verification Plan
 - Compile the applet using `compile_applet`.
-- Verify that voice input accurately triggers distinct model answers without looping.
+- Verify that voice interaction requires a deliberate button press and responds accurately to the user's question.

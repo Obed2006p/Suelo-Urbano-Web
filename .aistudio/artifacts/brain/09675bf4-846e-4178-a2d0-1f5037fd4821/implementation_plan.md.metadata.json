@@ -1,6 +1,6 @@
 {
-  "summary":  "Plan to fix speech recognition loop and context repetition in LiveConsultaModal without removing voice interaction",
-  "updatedAt":  "2026-11-24T17:31:46.061971282Z",
+  "summary":  "Plan to implement Push-to-Talk voice interaction in LiveConsultaModal to prevent continuous loops and connection drops",
+  "updatedAt":  "2026-11-24T17:44:31.322161115Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
