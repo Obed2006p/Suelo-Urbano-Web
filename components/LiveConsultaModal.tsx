@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlantDiagnosis } from './PlantDoctorSection';
-import { HeartbeatIcon, SparklesIcon, CameraIcon, XIcon } from './icons/Icons';
+import { HeartbeatIcon, SparklesIcon, XIcon } from './icons/Icons';
 
 interface LiveConsultaModalProps {
   diagnosis: PlantDiagnosis | null;
@@ -9,106 +9,148 @@ interface LiveConsultaModalProps {
 }
 
 export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis, imagePreview, onClose }) => {
-  const [status, setStatus] = useState<string>('Iniciando consulta en vivo con Dr. Planta...');
+  const [status, setStatus] = useState<string>('Iniciando consulta con Dr. Planta...');
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(180); // 3:00 minutes
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string>('Esperando voz...');
-  const [isListening, setIsListening] = useState<boolean>(false);
+  const [transcript, setTranscript] = useState<string>('Iniciando asistente de voz...');
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
 
-  const wsRef = useRef<WebSocket | null>(null);
   const recognitionRef = useRef<any | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
-  const isFallbackActiveRef = useRef<boolean>(false);
+  const isSpeakingRef = useRef<boolean>(false);
+  const isMountedRef = useRef<boolean>(true);
+  const lastSpokenTextRef = useRef<string>('');
 
-  const speakText = (text: string, onEnd?: () => void) => {
+  const speakText = (text: string, onReadyToListen?: () => void) => {
     if (!window.speechSynthesis) {
-      if (onEnd) onEnd();
+      if (onReadyToListen) onReadyToListen();
       return;
     }
+
+    // Stop recognition while speaking to prevent mic from picking up speaker audio (echo loop)
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+
     window.speechSynthesis.cancel();
+    isSpeakingRef.current = true;
+    lastSpokenTextRef.current = text.toLowerCase();
+    setStatus('Dr. Planta hablando...');
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-MX';
     utterance.rate = 1.0;
+
     utterance.onend = () => {
-      setStatus('Escuchando...');
-      if (onEnd) onEnd();
+      isSpeakingRef.current = false;
+      if (!isMountedRef.current || isMuted) return;
+      
+      // Short cooldown before listening again to clear audio echo
+      setTimeout(() => {
+        if (!isMountedRef.current || isMuted || isSpeakingRef.current) return;
+        setStatus('Escuchando...');
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.start();
+          } catch (e) {
+            // Already started or restarting
+          }
+        }
+        if (onReadyToListen) onReadyToListen();
+      }, 750);
     };
+
     utterance.onerror = () => {
+      isSpeakingRef.current = false;
+      if (!isMountedRef.current || isMuted) return;
       setStatus('Escuchando...');
-      if (onEnd) onEnd();
+      if (recognitionRef.current) {
+        try { recognitionRef.current.start(); } catch {}
+      }
+      if (onReadyToListen) onReadyToListen();
     };
+
     window.speechSynthesis.speak(utterance);
-    setStatus('Dr. Planta hablando...');
   };
 
-  const startFallbackVoiceAssistant = () => {
-    isFallbackActiveRef.current = true;
-    setStatus('Modo Voz HD Activo (Escuchando)');
-    setErrorMessage(null);
+  useEffect(() => {
+    isMountedRef.current = true;
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setErrorMessage('Tu navegador no soporta reconocimiento de voz nativo, pero puedes escuchar a Dr. Planta.');
-      speakText(diagnosis ? `Hola, soy Dr. Planta. Veo que tu planta es ${diagnosis.nombrePlanta} con estado ${diagnosis.estadoGeneral}. ¿Qué dudas tienes sobre su recuperación?` : "¡Hola! Soy Dr. Planta. ¿Cómo puedo ayudarte con tu jardín hoy?");
+      setStatus('Modo Lectura (Voz no soportada en este navegador)');
+      speakText(diagnosis ? `Hola, soy Dr. Planta. Analicemos tu ${diagnosis.nombrePlanta}.` : "¡Hola! Soy Dr. Planta de Suelo Urbano.");
       return;
     }
 
     try {
       const recognition = new SpeechRecognition();
       recognition.lang = 'es-MX';
-      recognition.continuous = true;
+      recognition.continuous = false; // Restart after each utterance for better turn-taking
       recognition.interimResults = false;
 
       recognition.onstart = () => {
-        setIsListening(true);
-        setStatus('Escuchando tu voz...');
+        if (!isSpeakingRef.current && !isMuted) {
+          setStatus('Escuchando...');
+        }
       };
 
       recognition.onresult = async (event: any) => {
+        if (isSpeakingRef.current || isMuted) return;
+
         const last = event.results.length - 1;
         const text = event.results[last][0].transcript.trim();
-        if (text) {
-          setTranscript(`Tú: "${text}"`);
-          setIsListening(false);
-          recognition.stop();
+        
+        if (!text || text.length < 2) return;
 
-          // Send to chat API
-          setStatus('Dr. Planta pensando...');
-          try {
-            const res = await fetch('/api/gemini/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: text,
-                systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. El usuario está en consulta de voz en vivo contigo. Contexto del diagnóstico actual: ${JSON.stringify(diagnosis)}. Responde de forma cálida, cercana, clara y práctica en español de México.`
-              })
-            });
-            const data = await res.json();
-            if (data.success && data.text) {
-              setTranscript(`Dr. Planta: "${data.text}"`);
-              speakText(data.text, () => {
-                try { recognition.start(); } catch {}
-              });
-            } else {
-              speakText("Entiendo. Te sugiero aplicar la emulsión Suelo Urbano para reactivar la microvida y ajustar el riego.");
-            }
-          } catch (e) {
-            speakText("Disculpa, tuve un pequeño problema de conexión, pero recuerda mantener el sustrato aireado y bien drenado.");
+        // Ignore if recognized text matches what Dr. Planta just said (echo prevention)
+        if (text.toLowerCase().includes(lastSpokenTextRef.current.slice(0, 15))) {
+          return;
+        }
+
+        setTranscript(`Tú: "${text}"`);
+        setStatus('Dr. Planta pensando...');
+
+        const newHistory = [...conversationHistory, { role: 'user', content: text }];
+        setConversationHistory(newHistory);
+
+        try {
+          const res = await fetch('/api/gemini/chat', {
+            model: 'gemini-3.8-flash',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              history: newHistory.slice(-6), // keep last 6 turns
+              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. Estás en una consulta de voz en vivo con un cliente. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde de forma sumamente breve (máximo 2 oraciones), práctica, cercana y en español de México.`
+            })
+          });
+          const data = await res.json();
+          if (data.success && data.text) {
+            setTranscript(`Dr. Planta: "${data.text}"`);
+            setConversationHistory(prev => [...prev, { role: 'model', content: data.text }]);
+            speakText(data.text);
+          } else {
+            speakText("Te sugiero aplicar la emulsión Suelo Urbano y asegurar un riego equilibrado.");
           }
+        } catch (e) {
+          speakText("Mantén el sustrato bien drenado y la corona visible. ¿Tienes otra duda?");
         }
       };
 
       recognition.onerror = (e: any) => {
-        console.warn('Speech recognition error:', e);
-        setIsListening(false);
+        console.warn('Speech recognition event error:', e);
       };
 
       recognition.onend = () => {
-        setIsListening(false);
-        if (isFallbackActiveRef.current && !isMuted) {
-          try { recognition.start(); } catch {}
+        if (!isMountedRef.current || isSpeakingRef.current || isMuted) return;
+        // Automatically restart listening if not speaking or muted
+        try {
+          recognition.start();
+        } catch (err) {
+          // Ignore if already started
         }
       };
 
@@ -116,110 +158,52 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       recognition.start();
 
       // Initial greeting
-      speakText(diagnosis ? `Hola, soy Dr. Planta. Analizamos tu ${diagnosis.nombrePlanta} y presenta ${diagnosis.estadoGeneral}. Te escucho, dime qué necesitas.` : "¡Hola! Soy Dr. Planta de Suelo Urbano. ¿En qué puedo ayudarte a mejorar tu jardín hoy?");
+      const initialGreeting = diagnosis 
+        ? `Hola, soy Dr. Planta. Veo tu ${diagnosis.nombrePlanta} con estado ${diagnosis.estadoGeneral}. ¿Qué te gustaría saber sobre su recuperación?`
+        : "¡Hola! Soy Dr. Planta de Suelo Urbano. ¿En qué puedo ayudarte con tu jardín hoy?";
+      
+      setTranscript(`Dr. Planta: "${initialGreeting}"`);
+      speakText(initialGreeting);
 
     } catch (e) {
-      console.warn('Could not start speech recognition:', e);
+      console.warn('Could not initialize SpeechRecognition:', e);
+      setStatus('Modo Asistente Activo');
+      speakText("¡Hola! Soy Dr. Planta. ¿Cómo puedo ayudarte?");
     }
-  };
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const startLiveSession = async () => {
-      try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/live`;
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-          if (!isMounted) return;
-          setStatus('Conectado en Vivo');
-          if (diagnosis) {
-            const contextMsg = `[Contexto de Consulta en Vivo]: El usuario está consultando sobre su planta: "${diagnosis.nombrePlanta}". Estado: "${diagnosis.estadoGeneral}". Diagnóstico: "${diagnosis.diagnosticoBreve}". Por favor salúdalo y ayúdale a recuperar su planta usando la emulsión Suelo Urbano.`;
-            ws.send(JSON.stringify({ text: contextMsg }));
-          } else {
-            ws.send(JSON.stringify({ text: "Hola Dr. Plant, inicie la consulta de bienvenida para mi planta." }));
-          }
-        };
-
-        ws.onmessage = (event) => {
-          if (!isMounted) return;
-          try {
-            const data = JSON.parse(event.data);
-            if (data.error) {
-              console.warn('Live WS error, falling back to Web Speech API:', data.error);
-              ws.close();
-              startFallbackVoiceAssistant();
-              return;
-            }
-            if (data.text) {
-              setTranscript(`Dr. Planta: "${data.text}"`);
-              speakText(data.text);
-            }
-          } catch (e) {
-            console.warn('Error parsing message:', e);
-          }
-        };
-
-        ws.onerror = () => {
-          if (!isMounted) return;
-          console.warn('WebSocket error, falling back to Web Speech API');
-          startFallbackVoiceAssistant();
-        };
-
-        ws.onclose = (event) => {
-          if (!isMounted) return;
-          if (event.code !== 1000 && !isFallbackActiveRef.current) {
-            startFallbackVoiceAssistant();
-          }
-        };
-
-      } catch (err) {
-        if (!isMounted) return;
-        startFallbackVoiceAssistant();
-      }
-
-      // Countdown Timer (3 minutes = 180 seconds)
-      timerIntervalRef.current = window.setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-            handleClose();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    };
-
-    startLiveSession();
+    // Countdown Timer (3 minutes = 180 seconds)
+    timerIntervalRef.current = window.setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+          handleClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
-      isMounted = false;
-      cleanup();
+      isMountedRef.current = false;
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
-  const cleanup = () => {
+  const handleClose = () => {
+    isMountedRef.current = false;
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    if (wsRef.current) {
-      try { wsRef.current.close(); } catch {}
-      wsRef.current = null;
-    }
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
     }
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
-    isFallbackActiveRef.current = false;
-  };
-
-  const handleClose = () => {
-    cleanup();
     onClose();
   };
 
@@ -229,6 +213,9 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
       setStatus('Micrófono silenciado');
       if (recognitionRef.current) {
         try { recognitionRef.current.stop(); } catch {}
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
       }
     } else {
       setStatus('Escuchando...');
@@ -275,13 +262,6 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
           {diagnosis ? `Planta: ${diagnosis.nombrePlanta}` : 'Asistente Botánico en Tiempo Real'}
         </p>
 
-        {/* Error banner if any */}
-        {errorMessage && (
-          <div className="mb-3 p-2.5 bg-rose-950/80 border border-rose-600/60 rounded-xl text-rose-200 text-xs font-medium">
-            ⚠️ {errorMessage}
-          </div>
-        )}
-
         {/* Visual Pulse Indicator */}
         <div className="relative my-4 flex items-center justify-center w-28 h-28">
           <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" style={{ animationDuration: '2s' }} />
@@ -296,7 +276,7 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
           <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-900/80 border border-emerald-500/50 text-emerald-300 text-xs font-bold uppercase tracking-wider shadow-inner mb-3">
             ● {status}
           </span>
-          <div className="bg-stone-950/80 border border-emerald-900/60 rounded-xl p-3 text-xs text-stone-200 min-h-[50px] flex items-center justify-center text-center font-medium">
+          <div className="bg-stone-950/80 border border-emerald-900/60 rounded-xl p-3 text-xs sm:text-sm text-stone-200 min-h-[60px] flex items-center justify-center text-center font-medium leading-relaxed">
             {transcript}
           </div>
           <p className="text-xs text-stone-400 font-mono mt-2">
