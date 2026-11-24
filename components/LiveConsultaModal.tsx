@@ -77,11 +77,9 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
             return;
           }
 
+          const currentHistory = conversationHistory;
           setTranscript(`Tú: "${text}"`);
           setStatus('Dr. Planta pensando...');
-
-          const newHistory = [...conversationHistory, { role: 'user', content: text }];
-          setConversationHistory(newHistory);
 
           try {
             const res = await fetch('/api/gemini/chat', {
@@ -89,14 +87,18 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 message: text,
-                history: newHistory.slice(-6),
+                history: currentHistory.slice(-6),
                 systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario sobre su planta. NUNCA des respuestas genéricas ni repitas frases predeterminadas. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 2 oraciones, de forma directa, cálida y en español de México.`
               })
             });
             const data = await res.json();
             if (data.success && data.text) {
               setTranscript(`Dr. Planta: "${data.text}"`);
-              setConversationHistory(prev => [...prev, { role: 'model', content: data.text }]);
+              setConversationHistory(prev => [
+                ...prev,
+                { role: 'user', content: text },
+                { role: 'model', content: data.text }
+              ]);
               speakText(data.text);
             } else {
               speakText("Por favor repíteme tu pregunta sobre la planta.");
