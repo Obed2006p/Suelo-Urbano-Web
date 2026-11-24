@@ -124,7 +124,7 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
             body: JSON.stringify({
               message: text,
               history: newHistory.slice(-6), // keep last 6 turns
-              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. Estás en una consulta de voz en vivo con un cliente. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde de forma sumamente breve (máximo 2 oraciones), práctica, cercana y en español de México.`
+              systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario (ej. si pregunta el nombre, di el nombre; si pregunta el riego, da el riego). NUNCA repitas frases predeterminadas ni consejos genéricos automáticos. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 2 oraciones, de forma práctica, cercana y en español de México.`
             })
           });
           const data = await res.json();
