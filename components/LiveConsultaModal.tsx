@@ -91,8 +91,14 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
                 systemInstruction: `Eres Dr. Planta, experto botánico y asistente de jardín para Suelo Urbano. REGLA ESTRICTA: Responde ÚNICAMENTE y de forma directa a la pregunta específica que acaba de hacer el usuario sobre su planta. NUNCA des respuestas genéricas ni repitas frases predeterminadas. Contexto del diagnóstico de su planta: ${JSON.stringify(diagnosis)}. Responde en máximo 2 oraciones, de forma directa, cálida y en español de México.`
               })
             });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || `Error HTTP ${res.status}`);
+            }
+
             const data = await res.json();
-            if (data.success && data.text) {
+            if (data && data.text) {
               setTranscript(`Dr. Planta: "${data.text}"`);
               setConversationHistory(prev => [
                 ...prev,
@@ -101,10 +107,13 @@ export const LiveConsultaModal: React.FC<LiveConsultaModalProps> = ({ diagnosis,
               ]);
               speakText(data.text);
             } else {
-              speakText("Por favor repíteme tu pregunta sobre la planta.");
+              throw new Error("No se obtuvo respuesta válida del servidor.");
             }
-          } catch (e) {
-            speakText("¿Podrías repetirme tu pregunta?");
+          } catch (e: any) {
+            console.error("Live Consulta Error:", e);
+            const errMessage = e?.message || String(e);
+            setTranscript(`Error técnico: ${errMessage}`);
+            speakText(`Error técnico: ${errMessage}`);
           }
         };
 

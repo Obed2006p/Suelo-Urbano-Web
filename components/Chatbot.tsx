@@ -264,6 +264,20 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
         setIsLoading(true);
 
         try {
+            let messagePayload: any = userText || "¿Qué puedes decirme de esta planta?";
+            if (currentFile) {
+                const imagePart = await fileToGenerativePart(currentFile);
+                messagePayload = [
+                    userText || "Analiza esta imagen y dime el diagnóstico y recomendaciones botánicas.",
+                    imagePart
+                ];
+            }
+
+            const validHistory = messages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'model',
+                content: msg.text || (msg.image ? "[Imagen enviada]" : "")
+            })).filter(h => h.content);
+
             // Enviar mensaje al servidor seguro con el historial y la instrucción de Dr. Plant
             const response = await fetch('/api/gemini/chat', {
                 method: 'POST',
@@ -289,15 +303,8 @@ const Chatbot: React.FC<ChatbotProps> = ({ isPremiumUnlocked = false, onUnlock }
 
         } catch (error: any) {
             console.error("Chat error:", error);
-            let errorMessage = "Lo siento, tuve un problema al procesar tu mensaje. Por favor intenta de nuevo. 🌱";
-            if (error?.message === "API_KEY no configurada") {
-                errorMessage = "Error: La API Key no está configurada. Añade VITE_API_KEY o GEMINI_API_KEY en las variables de entorno de Vercel y redespliega.";
-            } else if (error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand")) {
-                errorMessage = "El servicio de IA está experimentando alta demanda momentáneamente en los servidores de Google. Por favor, reenvía tu mensaje en un momento. 🌱";
-            } else if (error?.message) {
-                errorMessage = `Lo siento, tuve un problema: ${error.message} 🌱`;
-            }
-            setMessages(prev => [...prev, { text: errorMessage, sender: 'bot' }]);
+            const technicalErrorMsg = error?.message || String(error);
+            setMessages(prev => [...prev, { text: `Error técnico de chat: ${technicalErrorMsg}`, sender: 'bot' }]);
         } finally {
             setIsLoading(false);
         }

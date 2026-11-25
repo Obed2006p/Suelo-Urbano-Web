@@ -74,11 +74,11 @@ app.post('/api/gemini/diagnose', async (req: Request, res: Response) => {
     };
 
     const modelsToTry = [
+      { name: 'gemini-3.1-flash-lite', timeout: 40000 },
+      { name: 'gemini-3.8-flash', timeout: 45000 },
+      { name: 'gemini-flash-latest', timeout: 40000 },
       { name: 'gemini-4-argon', timeout: 45000 },
       { name: 'gemini-4-neon', timeout: 45000 },
-      { name: 'gemini-3.8-flash', timeout: 45000 },
-      { name: 'gemini-3.1-flash-lite', timeout: 40000 },
-      { name: 'gemini-flash-latest', timeout: 40000 },
     ];
 
     let diagnosisData: any = null;
